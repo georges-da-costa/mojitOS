@@ -37,6 +37,14 @@ const int nbzones = 3;
 const int rapl_zones[3] = { POWERCAP_RAPL_ZONE_PACKAGE,   POWERCAP_RAPL_ZONE_CORE,   POWERCAP_RAPL_ZONE_DRAM};
 
 #include "counters_option.h"
+
+void show_all_counters() {
+  for(int i=0; i<nb_counter_option;i++)
+    printf("%s\n", perf_static_info[i].name);
+  
+}
+
+
 int nb_perf = 5;
 int* perf_indexes=NULL;
 // const char* perf_names[5] = {"instructions", "cachemisses", "pagefaults", "branchmisses", "cachmiss"};
@@ -77,12 +85,13 @@ void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes) {
 }
 
 void usage(char** argv) {
-  printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-d network_device] [-o logfile] [-e command arguments...]\n", argv[0]);
+  printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-l] [-d network_device] [-o logfile] [-e command arguments...]\n", argv[0]);
   printf("if time==0 then loops infinitively\n");
   printf("if -e is present, time and freq are not used\n");
   printf("-r activates RAPL\n");
   printf("-p activates performance counters\n");
   printf("   perf_list is coma separated list of performance counters without space. Ex: instructions,cache_misses\n");
+  printf("-l lists the possible performance counters and quits\n");
   printf("-d activates network monitoring\n");
   printf("-s activates statistics of overhead in nanoseconds\n");
   exit(EXIT_SUCCESS);
@@ -121,7 +130,7 @@ int main(int argc, char **argv) {
   signal(15, flush);
   
   int c;
-  while ((c = getopt (argc, argv, "hftdeoprs")) != -1 && application==NULL)
+  while ((c = getopt (argc, argv, "lhftdeoprs")) != -1 && application==NULL)
     switch (c) {
     case 'f':
       frequency=atoi(argv[optind]);
@@ -154,6 +163,9 @@ int main(int argc, char **argv) {
     case 's':
       stat_mode=0;
       break;
+    case 'l':
+      show_all_counters();
+      exit(EXIT_SUCCESS);
     default:
       usage(argv);
     }
