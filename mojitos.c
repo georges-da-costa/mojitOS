@@ -235,7 +235,7 @@ int main(int argc, char **argv) {
       fprintf(output, "%s%u ", rapl->names[r], (unsigned int)r/rapl->nbzones);
 
   if(load_mode==0)
-    fprintf(output, "user nice system idle iowait irq softirq steal guest and guest_nice ");
+    fprintf(output, "user nice system idle iowait irq softirq steal guest guest_nice ");
   
   if(stat_mode==0)
     fprintf(output, "overhead ");
