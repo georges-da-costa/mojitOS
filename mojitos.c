@@ -31,6 +31,7 @@
 #include "counters.h"
 #include "rapl.h"
 #include "network.h"
+#include "load.h"
 
 int rapl_mode=-1;
 const int nbzones = 3;
@@ -84,8 +85,10 @@ void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes) {
   }
 }
 
+int load_mode = -1;
+
 void usage(char** argv) {
-  printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-l] [-d network_device] [-o logfile] [-e command arguments...]\n", argv[0]);
+  printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-l] [-u] [-d network_device] [-o logfile] [-e command arguments...]\n", argv[0]);
   printf("if time==0 then loops infinitively\n");
   printf("if -e is present, time and freq are not used\n");
   printf("-r activates RAPL\n");
@@ -94,6 +97,7 @@ void usage(char** argv) {
   printf("-l lists the possible performance counters and quits\n");
   printf("-d activates network monitoring\n");
   printf("-s activates statistics of overhead in nanoseconds\n");
+  printf("-u activates report of system load\n");
   exit(EXIT_SUCCESS);
 }
 
@@ -130,7 +134,7 @@ int main(int argc, char **argv) {
   signal(15, flush);
   
   int c;
-  while ((c = getopt (argc, argv, "lhftdeoprs")) != -1 && application==NULL)
+  while ((c = getopt (argc, argv, "lhftdeoprsu")) != -1 && application==NULL)
     switch (c) {
     case 'f':
       frequency=atoi(argv[optind]);
@@ -160,6 +164,9 @@ int main(int argc, char **argv) {
     case 'r':
       rapl_mode=0;
       break;
+    case 'u':
+      load_mode=0;
+      break;
     case 's':
       stat_mode=0;
       break;
@@ -181,6 +188,12 @@ int main(int argc, char **argv) {
   long long tmp_network_values[4]={0,0,0,0};
   get_network(network_values, network_sources);
 
+  // Load initialization
+  long long load_values[10]={0,0,0,0,0,0,0,0,0,0};
+  long long tmp_load_values[10]={0,0,0,0,0,0,0,0,0,0};
+  if(load_mode == 0)
+    get_load(load_values);
+  
   // RAPL initialization
   rapl_t rapl=NULL;
   size_t rapl_size=0;
@@ -221,6 +234,9 @@ int main(int argc, char **argv) {
     for (int r=0; r<rapl->nbpackages*rapl->nbzones; r++)
       fprintf(output, "%s%u ", rapl->names[r], (unsigned int)r/rapl->nbzones);
 
+  if(load_mode==0)
+    fprintf(output, "user nice system idle iowait irq softirq steal guest and guest_nice ");
+  
   if(stat_mode==0)
     fprintf(output, "overhead ");
   fprintf(output, "\n");
@@ -240,7 +256,9 @@ int main(int argc, char **argv) {
       get_network(tmp_network_values, network_sources);
     if(rapl_mode==0)
       get_rapl(tmp_rapl_values, rapl); 
-
+    if(load_mode==0)
+      get_load(tmp_load_values);
+    
     if(application != NULL) {
 
       if(fork()==0){
@@ -281,6 +299,10 @@ int main(int argc, char **argv) {
     if(rapl_mode==0)
       for (int r=0; r<rapl->nbpackages*rapl->nbzones; r++)
 	fprintf(output, "%ld ", tmp_rapl_values[r]-rapl_values[r]);
+    if(load_mode==0)
+      for(int i=0; i<10; i++)
+	fprintf(output, "%lld ", tmp_load_values[i]-load_values[i]);
+    
     if(stat_mode==0)
       fprintf(output, "%ld ", stat_data);
     
@@ -290,6 +312,8 @@ int main(int argc, char **argv) {
       break;
     if(rapl_mode==0)
       memcpy(rapl_values, tmp_rapl_values, rapl_size);
+    if(load_mode==0)
+      memcpy(load_values, tmp_load_values, sizeof(load_values));
     if(dev !=NULL)
       memcpy(network_values, tmp_network_values, sizeof(network_values));
     clock_gettime(CLOCK_MONOTONIC, &ts);
