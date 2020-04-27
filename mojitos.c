@@ -95,7 +95,7 @@ void usage(char** argv) {
   printf("-p activates performance counters\n");
   printf("   perf_list is coma separated list of performance counters without space. Ex: instructions,cache_misses\n");
   printf("-l lists the possible performance counters and quits\n");
-  printf("-d activates network monitoring\n");
+  printf("-d activates network monitoring (if network_device is X tries to detect it automatically)\n");
   printf("-s activates statistics of overhead in nanoseconds\n");
   printf("-u activates report of system load\n");
   exit(EXIT_SUCCESS);

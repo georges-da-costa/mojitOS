@@ -20,10 +20,22 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 char **init_network(char* dev) {
   if(dev==NULL)
     return NULL;
+
+  if(strcmp(dev,"X")==0) {
+    FILE* f = fopen("/proc/net/route", "r");
+    char buffer[1000];
+    fgets(buffer, 999, f);
+    fgets(buffer, 999, f);
+    char *end_of_dev = index(buffer, '\t');
+    *end_of_dev='\0';
+    dev = buffer;
+  }
+  
   char *filenames[] = {"/sys/class/net/%s/statistics/rx_packets",
 		       "/sys/class/net/%s/statistics/rx_bytes",
 		       "/sys/class/net/%s/statistics/tx_packets",
