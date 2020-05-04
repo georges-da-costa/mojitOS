@@ -30,6 +30,8 @@ struct _rapl_t {
 
 typedef struct _rapl_t* rapl_t;
 
-rapl_t init_rapl(const uint32_t nb_zones, const int *rapl_zones);
-void get_rapl(uint64_t *values, rapl_t rapl);
-void clean_rapl(rapl_t rapl);
+typedef struct _rapl_t _rapl_t;
+
+_rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones);
+void get_rapl(uint64_t *values, _rapl_t* rapl);
+void clean_rapl(_rapl_t* rapl);

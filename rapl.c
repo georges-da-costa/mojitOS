@@ -20,12 +20,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "rapl.h"
 
 #define MAX_LEN_NAME 100
-rapl_t init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
+_rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
   // get number of processor sockets
-  rapl_t rapl = malloc(sizeof(struct _rapl_t));
+  _rapl_t* rapl = malloc(sizeof(struct _rapl_t));
   rapl->nbzones = nb_zones;
   rapl->zones = rapl_zones;
 
@@ -41,12 +43,15 @@ rapl_t init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
       exit(-1);
     }
 
-  rapl->names = malloc(sizeof(char*)* rapl->nbzones*rapl->nbpackages);
+  rapl->names = malloc(sizeof(char*) * (rapl->nbzones) * (rapl->nbpackages) );
+  char _name[MAX_LEN_NAME+1];
+
   for (int package = 0; package < rapl->nbpackages; package++) {
     for(int zone=0; zone<rapl->nbzones; zone++) {
-      rapl->names[package*rapl->nbzones+zone]=malloc(MAX_LEN_NAME);
       powercap_rapl_get_name(&rapl->pkgs[package], rapl_zones[zone],
-			     rapl->names[package*rapl->nbzones+zone], MAX_LEN_NAME);
+			     _name, MAX_LEN_NAME);
+      rapl->names[package*rapl->nbzones+zone] = malloc(sizeof(char) * (strlen(_name)+1));
+      strcpy(rapl->names[package*rapl->nbzones+zone], _name);
     }
   }
   return rapl;
@@ -55,7 +60,7 @@ rapl_t init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
 
 
 // values [zone + package *nbzones] microjoules
-void get_rapl(uint64_t *values, rapl_t rapl) {
+void get_rapl(uint64_t *values, _rapl_t* rapl) {
   for (int package = 0; package < rapl->nbpackages; package++) {
     for(int zone=0; zone<rapl->nbzones; zone++) {
       powercap_rapl_get_energy_uj(&rapl->pkgs[package], rapl->zones[zone], &values[package*rapl->nbzones+zone]);
@@ -63,7 +68,7 @@ void get_rapl(uint64_t *values, rapl_t rapl) {
   }
 }
 
-void clean_rapl(rapl_t rapl) {
+void clean_rapl(_rapl_t* rapl) {
   for (int package = 0; package < rapl->nbpackages; package++) {
     if (powercap_rapl_destroy(&rapl->pkgs[package]))
       perror("powercap_rapl_destroy");

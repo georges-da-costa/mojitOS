@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
     get_load(load_values);
   
   // RAPL initialization
-  rapl_t rapl=NULL;
+  _rapl_t* rapl=NULL;
   size_t rapl_size=0;
   uint64_t * rapl_values=NULL;
   uint64_t * tmp_rapl_values=NULL;
@@ -218,8 +218,10 @@ int main(int argc, char **argv) {
     rapl = init_rapl(nbzones, rapl_zones);
     // prepare rapl data stores
     rapl_size = rapl->nbpackages*rapl->nbzones * sizeof(uint64_t);
-    rapl_values = malloc(rapl_size);
-    tmp_rapl_values = malloc(rapl_size);
+    //rapl_values = malloc(rapl_size);
+    rapl_values = calloc(sizeof(char), rapl_size);
+    //tmp_rapl_values = malloc(rapl_size);
+    tmp_rapl_values = calloc(sizeof(char), rapl_size);
     // initialize with dummy values
     get_rapl(rapl_values, rapl);
   }
