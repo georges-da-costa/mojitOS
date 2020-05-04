@@ -31,6 +31,7 @@
 #include "counters.h"
 #include "rapl.h"
 #include "network.h"
+#include "infiniband.h"
 #include "load.h"
 
 int rapl_mode=-1;
@@ -88,14 +89,15 @@ void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes) {
 int load_mode = -1;
 
 void usage(char** argv) {
-  printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-l] [-u] [-d network_device] [-o logfile] [-e command arguments...]\n", argv[0]);
+  printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-l] [-u] [-d network_device] [-i infiniband_path] [-o logfile] [-e command arguments...]\n", argv[0]);
   printf("if time==0 then loops infinitively\n");
   printf("if -e is present, time and freq are not used\n");
   printf("-r activates RAPL\n");
   printf("-p activates performance counters\n");
   printf("   perf_list is coma separated list of performance counters without space. Ex: instructions,cache_misses\n");
   printf("-l lists the possible performance counters and quits\n");
-  printf("-d activates network monitoring (if network_device is X tries to detect it automatically)\n");
+  printf("-d activates network monitoring (if network_device is X, tries to detect it automatically)\n");
+  printf("-i activates infiniband monitoring (if infiniband_path is X, tries to detect it automatically)\n");
   printf("-s activates statistics of overhead in nanoseconds\n");
   printf("-u activates report of system load\n");
   exit(EXIT_SUCCESS);
@@ -123,6 +125,7 @@ int main(int argc, char **argv) {
   int delta=0;
   int frequency=1;
   char *dev = NULL;
+  char *infi_path = NULL;
   char **application = NULL;
 
   if(argc==1)
@@ -134,7 +137,7 @@ int main(int argc, char **argv) {
   signal(15, flush);
   
   int c;
-  while ((c = getopt (argc, argv, "lhftdeoprsu")) != -1 && application==NULL)
+  while ((c = getopt (argc, argv, "ilhftdeoprsu")) != -1 && application==NULL)
     switch (c) {
     case 'f':
       frequency=atoi(argv[optind]);
@@ -149,6 +152,9 @@ int main(int argc, char **argv) {
       break;
     case 'd':
       dev = argv[optind];
+      break;
+    case 'i':
+      infi_path = argv[optind];
       break;
     case 'o':
       output = fopen(argv[optind],"wb");
@@ -188,6 +194,13 @@ int main(int argc, char **argv) {
   long long tmp_network_values[4]={0,0,0,0};
   get_network(network_values, network_sources);
 
+  char ** infiniband_sources = NULL;
+  if(infi_path != NULL)
+    infiniband_sources = init_infiniband(infi_path);
+  long long infiniband_values[4]={0,0,0,0};
+  long long tmp_infiniband_values[4]={0,0,0,0};
+  get_network(infiniband_values, infiniband_sources);
+  
   // Load initialization
   long long load_values[10]={0,0,0,0,0,0,0,0,0,0};
   long long tmp_load_values[10]={0,0,0,0,0,0,0,0,0,0};
@@ -229,6 +242,8 @@ int main(int argc, char **argv) {
       fprintf(output, "%s ", perf_static_info[perf_indexes[i]].name);
   if(dev!=NULL)
     fprintf(output, "rxp rxb txp txb ");
+  if(infi_path!=NULL)
+    fprintf(output, "irxp irxb itxp itxb ");
 
   if(rapl_mode==0)
     for (int r=0; r<rapl->nbpackages*rapl->nbzones; r++)
@@ -254,6 +269,9 @@ int main(int argc, char **argv) {
       get_counters(fd, counter_values);
     if(dev != NULL)
       get_network(tmp_network_values, network_sources);
+    if(infi_path != NULL)
+      get_network(tmp_infiniband_values, infiniband_sources);
+
     if(rapl_mode==0)
       get_rapl(tmp_rapl_values, rapl); 
     if(load_mode==0)
@@ -296,6 +314,9 @@ int main(int argc, char **argv) {
     if(dev != NULL)
       for(int i=0; i<4; i++)
 	fprintf(output, "%lld ", tmp_network_values[i]-network_values[i]);
+    if(infi_path != NULL)
+      for(int i=0; i<4; i++)
+	fprintf(output, "%lld ", tmp_infiniband_values[i]-infiniband_values[i]);
     if(rapl_mode==0)
       for (int r=0; r<rapl->nbpackages*rapl->nbzones; r++)
 	fprintf(output, "%ld ", tmp_rapl_values[r]-rapl_values[r]);
@@ -316,6 +337,8 @@ int main(int argc, char **argv) {
       memcpy(load_values, tmp_load_values, sizeof(load_values));
     if(dev !=NULL)
       memcpy(network_values, tmp_network_values, sizeof(network_values));
+    if(infi_path !=NULL)
+      memcpy(infiniband_values, tmp_infiniband_values, sizeof(infiniband_values));
     clock_gettime(CLOCK_MONOTONIC, &ts);
     usleep(1000*1000/frequency-(ts.tv_nsec/1000)%(1000*1000/frequency));
   }
@@ -327,6 +350,8 @@ int main(int argc, char **argv) {
   }
   if(dev!=NULL)
     clean_network(network_sources);
+  if(infi_path!=NULL)
+    clean_network(infiniband_sources);
   if(perf_mode==0){
     clean_counters(fd);
     free(counter_values);
