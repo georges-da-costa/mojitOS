@@ -10,21 +10,21 @@ mojitos_group: $(OBJECTS_GRP) counters_option.h
 	gcc $(DEBUG) -O3 -Wall -o mojitos_group $(OBJECTS_GRP) -lpowercap
 
 counters_%.o: counters_%.c counters.h
-	gcc -c -O3 -Wall $< -o $@
+	gcc $(DEBUG) -c -O3 -Wall $< -o $@
 
 counters_option.h: counters_option.py
 	./counters_option.py > counters_option.h
 
 
 mojitos.o: mojitos.c counters_option.h
-	gcc -c -O3 -Wall $< -o $@
+	gcc $(DEBUG) -c -O3 -Wall $< -o $@
 
-debug: DEBUG = -DDEBUG
+debug: DEBUG = -DDEBUG -g
 
 debug: all
 
 %.o : %.c %.h
-	gcc -c -O3 -Wall $< -o $@
+	gcc $(DEBUG) -c -O3 -Wall $< -o $@
 
 clean:
 	\rm -f *~ *.o mojitos_group mojitos counters_option.h

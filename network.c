@@ -34,6 +34,7 @@ char **init_network(char* dev) {
     char *end_of_dev = index(buffer, '\t');
     *end_of_dev='\0';
     dev = buffer;
+    fclose(f);
   }
   
   char *filenames[] = {"/sys/class/net/%s/statistics/rx_packets",
