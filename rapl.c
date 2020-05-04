@@ -56,7 +56,7 @@ _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
 			     _name, MAX_LEN_NAME);
       if (a>0) {
 
-	sprintf(_name2, "%s%u ", _name, package);
+	sprintf(_name2, "%s%u", _name, package);
 
 	rapl->nb++;
 	rapl->names = realloc(rapl->names, sizeof(char*)*rapl->nb);
