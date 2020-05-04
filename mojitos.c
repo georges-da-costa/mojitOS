@@ -197,6 +197,8 @@ int main(int argc, char **argv) {
   char ** infiniband_sources = NULL;
   if(infi_path != NULL)
     infiniband_sources = init_infiniband(infi_path);
+  if(infiniband_sources == NULL)
+    infi_path = NULL;
   long long infiniband_values[4]={0,0,0,0};
   long long tmp_infiniband_values[4]={0,0,0,0};
   get_network(infiniband_values, infiniband_sources);

@@ -33,7 +33,8 @@ char **init_infiniband(char* infi_path) {
     glob_t res;
   
     glob("/sys/class/infiniband/*/ports/*/counters/", 0, NULL, &res);
-
+    if(res.gl_pathc == 0)
+      return NULL;
     infi_path = res.gl_pathv[0];
   }
   
