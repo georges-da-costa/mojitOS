@@ -22,13 +22,14 @@
 
 struct _rapl_t {
   powercap_rapl_pkg* pkgs;
-  uint32_t nbpackages;
-  uint32_t nbzones;
-  char **names;
-  const int* zones;
-};
+  uint32_t nb_pkgs;
+  
+  uint32_t nb;
 
-typedef struct _rapl_t* rapl_t;
+  char **names;
+  uint32_t* zones;
+  uint32_t* packages;
+};
 
 typedef struct _rapl_t _rapl_t;
 

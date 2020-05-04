@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
   if(rapl_mode==0) {
     rapl = init_rapl(nbzones, rapl_zones);
     // prepare rapl data stores
-    rapl_size = rapl->nbpackages*rapl->nbzones * sizeof(uint64_t);
+    rapl_size = rapl->nb * sizeof(uint64_t);
     //rapl_values = malloc(rapl_size);
     rapl_values = calloc(sizeof(char), rapl_size);
     //tmp_rapl_values = malloc(rapl_size);
@@ -250,8 +250,8 @@ int main(int argc, char **argv) {
     fprintf(output, "irxp irxb itxp itxb ");
 
   if(rapl_mode==0)
-    for (int r=0; r<rapl->nbpackages*rapl->nbzones; r++)
-      fprintf(output, "%s%u ", rapl->names[r], (unsigned int)r/rapl->nbzones);
+    for (int r=0; r<rapl->nb; r++)
+      fprintf(output, "%s ", rapl->names[r]);
 
   if(load_mode==0)
     fprintf(output, "user nice system idle iowait irq softirq steal guest guest_nice ");
@@ -322,7 +322,7 @@ int main(int argc, char **argv) {
       for(int i=0; i<4; i++)
 	fprintf(output, "%lld ", tmp_infiniband_values[i]-infiniband_values[i]);
     if(rapl_mode==0)
-      for (int r=0; r<rapl->nbpackages*rapl->nbzones; r++)
+      for (int r=0; r<rapl->nb; r++)
 	fprintf(output, "%ld ", tmp_rapl_values[r]-rapl_values[r]);
     if(load_mode==0)
       for(int i=0; i<10; i++)
@@ -359,6 +359,9 @@ int main(int argc, char **argv) {
   if(perf_mode==0){
     clean_counters(fd);
     free(counter_values);
+    free(perf_type);
+    free(perf_key);
+    free(perf_indexes);
   }
 }
 

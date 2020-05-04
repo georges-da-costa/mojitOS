@@ -28,30 +28,47 @@
 _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
   // get number of processor sockets
   _rapl_t* rapl = malloc(sizeof(struct _rapl_t));
-  rapl->nbzones = nb_zones;
-  rapl->zones = rapl_zones;
+  rapl->nb = 0;
+  rapl->packages = NULL;
+  rapl->zones = NULL;
 
-  rapl->nbpackages = powercap_rapl_get_num_packages();
-  if (rapl->nbpackages == 0) {
+  rapl->nb_pkgs = powercap_rapl_get_num_packages();
+  if (rapl->nb_pkgs == 0) {
     perror("no packages found (maybe the kernel module isn't loaded?)");
     exit(-1);
   }
-  rapl->pkgs = malloc(rapl->nbpackages * sizeof(powercap_rapl_pkg));  
-  for (int package = 0; package < rapl->nbpackages; package++)
+  rapl->pkgs = malloc(rapl->nb_pkgs * sizeof(powercap_rapl_pkg));  
+  for (int package = 0; package < rapl->nb_pkgs; package++)
     if (powercap_rapl_init(package, &rapl->pkgs[package], 0)) {
       perror("powercap_rapl_init, check access (root needed ?)");
       exit(-1);
     }
 
-  rapl->names = malloc(sizeof(char*) * (rapl->nbzones) * (rapl->nbpackages) );
+  printf("%d %d\n\n", nb_zones, rapl->nb_pkgs);
+  rapl->names = NULL;
+    
   char _name[MAX_LEN_NAME+1];
+  char _name2[MAX_LEN_NAME+10];
 
-  for (int package = 0; package < rapl->nbpackages; package++) {
-    for(int zone=0; zone<rapl->nbzones; zone++) {
-      powercap_rapl_get_name(&rapl->pkgs[package], rapl_zones[zone],
+  for (unsigned int package = 0; package < rapl->nb_pkgs; package++) {
+    for(unsigned int zone=0; zone < nb_zones; zone++) {
+      int a=powercap_rapl_get_name(&rapl->pkgs[package], rapl_zones[zone],
 			     _name, MAX_LEN_NAME);
-      rapl->names[package*rapl->nbzones+zone] = malloc(sizeof(char) * (strlen(_name)+1));
-      strcpy(rapl->names[package*rapl->nbzones+zone], _name);
+      if (a>0) {
+
+	sprintf(_name2, "%s%u ", _name, package);
+
+	rapl->nb++;
+	rapl->names = realloc(rapl->names, sizeof(char*)*rapl->nb);
+	rapl->names[rapl->nb-1] = malloc(sizeof(char) * (strlen(_name2)+1));
+	rapl->zones = realloc(rapl->zones, sizeof(uint32_t)*rapl->nb);
+	rapl->packages = realloc(rapl->packages, sizeof(uint32_t)*rapl->nb);
+	
+	strcpy(rapl->names[rapl->nb-1], _name2);
+	rapl->zones[rapl->nb-1] = zone;
+	rapl->packages[rapl->nb-1] = package;
+      }
+      printf("%d %d %d %s\n\n", a, package, zone, _name2);
     }
   }
   return rapl;
@@ -61,21 +78,23 @@ _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
 
 // values [zone + package *nbzones] microjoules
 void get_rapl(uint64_t *values, _rapl_t* rapl) {
-  for (int package = 0; package < rapl->nbpackages; package++) {
-    for(int zone=0; zone<rapl->nbzones; zone++) {
-      powercap_rapl_get_energy_uj(&rapl->pkgs[package], rapl->zones[zone], &values[package*rapl->nbzones+zone]);
-    }
+  for (int i = 0; i < rapl->nb; i++) {
+    powercap_rapl_get_energy_uj(&rapl->pkgs[rapl->packages[i]],
+				rapl->zones[i],
+				&values[i]);
   }
 }
 
 void clean_rapl(_rapl_t* rapl) {
-  for (int package = 0; package < rapl->nbpackages; package++) {
+  for (int package = 0; package < rapl->nb_pkgs; package++)
     if (powercap_rapl_destroy(&rapl->pkgs[package]))
       perror("powercap_rapl_destroy");
-    for (int zone=0; zone<rapl->nbzones; zone++) 
-      free(rapl->names[package*rapl->nbzones+zone]);
-  }
+  for (int elem=0; elem<rapl->nb; elem++) 
+      free(rapl->names[elem]);
+  
   free(rapl->names);
   free(rapl->pkgs);
+  free(rapl->zones);
+  free(rapl->packages);
   free(rapl);
 }
