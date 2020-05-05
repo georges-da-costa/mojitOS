@@ -44,7 +44,6 @@ _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
       exit(-1);
     }
 
-  printf("%d %d\n\n", nb_zones, rapl->nb_pkgs);
   rapl->names = NULL;
     
   char _name[MAX_LEN_NAME+1];
@@ -52,9 +51,9 @@ _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
 
   for (unsigned int package = 0; package < rapl->nb_pkgs; package++) {
     for(unsigned int zone=0; zone < nb_zones; zone++) {
-      int a=powercap_rapl_get_name(&rapl->pkgs[package], rapl_zones[zone],
+      int length=powercap_rapl_get_name(&rapl->pkgs[package], rapl_zones[zone],
 			     _name, MAX_LEN_NAME);
-      if (a>0) {
+      if (length>0) {
 
 	sprintf(_name2, "%s%u", _name, package);
 
@@ -65,11 +64,11 @@ _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
 	rapl->packages = realloc(rapl->packages, sizeof(uint32_t)*rapl->nb);
 	
 	strcpy(rapl->names[rapl->nb-1], _name2);
-	rapl->zones[rapl->nb-1] = zone;
+	rapl->zones[rapl->nb-1] = rapl_zones[zone];
 	rapl->packages[rapl->nb-1] = package;
       }
 #ifdef DEBUG
-      printf("%d %d %d %s\n\n", a, package, zone, _name2);
+      printf("%d %d %d %d %s\n\n", length, package, zone, rapl_zones[zone], _name2);
 #endif
     }
   }
@@ -86,7 +85,10 @@ _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
 // values [zone + package *nbzones] microjoules
 void get_rapl(uint64_t *values, _rapl_t* rapl) {
   for (int i = 0; i < rapl->nb; i++) {
-    int ret = powercap_rapl_get_energy_uj(&rapl->pkgs[rapl->packages[i]],
+#ifdef DEBUG
+    int ret =
+#endif
+      powercap_rapl_get_energy_uj(&rapl->pkgs[rapl->packages[i]],
 				rapl->zones[i],
 				&values[i]);
 #ifdef DEBUG
