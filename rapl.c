@@ -76,7 +76,7 @@ _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
 #ifdef DEBUG
   printf("Result of init\n");
   for(int i=0; i<rapl->nb; i++)
-    printf("package %d, zone %d, name %s\n", rapl->zones[i], rapl->packages[i], rapl->names[i]);
+    printf("package %d, zone %d, name %s\n", rapl->packages[i], rapl->zones[i], rapl->names[i]);
 #endif
   return rapl;
 }
@@ -86,9 +86,12 @@ _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
 // values [zone + package *nbzones] microjoules
 void get_rapl(uint64_t *values, _rapl_t* rapl) {
   for (int i = 0; i < rapl->nb; i++) {
-    powercap_rapl_get_energy_uj(&rapl->pkgs[rapl->packages[i]],
+    int ret = powercap_rapl_get_energy_uj(&rapl->pkgs[rapl->packages[i]],
 				rapl->zones[i],
 				&values[i]);
+#ifdef DEBUG
+    printf("GETRAPL: package %d, zone %d, name %s, ret: %d\n", rapl->packages[i], rapl->zones[i], rapl->names[i], ret);
+#endif
   }
 }
 
