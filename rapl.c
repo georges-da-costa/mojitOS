@@ -68,9 +68,16 @@ _rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
 	rapl->zones[rapl->nb-1] = zone;
 	rapl->packages[rapl->nb-1] = package;
       }
+#ifdef DEBUG
       printf("%d %d %d %s\n\n", a, package, zone, _name2);
+#endif
     }
   }
+#ifdef DEBUG
+  printf("Result of init\n");
+  for(int i=0; i<rapl->nb; i++)
+    printf("package %d, zone %d, name %s\n", rapl->zones[i], rapl->packages[i], rapl->names[i]);
+#endif
   return rapl;
 }
 
