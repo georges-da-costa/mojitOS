@@ -27,6 +27,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
+#include <inttypes.h>
 
 #include "counters.h"
 #include "rapl.h"
@@ -323,7 +324,7 @@ int main(int argc, char **argv) {
 	fprintf(output, "%lld ", tmp_infiniband_values[i]-infiniband_values[i]);
     if(rapl_mode==0)
       for (int r=0; r<rapl->nb; r++)
-	fprintf(output, "%ld ", tmp_rapl_values[r]-rapl_values[r]);
+	fprintf(output, "%" PRIu64 " ", tmp_rapl_values[r]-rapl_values[r]);
     if(load_mode==0)
       for(int i=0; i<10; i++)
 	fprintf(output, "%lld ", tmp_load_values[i]-load_values[i]);
