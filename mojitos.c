@@ -207,8 +207,10 @@ int main(int argc, char **argv) {
   // Load initialization
   long long load_values[10]={0,0,0,0,0,0,0,0,0,0};
   long long tmp_load_values[10]={0,0,0,0,0,0,0,0,0,0};
-  if(load_mode == 0)
+  if(load_mode == 0) {
+    init_load();
     get_load(load_values);
+  }
   
   // RAPL initialization
   _rapl_t* rapl=NULL;
@@ -353,6 +355,8 @@ int main(int argc, char **argv) {
     free(rapl_values);
     free(tmp_rapl_values);
   }
+  if(load_mode == 0)
+    clean_load();
   if(dev!=NULL)
     clean_network(network_sources);
   if(infi_path!=NULL)

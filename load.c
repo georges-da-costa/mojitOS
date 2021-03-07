@@ -17,16 +17,21 @@
     along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
 
  *******************************************************/
-#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <stdlib.h>
 
 #define LOAD_BUFFER_SIZE 1024
 char buffer[LOAD_BUFFER_SIZE];
 
+static int load_fid=-1;
+
+void init_load() {
+  load_fid = open("/proc/stat", O_RDONLY);
+}
+
 void get_load(long long* results) {
-  FILE* f = fopen("/proc/stat", "rb");
-  fgets(buffer, LOAD_BUFFER_SIZE, f);
-  fclose(f);
+  pread(load_fid, buffer, LOAD_BUFFER_SIZE-1, 0);
   int pos=0;
   while(buffer[pos] > '9' || buffer[pos] < '0') pos++;
   for(int i=0; i<10; i++) {
@@ -35,3 +40,8 @@ void get_load(long long* results) {
     pos++;
   }
 }
+
+void clean_load() {
+  close(load_fid);
+}
+

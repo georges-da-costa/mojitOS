@@ -18,4 +18,6 @@
 
  *******************************************************/
 
+void init_load();
 void get_load(long long* results);
+void clean_load();
