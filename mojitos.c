@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
 
 
   // Network initialization
-  char ** network_sources = NULL;
+  int *network_sources = NULL;
   if(dev != NULL)
     network_sources = init_network(dev);
   long long network_values[4]={0,0,0,0};

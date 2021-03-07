@@ -19,4 +19,4 @@
  *******************************************************/
 
 
-char **init_infiniband(char* infi_path);
+int *init_infiniband(char* infi_path);

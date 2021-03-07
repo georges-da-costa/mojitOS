@@ -18,6 +18,6 @@
 
  *******************************************************/
 
-char **init_network(char* dev);
-void get_network(long long* results, char** sources);
-void clean_network(char **sources);
+int *init_network(char* dev);
+void get_network(long long* results, int * sources);
+void clean_network(int *sources);

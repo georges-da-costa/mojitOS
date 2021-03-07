@@ -17,14 +17,14 @@
     along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
 
  *******************************************************/
-
-#include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <glob.h>
 
-char **init_infiniband(char* infi_path) {
+int *init_infiniband(char* infi_path) {
   if(infi_path==NULL)
     return NULL;
 
@@ -42,10 +42,11 @@ char **init_infiniband(char* infi_path) {
 		       "%s/port_rcv_data",
 		       "%s/port_xmit_packets",
 		       "%s/port_xmit_data"};
-  char** sources = malloc(sizeof(char*)*4);
+  int* sources = malloc(sizeof(int)*4);
+  char buffer[1024];
   for(int i=0; i<4; i++) {
-    sources[i] = malloc(200);
-    sprintf(sources[i], filenames[i], infi_path);
+    sprintf(buffer, filenames[i], infi_path);
+    sources[i] = open(buffer, O_RDONLY);
   }
 
   return sources;

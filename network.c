@@ -17,53 +17,55 @@
     along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
 
  *******************************************************/
-
-#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
-char **init_network(char* dev) {
+int *init_network(char* dev) {
   if(dev==NULL)
     return NULL;
 
   if(strcmp(dev,"X")==0) {
-    FILE* f = fopen("/proc/net/route", "r");
+    int f = open("/proc/net/route", O_RDONLY);
     char buffer[1000];
-    fgets(buffer, 999, f);
-    fgets(buffer, 999, f);
-    char *end_of_dev = index(buffer, '\t');
+    read(f, buffer, 999);
+    char *start_of_dev = index(buffer, '\n')+1;
+    char *end_of_dev = index(start_of_dev, '\t');
     *end_of_dev='\0';
-    dev = buffer;
-    fclose(f);
+    dev = start_of_dev;
+    close(f);
   }
   
   char *filenames[] = {"/sys/class/net/%s/statistics/rx_packets",
 		       "/sys/class/net/%s/statistics/rx_bytes",
 		       "/sys/class/net/%s/statistics/tx_packets",
 		       "/sys/class/net/%s/statistics/tx_bytes"};
-  char** sources = malloc(sizeof(char*)*4);
+  int* sources = malloc(sizeof(int)*4);
+  char buffer2[256];
   for(int i=0; i<4; i++) {
-    sources[i] = malloc(200);
-    sprintf(sources[i], filenames[i], dev);
+    sprintf(buffer2, filenames[i], dev);
+    sources[i] = open(buffer2, O_RDONLY);
   }
 
   return sources;
 }
 
-void get_network(long long* results, char** sources) {
+void get_network(long long* results, int *sources) {
   if(sources==NULL)
     return;
+  char buffer[128];
   for(int i=0; i<4; i++){
-    FILE* f = fopen(sources[i], "rb");
-    fscanf(f, "%lld", &results[i]);
-    fclose(f);
+    pread(sources[i], buffer, 127, 0);
+    results[i] = atoll(buffer);
   }
 }
 
-void clean_network(char **sources) {
+void clean_network(int *sources) {
   if(sources==NULL)
     return;
   for(int i=0;i<4;i++)
-    free(sources[i]);
+    close(sources[i]);
   free(sources);
 }    
