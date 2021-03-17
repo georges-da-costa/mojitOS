@@ -35,7 +35,6 @@
 #include "infiniband.h"
 #include "load.h"
 
-int rapl_mode=-1;
 const int nbzones = 3;
 const int rapl_zones[3] = { POWERCAP_RAPL_ZONE_PACKAGE,   POWERCAP_RAPL_ZONE_CORE,   POWERCAP_RAPL_ZONE_DRAM};
 
@@ -56,7 +55,6 @@ int* perf_indexes=NULL;
 //			   PERF_COUNT_SW_PAGE_FAULTS,PERF_COUNT_HW_BRANCH_MISSES,
 //			   PERF_COUNT_HW_CACHE_LL};
 
-int perf_mode=-1;
 void perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb){
   *perf_type = malloc(nb*sizeof(__u32));
   *perf_key  = malloc(nb*sizeof(__u64));
@@ -87,8 +85,6 @@ void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes) {
   }
 }
 
-int load_mode = -1;
-
 void usage(char** argv) {
   printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-l] [-u] [-c] [-d network_device] [-i infiniband_path] [-o logfile] [-e command arguments...]\n", argv[0]);
   printf("if time==0 then loops infinitively\n");
@@ -105,17 +101,14 @@ void usage(char** argv) {
   exit(EXIT_SUCCESS);
 }
 
-void sighandler(int truc) {
+void sighandler(int none) {
 }
 
-int stat_mode=-1;
-
-void flush(int truc) {
+void flush(int none) {
   exit(0);
 }
 
 FILE *output;
-
 void flushexit() {
   fflush(output);
   fclose(output);
@@ -129,6 +122,11 @@ int main(int argc, char **argv) {
   char *dev = NULL;
   char *infi_path = NULL;
   char **application = NULL;
+
+  int rapl_mode = -1;
+  int perf_mode = -1;
+  int load_mode = -1;
+  int stat_mode = -1;
 
   if(argc==1)
     usage(argv);
