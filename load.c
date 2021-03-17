@@ -43,7 +43,7 @@ void _get_load(uint64_t* results) {
 
 // Public interface
 
-unsigned int init_load(void **state) {
+unsigned int init_load(char* argument, void **state) {
   load_fid = open("/proc/stat", O_RDONLY);
   _get_load(load_values);
   return 10;

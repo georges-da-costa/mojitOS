@@ -111,7 +111,7 @@ void flushexit() {
   fclose(output);
 }
 
-typedef unsigned int (initializer_t)(void **);
+typedef unsigned int (initializer_t)(char*, void **);
 typedef void (labeler_t)(char **);
 typedef unsigned int (*getter_t)(uint64_t*, void*);
 typedef void (*cleaner_t)(void*);
@@ -125,7 +125,7 @@ unsigned int nb_sensors=0;
 char **labels=NULL;
 uint64_t *values=NULL;
 
-void add_source(initializer_t init, labeler_t labeler,
+void add_source(initializer_t init, char* arg, labeler_t labeler,
 		getter_t get, cleaner_t clean) {
     nb_sources++;
     states = realloc(states, nb_sources*sizeof(void*));
@@ -133,7 +133,7 @@ void add_source(initializer_t init, labeler_t labeler,
     getter[nb_sources-1] = get;
     cleaner = realloc(cleaner, nb_sources*sizeof(void*));
     cleaner[nb_sources-1] = clean;
-    int nb = init(&states[nb_sources-1]);
+    int nb = init(arg, &states[nb_sources-1]);
 
     labels = realloc(labels, (nb_sensors+nb)*sizeof(char*));
     labeler(labels+nb_sensors);
@@ -152,7 +152,6 @@ int main(int argc, char **argv) {
 
   int rapl_mode = -1;
   int perf_mode = -1;
-  int load_mode = -1;
   int stat_mode = -1;
 
   if(argc==1)
@@ -198,7 +197,7 @@ int main(int argc, char **argv) {
       rapl_mode=0;
       break;
     case 'u':
-      load_mode=0;
+      add_source(init_load, NULL, label_load, get_load, clean_load);
       break;
     case 's':
       stat_mode=0;
@@ -210,9 +209,6 @@ int main(int argc, char **argv) {
       usage(argv);
     }
   
-  // Load initialization
-  if(load_mode == 0)
-    add_source(init_load, label_load, get_load, clean_load);
   
   // Network initialization
   int *network_sources = NULL;
@@ -388,8 +384,7 @@ int main(int argc, char **argv) {
   }
   for(int i=0; i<nb_sources;i++)
     cleaner[i](states[i]);
-  //  if(load_mode == 0)
-  //    clean_load(load_state);
+
   if(dev!=NULL)
     clean_network(network_sources);
   if(infi_path!=NULL)
