@@ -90,7 +90,7 @@ void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes) {
 int load_mode = -1;
 
 void usage(char** argv) {
-  printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-l] [-u] [-d network_device] [-i infiniband_path] [-o logfile] [-e command arguments...]\n", argv[0]);
+  printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-l] [-u] [-c] [-d network_device] [-i infiniband_path] [-o logfile] [-e command arguments...]\n", argv[0]);
   printf("if time==0 then loops infinitively\n");
   printf("if -e is present, time and freq are not used\n");
   printf("-r activates RAPL\n");
@@ -101,6 +101,7 @@ void usage(char** argv) {
   printf("-i activates infiniband monitoring (if infiniband_path is X, tries to detect it automatically)\n");
   printf("-s activates statistics of overhead in nanoseconds\n");
   printf("-u activates report of system load\n");
+  printf("-c activates report of processor temperature\n");
   exit(EXIT_SUCCESS);
 }
 
@@ -191,8 +192,8 @@ int main(int argc, char **argv) {
   int *network_sources = NULL;
   if(dev != NULL)
     network_sources = init_network(dev);
-  long long network_values[4]={0,0,0,0};
-  long long tmp_network_values[4]={0,0,0,0};
+  uint64_t network_values[4]={0,0,0,0};
+  uint64_t tmp_network_values[4]={0,0,0,0};
   get_network(network_values, network_sources);
 
   int * infiniband_sources = NULL;
@@ -200,13 +201,13 @@ int main(int argc, char **argv) {
     infiniband_sources = init_infiniband(infi_path);
   if(infiniband_sources == NULL)
     infi_path = NULL;
-  long long infiniband_values[4]={0,0,0,0};
-  long long tmp_infiniband_values[4]={0,0,0,0};
+  uint64_t infiniband_values[4]={0,0,0,0};
+  uint64_t tmp_infiniband_values[4]={0,0,0,0};
   get_network(infiniband_values, infiniband_sources);
   
   // Load initialization
-  long long load_values[10]={0,0,0,0,0,0,0,0,0,0};
-  long long tmp_load_values[10]={0,0,0,0,0,0,0,0,0,0};
+  uint64_t load_values[10]={0,0,0,0,0,0,0,0,0,0};
+  uint64_t tmp_load_values[10]={0,0,0,0,0,0,0,0,0,0};
   if(load_mode == 0) {
     init_load();
     get_load(load_values);
@@ -320,16 +321,16 @@ int main(int argc, char **argv) {
 	fprintf(output, "%lld ", counter_values[i]);
     if(dev != NULL)
       for(int i=0; i<4; i++)
-	fprintf(output, "%lld ", tmp_network_values[i]-network_values[i]);
+	fprintf(output, "%" PRIu64 " ", tmp_network_values[i]-network_values[i]);
     if(infi_path != NULL)
       for(int i=0; i<4; i++)
-	fprintf(output, "%lld ", tmp_infiniband_values[i]-infiniband_values[i]);
+	fprintf(output, "%" PRIu64 " ", tmp_infiniband_values[i]-infiniband_values[i]);
     if(rapl_mode==0)
       for (int r=0; r<rapl->nb; r++)
 	fprintf(output, "%" PRIu64 " ", tmp_rapl_values[r]-rapl_values[r]);
     if(load_mode==0)
       for(int i=0; i<10; i++)
-	fprintf(output, "%lld ", tmp_load_values[i]-load_values[i]);
+	fprintf(output, "%" PRIu64 " ", tmp_load_values[i]-load_values[i]);
     
     if(stat_mode==0)
       fprintf(output, "%ld ", stat_data);

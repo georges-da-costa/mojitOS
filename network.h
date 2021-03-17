@@ -19,5 +19,5 @@
  *******************************************************/
 
 int *init_network(char* dev);
-void get_network(long long* results, int * sources);
+void get_network(uint64_t* results, int * sources);
 void clean_network(int *sources);

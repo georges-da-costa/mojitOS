@@ -19,5 +19,5 @@
  *******************************************************/
 
 void init_load();
-void get_load(long long* results);
+void get_load(uint64_t* results);
 void clean_load();

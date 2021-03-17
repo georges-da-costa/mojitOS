@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #define LOAD_BUFFER_SIZE 1024
 char buffer[LOAD_BUFFER_SIZE];
@@ -30,12 +31,12 @@ void init_load() {
   load_fid = open("/proc/stat", O_RDONLY);
 }
 
-void get_load(long long* results) {
+void get_load(uint64_t* results) {
   pread(load_fid, buffer, LOAD_BUFFER_SIZE-1, 0);
   int pos=0;
   while(buffer[pos] > '9' || buffer[pos] < '0') pos++;
   for(int i=0; i<10; i++) {
-    results[i] = atoll(buffer+pos);
+    results[i] = strtoull(buffer+pos, NULL, 10);
     while(buffer[pos] <= '9' && buffer[pos] >= '0') pos++;
     pos++;
   }

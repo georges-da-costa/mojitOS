@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 int *init_network(char* dev) {
   if(dev==NULL)
@@ -52,13 +53,16 @@ int *init_network(char* dev) {
   return sources;
 }
 
-void get_network(long long* results, int *sources) {
+void get_network(uint64_t* results, int *sources) {
   if(sources==NULL)
     return;
   char buffer[128];
   for(int i=0; i<4; i++){
     pread(sources[i], buffer, 127, 0);
-    results[i] = atoll(buffer);
+
+    results[i] = strtoull(buffer, NULL, 10);
+    
+    //results[i] = atoll(buffer);
   }
 }
 
