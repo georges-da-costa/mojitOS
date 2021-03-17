@@ -26,4 +26,4 @@ counter_t init_counters(const int nb_perf, const __u32 *types, const __u64 *name
 void clean_counters(counter_t fd);
 void start_counters(counter_t fd);
 void reset_counters(counter_t fd);
-void get_counters(counter_t fd, long long *values);
+void get_counters(counter_t fd, uint64_t *values);

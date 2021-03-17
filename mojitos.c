@@ -221,9 +221,9 @@ int main(int argc, char **argv) {
     // prepare rapl data stores
     rapl_size = rapl->nb * sizeof(uint64_t);
     //rapl_values = malloc(rapl_size);
-    rapl_values = calloc(sizeof(char), rapl_size);
+    rapl_values = calloc(sizeof(uint64_t), rapl_size);
     //tmp_rapl_values = malloc(rapl_size);
-    tmp_rapl_values = calloc(sizeof(char), rapl_size);
+    tmp_rapl_values = calloc(sizeof(uint64_t), rapl_size);
     // initialize with dummy values
     get_rapl(rapl_values, rapl);
   }
@@ -231,13 +231,16 @@ int main(int argc, char **argv) {
   __u32* perf_type;
   __u64* perf_key;
   counter_t fd=0;
-  long long *counter_values=NULL;
+  uint64_t *counter_values=NULL;
+  uint64_t *tmp_counter_values=NULL;
   if(perf_mode==0) {
     perf_type_key(&perf_type, &perf_key, perf_indexes, nb_perf);
     fd = init_counters(nb_perf, perf_type, perf_key);
-    reset_counters(fd);
-    // reading HPC will reset their values so no need for a buffer
-    counter_values = malloc(nb_perf*sizeof(long long));
+
+    counter_values = malloc(nb_perf*sizeof(uint64_t));
+    tmp_counter_values = malloc(nb_perf*sizeof(uint64_t));
+
+    get_counters(fd, counter_values);
   }
   struct timespec ts;
   struct timespec ts_ref;
@@ -272,7 +275,7 @@ int main(int argc, char **argv) {
 
     // Get Data
     if(perf_mode==0)
-      get_counters(fd, counter_values);
+      get_counters(fd, tmp_counter_values);
     if(dev != NULL)
       get_network(tmp_network_values, network_sources);
     if(infi_path != NULL)
@@ -316,7 +319,7 @@ int main(int argc, char **argv) {
     }
     if(perf_mode==0)
       for(int i=0; i<nb_perf;i++) 
-	fprintf(output, "%lld ", counter_values[i]);
+	fprintf(output, "%" PRIu64 " ", tmp_counter_values[i]-counter_values[i]);
     if(dev != NULL)
       for(int i=0; i<4; i++)
 	fprintf(output, "%" PRIu64 " ", tmp_network_values[i]-network_values[i]);
@@ -337,6 +340,8 @@ int main(int argc, char **argv) {
 
     if(application != NULL)
       break;
+    if(perf_mode==0)
+      memcpy(counter_values, tmp_counter_values, nb_perf*sizeof(uint64_t));
     if(rapl_mode==0)
       memcpy(rapl_values, tmp_rapl_values, rapl_size);
     if(load_mode==0)
@@ -363,6 +368,7 @@ int main(int argc, char **argv) {
   if(perf_mode==0){
     clean_counters(fd);
     free(counter_values);
+    free(tmp_counter_values);
     free(perf_type);
     free(perf_key);
     free(perf_indexes);

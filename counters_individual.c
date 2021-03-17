@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <asm/unistd.h>
+#include <stdint.h>
 
 #include "counters.h"
 
@@ -91,19 +92,21 @@ void reset_counters(counter_t counters) {
       ioctl(counters->counters[counter][core], PERF_EVENT_IOC_RESET, 0);
 }
 
-void get_counters(counter_t counters, long long *values) {
+void get_counters(counter_t counters, uint64_t *values) {
   //memset(values, 0, nb_perf*sizeof(long long));
   for(int i=0; i<counters->nbperf; i++) {
-    long long accu=0;
-    long long count;
+    uint64_t accu=0;
+    uint64_t count=0;
     for (int core=0; core<counters->nbcores; core++) {
-      if (-1 == read(counters->counters[i][core], &count, sizeof(long long))) {
+      if (-1 == read(counters->counters[i][core], &count, sizeof(uint64_t))) {
 	fprintf(stderr, "PB Lecture resultat");
 	exit(EXIT_FAILURE);
       }
       accu += count;
     }
+    printf("%lu! \n", accu);
+
     values[i] = accu;
   }
-  reset_counters(counters);
+  //reset_counters(counters);
 }
