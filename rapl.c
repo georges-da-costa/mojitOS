@@ -24,8 +24,11 @@
 
 #include "rapl.h"
 
+const int nb_zones = 3;
+const int rapl_zones[3] = { POWERCAP_RAPL_ZONE_PACKAGE,   POWERCAP_RAPL_ZONE_CORE,   POWERCAP_RAPL_ZONE_DRAM};
+
 #define MAX_LEN_NAME 100
-_rapl_t* init_rapl(const uint32_t nb_zones, const int *rapl_zones) {
+_rapl_t* init_rapl() {
   // get number of processor sockets
   _rapl_t* rapl = malloc(sizeof(struct _rapl_t));
   rapl->nb = 0;
