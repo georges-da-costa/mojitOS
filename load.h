@@ -21,4 +21,4 @@
 unsigned int init_load(char*, void **);
 unsigned int get_load(uint64_t* results, void*);
 void clean_load(void *);
-void label_load(char **labels);
+void label_load(char **labels, void*);

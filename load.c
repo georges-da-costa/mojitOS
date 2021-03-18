@@ -64,7 +64,7 @@ void clean_load(void *state) {
 
 char *_labels[10] = {"user","nice","system","idle","iowait","irq",
   "softirq","steal","guest","guest_nice"};
-void label_load(char **labels) {
+void label_load(char **labels, void*none) {
   for(int i=0; i<10; i++)
     labels[i] = _labels[i];
 }

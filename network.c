@@ -97,7 +97,7 @@ void clean_network(void *ptr) {
 }    
 
 char *_labels_network[4] = {"rxp", "rxb", "txp", "txb"};
-void label_network(char **labels) {
+void label_network(char **labels, void*none) {
   for(int i=0; i<4; i++)
     labels[i] = _labels_network[i];
 }

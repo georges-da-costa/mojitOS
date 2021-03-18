@@ -18,5 +18,4 @@
 
  *******************************************************/
 
-
-int *init_infiniband(char* infi_path);
+unsigned int init_infiniband(char* infi_path, void**ptr);

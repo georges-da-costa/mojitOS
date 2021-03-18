@@ -28,6 +28,7 @@
 #include <getopt.h>
 #include <signal.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 #include "counters.h"
 #include "rapl.h"
@@ -112,7 +113,7 @@ void flushexit() {
 }
 
 typedef unsigned int (initializer_t)(char*, void **);
-typedef void (labeler_t)(char **);
+typedef void (labeler_t)(char **, void*);
 typedef unsigned int (*getter_t)(uint64_t*, void*);
 typedef void (*cleaner_t)(void*);
 
@@ -136,7 +137,7 @@ void add_source(initializer_t init, char* arg, labeler_t labeler,
     int nb = init(arg, &states[nb_sources-1]);
 
     labels = realloc(labels, (nb_sensors+nb)*sizeof(char*));
-    labeler(labels+nb_sensors);
+    labeler(labels+nb_sensors, states[nb_sources-1]);
     
     values = realloc(values, (nb_sensors+nb)*sizeof(uint64_t));
     nb_sensors += nb;
@@ -148,7 +149,6 @@ int main(int argc, char **argv) {
   int frequency=1;
   char **application = NULL;
 
-  int rapl_mode = -1;
   int perf_mode = -1;
   int stat_mode = -1;
 
@@ -192,7 +192,7 @@ int main(int argc, char **argv) {
       perf_mode=0;
       break;
     case 'r':
-      rapl_mode=0;
+      add_source(init_rapl, NULL, label_rapl, get_rapl, clean_rapl);
       break;
     case 'u':
       add_source(init_load, NULL, label_load, get_load, clean_load);
@@ -207,40 +207,6 @@ int main(int argc, char **argv) {
       usage(argv);
     }
   
-  
-  /* // Network initialization */
-  /* int *network_sources = NULL; */
-  /* if(dev != NULL) */
-  /*   network_sources = init_network(dev); */
-  /* uint64_t network_values[4]={0,0,0,0}; */
-  /* uint64_t tmp_network_values[4]={0,0,0,0}; */
-  /* get_network(network_values, network_sources); */
-
-  /* int * infiniband_sources = NULL; */
-  /* if(infi_path != NULL) */
-  /*   infiniband_sources = init_infiniband(infi_path); */
-  /* if(infiniband_sources == NULL) */
-  /*   infi_path = NULL; */
-  /* uint64_t infiniband_values[4]={0,0,0,0}; */
-  /* uint64_t tmp_infiniband_values[4]={0,0,0,0}; */
-  /* get_network(infiniband_values, infiniband_sources); */
-  
-  // RAPL initialization
-  _rapl_t* rapl=NULL;
-  int nb_rapl = 0;
-  uint64_t * rapl_values=NULL;
-  uint64_t * tmp_rapl_values=NULL;
-  if(rapl_mode==0) {
-    
-    rapl = init_rapl();
-    // prepare rapl data stores
-    nb_rapl = rapl->nb;
-    rapl_values = calloc(sizeof(uint64_t), nb_rapl);
-    tmp_rapl_values = calloc(sizeof(uint64_t), nb_rapl);
-
-    // initialize with dummy values
-    get_rapl(rapl_values, rapl);
-  }
   // Hardware Performance Counters initialization
   __u32* perf_type;
   __u64* perf_key;
@@ -263,27 +229,15 @@ int main(int argc, char **argv) {
   if(perf_mode==0)
     for(int i=0; i<nb_perf;i++)
       fprintf(output, "%s ", perf_static_info[perf_indexes[i]].name);
-  /* if(dev!=NULL) */
-  /*   fprintf(output, "rxp rxb txp txb "); */
-  /* if(infi_path!=NULL) */
-  /*   fprintf(output, "irxp irxb itxp itxb "); */
-
-  if(rapl_mode==0)
-    for (int r=0; r<nb_rapl; r++)
-      fprintf(output, "%s ", rapl->names[r]);
-
-  if(stat_mode==0)
-    fprintf(output, "overhead ");
 
   for(int i=0; i<nb_sensors; i++)
     fprintf(output, "%s ", labels[i]);
 
+  if(stat_mode==0)
+    fprintf(output, "overhead ");
+
   fprintf(output, "\n");
 
-
-
-
-  
   unsigned long int stat_data=0;
   if(perf_mode==0)
     start_counters(fd);
@@ -294,14 +248,6 @@ int main(int argc, char **argv) {
     // Get Data
     if(perf_mode==0)
       get_counters(fd, tmp_counter_values);
-    //    if(dev != NULL)
-    //  get_network(tmp_network_values, network_sources);
-    //if(infi_path != NULL)
-    //  get_network(tmp_infiniband_values, infiniband_sources);
-
-    if(rapl_mode==0)
-      get_rapl(tmp_rapl_values, rapl); 
-
     
     unsigned int current = 0;
     for(int i=0; i<nb_sources; i++)
@@ -341,52 +287,27 @@ int main(int argc, char **argv) {
     if(perf_mode==0)
       for(int i=0; i<nb_perf;i++) 
 	fprintf(output, "%" PRIu64 " ", tmp_counter_values[i]-counter_values[i]);
-    /* if(dev != NULL) */
-    /*   for(int i=0; i<4; i++) */
-    /* 	fprintf(output, "%" PRIu64 " ", tmp_network_values[i]-network_values[i]); */
-    /* if(infi_path != NULL) */
-    /*   for(int i=0; i<4; i++) */
-    /* 	fprintf(output, "%" PRIu64 " ", tmp_infiniband_values[i]-infiniband_values[i]); */
-    if(rapl_mode==0)
-      for (int r=0; r<nb_rapl; r++)
-	fprintf(output, "%" PRIu64 " ", tmp_rapl_values[r]-rapl_values[r]);
     
+    for(int i=0; i<nb_sensors; i++)
+      fprintf(output, "%" PRIu64 " ", values[i]);
+
     if(stat_mode==0)
       fprintf(output, "%ld ", stat_data);
 
-    for(int i=0; i<nb_sensors; i++)
-      fprintf(output, "%" PRIu64 " ", values[i]);
-      
-    
     fprintf(output, "\n");
 
     if(application != NULL)
       break;
     if(perf_mode==0)
       memcpy(counter_values, tmp_counter_values, nb_perf*sizeof(uint64_t));
-    if(rapl_mode==0)
-      memcpy(rapl_values, tmp_rapl_values, nb_rapl*sizeof(uint64_t));
 
-    /* if(dev !=NULL) */
-    /*   memcpy(network_values, tmp_network_values, sizeof(network_values)); */
-    /* if(infi_path !=NULL) */
-    /*   memcpy(infiniband_values, tmp_infiniband_values, sizeof(infiniband_values)); */
     clock_gettime(CLOCK_MONOTONIC, &ts);
     usleep(1000*1000/frequency-(ts.tv_nsec/1000)%(1000*1000/frequency));
   }
 
-  if(rapl_mode==0){
-    clean_rapl(rapl);
-    free(rapl_values);
-    free(tmp_rapl_values);
-  }
   for(int i=0; i<nb_sources;i++)
     cleaner[i](states[i]);
 
-  /* if(dev!=NULL) */
-  /*   clean_network(network_sources); */
-  /* if(infi_path!=NULL) */
-  /*   clean_network(infiniband_sources); */
   if(perf_mode==0){
     clean_counters(fd);
     free(counter_values);

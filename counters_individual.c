@@ -104,8 +104,6 @@ void get_counters(counter_t counters, uint64_t *values) {
       }
       accu += count;
     }
-    printf("%lu! \n", accu);
-
     values[i] = accu;
   }
   //reset_counters(counters);

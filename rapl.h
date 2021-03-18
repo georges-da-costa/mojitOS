@@ -18,21 +18,8 @@
 
  *******************************************************/
 
-#include <powercap/powercap-rapl.h>
+unsigned int init_rapl(char*, void **);
+unsigned int get_rapl(uint64_t* results, void*);
+void clean_rapl(void *);
+void label_rapl(char **labels, void*);
 
-struct _rapl_t {
-  powercap_rapl_pkg* pkgs;
-  uint32_t nb_pkgs;
-  
-  uint32_t nb;
-
-  char **names;
-  uint32_t* zones;
-  uint32_t* packages;
-};
-
-typedef struct _rapl_t _rapl_t;
-
-_rapl_t* init_rapl();
-void get_rapl(uint64_t *values, _rapl_t* rapl);
-void clean_rapl(_rapl_t* rapl);
