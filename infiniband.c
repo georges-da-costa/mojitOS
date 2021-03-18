@@ -24,9 +24,19 @@
 
 #include <glob.h>
 
-int *init_infiniband(char* infi_path) {
+#include <stdint.h>
+
+struct network_t {
+  uint64_t values[4];
+  uint64_t tmp_values[4];
+  int sources[4];
+};
+unsigned int _get_network(uint64_t* results, int* sources);
+
+
+unsigned int init_infiniband(char* infi_path, void**ptr) {
   if(infi_path==NULL)
-    return NULL;
+    return 0;
 
   if(strcmp(infi_path,"X")==0) {
 
@@ -34,7 +44,7 @@ int *init_infiniband(char* infi_path) {
   
     glob("/sys/class/infiniband/*/ports/*/counters/", 0, NULL, &res);
     if(res.gl_pathc == 0)
-      return NULL;
+      return 0;
     infi_path = res.gl_pathv[0];
   }
   
@@ -42,14 +52,19 @@ int *init_infiniband(char* infi_path) {
 		       "%s/port_rcv_data",
 		       "%s/port_xmit_packets",
 		       "%s/port_xmit_data"};
-  int* sources = malloc(sizeof(int)*4);
+
+  struct network_t *state = malloc(sizeof(struct network_t));
+
   char buffer[1024];
   for(int i=0; i<4; i++) {
     sprintf(buffer, filenames[i], infi_path);
-    sources[i] = open(buffer, O_RDONLY);
+    state->sources[i] = open(buffer, O_RDONLY);
   }
+  
+  *ptr = (void*) state;
+  _get_network(state->values, state->sources);
 
-  return sources;
+  return 4;
 }
 
 /* void get_network(long long* results, char** sources) { */

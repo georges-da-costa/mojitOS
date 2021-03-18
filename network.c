@@ -24,9 +24,29 @@
 #include <string.h>
 #include <stdint.h>
 
-int *init_network(char* dev) {
+struct network_t {
+  uint64_t values[4];
+  uint64_t tmp_values[4];
+  int sources[4];
+};
+
+unsigned int _get_network(uint64_t* results, int* sources) {
+  if(sources==NULL)
+    return 0;
+  char buffer[128];
+  for(int i=0; i<4; i++){
+    pread(sources[i], buffer, 127, 0);
+
+    results[i] = strtoull(buffer, NULL, 10);
+  }
+  return 4;
+}
+
+
+
+unsigned int init_network(char* dev, void**ptr) {
   if(dev==NULL)
-    return NULL;
+    return 0;
 
   if(strcmp(dev,"X")==0) {
     int f = open("/proc/net/route", O_RDONLY);
@@ -43,33 +63,41 @@ int *init_network(char* dev) {
 		       "/sys/class/net/%s/statistics/rx_bytes",
 		       "/sys/class/net/%s/statistics/tx_packets",
 		       "/sys/class/net/%s/statistics/tx_bytes"};
-  int* sources = malloc(sizeof(int)*4);
+
+  struct network_t *state = malloc(sizeof(struct network_t));
+
   char buffer2[256];
   for(int i=0; i<4; i++) {
     sprintf(buffer2, filenames[i], dev);
-    sources[i] = open(buffer2, O_RDONLY);
+    state->sources[i] = open(buffer2, O_RDONLY);
   }
+  *ptr = (void*) state;
+  _get_network(state->values, state->sources);
 
-  return sources;
+  return 4;
 }
 
-void get_network(uint64_t* results, int *sources) {
-  if(sources==NULL)
-    return;
-  char buffer[128];
-  for(int i=0; i<4; i++){
-    pread(sources[i], buffer, 127, 0);
+unsigned int get_network(uint64_t* results, void* ptr) {
+  struct network_t *state = (struct network_t *) ptr;
+  _get_network(state->tmp_values, state->sources);
+  for(int i=0; i<4; i++)
+    results[i] = state->tmp_values[i] - state->values[i];
 
-    results[i] = strtoull(buffer, NULL, 10);
-    
-    //results[i] = atoll(buffer);
-  }
+  memcpy(state->values, state->tmp_values, 4*sizeof(uint64_t));
+  return 4;
 }
 
-void clean_network(int *sources) {
-  if(sources==NULL)
+void clean_network(void *ptr) {
+  struct network_t *state = (struct network_t *) ptr;
+  if(state==NULL)
     return;
   for(int i=0;i<4;i++)
-    close(sources[i]);
-  free(sources);
+    close(state->sources[i]);
+  free(state);
 }    
+
+char *_labels_network[4] = {"rxp", "rxb", "txp", "txb"};
+void label_network(char **labels) {
+  for(int i=0; i<4; i++)
+    labels[i] = _labels_network[i];
+}

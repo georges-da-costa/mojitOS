@@ -146,8 +146,6 @@ int main(int argc, char **argv) {
   int total_time=1;
   int delta=0;
   int frequency=1;
-  char *dev = NULL;
-  char *infi_path = NULL;
   char **application = NULL;
 
   int rapl_mode = -1;
@@ -177,10 +175,10 @@ int main(int argc, char **argv) {
       }
       break;
     case 'd':
-      dev = argv[optind];
+      add_source(init_network, argv[optind], label_network, get_network, clean_network);
       break;
     case 'i':
-      infi_path = argv[optind];
+      add_source(init_infiniband, argv[optind], label_network, get_network, clean_network);
       break;
     case 'o':
       output = fopen(argv[optind],"wb");
@@ -210,22 +208,22 @@ int main(int argc, char **argv) {
     }
   
   
-  // Network initialization
-  int *network_sources = NULL;
-  if(dev != NULL)
-    network_sources = init_network(dev);
-  uint64_t network_values[4]={0,0,0,0};
-  uint64_t tmp_network_values[4]={0,0,0,0};
-  get_network(network_values, network_sources);
+  /* // Network initialization */
+  /* int *network_sources = NULL; */
+  /* if(dev != NULL) */
+  /*   network_sources = init_network(dev); */
+  /* uint64_t network_values[4]={0,0,0,0}; */
+  /* uint64_t tmp_network_values[4]={0,0,0,0}; */
+  /* get_network(network_values, network_sources); */
 
-  int * infiniband_sources = NULL;
-  if(infi_path != NULL)
-    infiniband_sources = init_infiniband(infi_path);
-  if(infiniband_sources == NULL)
-    infi_path = NULL;
-  uint64_t infiniband_values[4]={0,0,0,0};
-  uint64_t tmp_infiniband_values[4]={0,0,0,0};
-  get_network(infiniband_values, infiniband_sources);
+  /* int * infiniband_sources = NULL; */
+  /* if(infi_path != NULL) */
+  /*   infiniband_sources = init_infiniband(infi_path); */
+  /* if(infiniband_sources == NULL) */
+  /*   infi_path = NULL; */
+  /* uint64_t infiniband_values[4]={0,0,0,0}; */
+  /* uint64_t tmp_infiniband_values[4]={0,0,0,0}; */
+  /* get_network(infiniband_values, infiniband_sources); */
   
   // RAPL initialization
   _rapl_t* rapl=NULL;
@@ -265,10 +263,10 @@ int main(int argc, char **argv) {
   if(perf_mode==0)
     for(int i=0; i<nb_perf;i++)
       fprintf(output, "%s ", perf_static_info[perf_indexes[i]].name);
-  if(dev!=NULL)
-    fprintf(output, "rxp rxb txp txb ");
-  if(infi_path!=NULL)
-    fprintf(output, "irxp irxb itxp itxb ");
+  /* if(dev!=NULL) */
+  /*   fprintf(output, "rxp rxb txp txb "); */
+  /* if(infi_path!=NULL) */
+  /*   fprintf(output, "irxp irxb itxp itxb "); */
 
   if(rapl_mode==0)
     for (int r=0; r<nb_rapl; r++)
@@ -296,10 +294,10 @@ int main(int argc, char **argv) {
     // Get Data
     if(perf_mode==0)
       get_counters(fd, tmp_counter_values);
-    if(dev != NULL)
-      get_network(tmp_network_values, network_sources);
-    if(infi_path != NULL)
-      get_network(tmp_infiniband_values, infiniband_sources);
+    //    if(dev != NULL)
+    //  get_network(tmp_network_values, network_sources);
+    //if(infi_path != NULL)
+    //  get_network(tmp_infiniband_values, infiniband_sources);
 
     if(rapl_mode==0)
       get_rapl(tmp_rapl_values, rapl); 
@@ -343,12 +341,12 @@ int main(int argc, char **argv) {
     if(perf_mode==0)
       for(int i=0; i<nb_perf;i++) 
 	fprintf(output, "%" PRIu64 " ", tmp_counter_values[i]-counter_values[i]);
-    if(dev != NULL)
-      for(int i=0; i<4; i++)
-	fprintf(output, "%" PRIu64 " ", tmp_network_values[i]-network_values[i]);
-    if(infi_path != NULL)
-      for(int i=0; i<4; i++)
-	fprintf(output, "%" PRIu64 " ", tmp_infiniband_values[i]-infiniband_values[i]);
+    /* if(dev != NULL) */
+    /*   for(int i=0; i<4; i++) */
+    /* 	fprintf(output, "%" PRIu64 " ", tmp_network_values[i]-network_values[i]); */
+    /* if(infi_path != NULL) */
+    /*   for(int i=0; i<4; i++) */
+    /* 	fprintf(output, "%" PRIu64 " ", tmp_infiniband_values[i]-infiniband_values[i]); */
     if(rapl_mode==0)
       for (int r=0; r<nb_rapl; r++)
 	fprintf(output, "%" PRIu64 " ", tmp_rapl_values[r]-rapl_values[r]);
@@ -369,10 +367,10 @@ int main(int argc, char **argv) {
     if(rapl_mode==0)
       memcpy(rapl_values, tmp_rapl_values, nb_rapl*sizeof(uint64_t));
 
-    if(dev !=NULL)
-      memcpy(network_values, tmp_network_values, sizeof(network_values));
-    if(infi_path !=NULL)
-      memcpy(infiniband_values, tmp_infiniband_values, sizeof(infiniband_values));
+    /* if(dev !=NULL) */
+    /*   memcpy(network_values, tmp_network_values, sizeof(network_values)); */
+    /* if(infi_path !=NULL) */
+    /*   memcpy(infiniband_values, tmp_infiniband_values, sizeof(infiniband_values)); */
     clock_gettime(CLOCK_MONOTONIC, &ts);
     usleep(1000*1000/frequency-(ts.tv_nsec/1000)%(1000*1000/frequency));
   }
@@ -385,10 +383,10 @@ int main(int argc, char **argv) {
   for(int i=0; i<nb_sources;i++)
     cleaner[i](states[i]);
 
-  if(dev!=NULL)
-    clean_network(network_sources);
-  if(infi_path!=NULL)
-    clean_network(infiniband_sources);
+  /* if(dev!=NULL) */
+  /*   clean_network(network_sources); */
+  /* if(infi_path!=NULL) */
+  /*   clean_network(infiniband_sources); */
   if(perf_mode==0){
     clean_counters(fd);
     free(counter_values);
