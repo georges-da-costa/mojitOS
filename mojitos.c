@@ -30,7 +30,7 @@
 #include "network.h"
 #include "infiniband.h"
 #include "load.h"
-
+#include "temperature.h"
 
 
 
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
   signal(15, flush);
   
   int c;
-  while ((c = getopt (argc, argv, "ilhftdeoprsu")) != -1 && application==NULL)
+  while ((c = getopt (argc, argv, "ilhcftdeoprsu")) != -1 && application==NULL)
     switch (c) {
     case 'f':
       frequency=atoi(argv[optind]);
@@ -146,6 +146,9 @@ int main(int argc, char **argv) {
     case 'u':
       add_source(init_load, NULL, label_load, get_load, clean_load);
       break;
+    case 'c':
+      add_source(init_temperature, NULL, label_temperature, get_temperature, clean_temperature);
+      break;
     case 's':
       stat_mode=0;
       break;
@@ -155,7 +158,8 @@ int main(int argc, char **argv) {
     default:
       usage(argv);
     }
-  
+
+
   struct timespec ts;
   struct timespec ts_ref;
 

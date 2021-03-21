@@ -1,6 +1,6 @@
 all: mojitos
 
-OBJECTS = mojitos.o counters_individual.o rapl.o network.o load.o infiniband.o
+OBJECTS = mojitos.o counters_individual.o rapl.o network.o load.o infiniband.o temperature.o
 
 mojitos:$(OBJECTS) counters_option.h
 	gcc $(DEBUG) -O3 -Wall -o mojitos $(OBJECTS) -lpowercap
