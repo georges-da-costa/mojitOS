@@ -20,12 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <asm/unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <time.h>
-#include <string.h>
-#include <getopt.h>
 #include <signal.h>
 #include <inttypes.h>
 #include <unistd.h>
@@ -36,52 +31,8 @@
 #include "infiniband.h"
 #include "load.h"
 
-#include "counters_option.h"
-
-void show_all_counters() {
-  for(int i=0; i<nb_counter_option;i++)
-    printf("%s\n", perf_static_info[i].name);
-  
-}
 
 
-int nb_perf = 5;
-int* perf_indexes=NULL;
-// const char* perf_names[5] = {"instructions", "cachemisses", "pagefaults", "branchmisses", "cachmiss"};
-// const __u32 perf_type[5] = {PERF_TYPE_HARDWARE,PERF_TYPE_HARDWARE,PERF_TYPE_SOFTWARE, PERF_TYPE_HARDWARE, PERF_TYPE_HW_CACHE};
-// const __u64 perf_key[5] = {PERF_COUNT_HW_INSTRUCTIONS, PERF_COUNT_HW_CACHE_MISSES,
-//			   PERF_COUNT_SW_PAGE_FAULTS,PERF_COUNT_HW_BRANCH_MISSES,
-//			   PERF_COUNT_HW_CACHE_LL};
-
-void perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb){
-  *perf_type = malloc(nb*sizeof(__u32));
-  *perf_key  = malloc(nb*sizeof(__u64));
-  for(int i=0; i<nb; i++) {
-    (*perf_key)[i]  = perf_static_info[indexes[i]].perf_key;
-    (*perf_type)[i] = perf_static_info[indexes[i]].perf_type;
-  }
-}
-void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes) {
-  char *token;
-  *nb_perf=0;
-  *perf_indexes=NULL;
-  while((token=strtok(perf_string, ",")) != NULL) {
-    perf_string = NULL;
-    int i;
-    for(i=0; i<nb_counter_option; i++) {
-      if(strcmp(perf_static_info[i].name, token) == 0) {
-	(*nb_perf)++;
-	(*perf_indexes) = realloc(*perf_indexes, sizeof(int)*(*nb_perf));
-	(*perf_indexes)[*nb_perf-1]=i;
-	break;
-      }
-    }
-    if(i == nb_counter_option) {
-      fprintf(stderr, "Unknown performance counter: %s\n", token);
-      exit(EXIT_FAILURE);
-    }
-  }
-}
 
 void usage(char** argv) {
   printf("Usage : %s [-t time] [-f freq] [-r] [-p perf_list] [-l] [-u] [-c] [-d network_device] [-i infiniband_path] [-o logfile] [-e command arguments...]\n", argv[0]);
@@ -149,7 +100,6 @@ int main(int argc, char **argv) {
   int frequency=1;
   char **application = NULL;
 
-  int perf_mode = -1;
   int stat_mode = -1;
 
   if(argc==1)
@@ -188,8 +138,7 @@ int main(int argc, char **argv) {
       signal(17,sighandler);
       break;
     case 'p':
-      perf_event_list(argv[optind], &nb_perf, &perf_indexes);
-      perf_mode=0;
+      add_source(init_counters, argv[optind], label_counters, get_counters, clean_counters);
       break;
     case 'r':
       add_source(init_rapl, NULL, label_rapl, get_rapl, clean_rapl);
@@ -207,28 +156,10 @@ int main(int argc, char **argv) {
       usage(argv);
     }
   
-  // Hardware Performance Counters initialization
-  __u32* perf_type;
-  __u64* perf_key;
-  counter_t fd=0;
-  uint64_t *counter_values=NULL;
-  uint64_t *tmp_counter_values=NULL;
-  if(perf_mode==0) {
-    perf_type_key(&perf_type, &perf_key, perf_indexes, nb_perf);
-    fd = init_counters(nb_perf, perf_type, perf_key);
-
-    counter_values = malloc(nb_perf*sizeof(uint64_t));
-    tmp_counter_values = malloc(nb_perf*sizeof(uint64_t));
-
-    get_counters(fd, counter_values);
-  }
   struct timespec ts;
   struct timespec ts_ref;
 
   fprintf(output, "#timestamp ");
-  if(perf_mode==0)
-    for(int i=0; i<nb_perf;i++)
-      fprintf(output, "%s ", perf_static_info[perf_indexes[i]].name);
 
   for(int i=0; i<nb_sensors; i++)
     fprintf(output, "%s ", labels[i]);
@@ -239,16 +170,11 @@ int main(int argc, char **argv) {
   fprintf(output, "\n");
 
   unsigned long int stat_data=0;
-  if(perf_mode==0)
-    start_counters(fd);
 
   for (int temps = 0; temps <total_time*frequency; temps+=delta) {
     clock_gettime(CLOCK_MONOTONIC, &ts_ref);
 
     // Get Data
-    if(perf_mode==0)
-      get_counters(fd, tmp_counter_values);
-    
     unsigned int current = 0;
     for(int i=0; i<nb_sources; i++)
       current += getter[i](&values[current], states[i]);
@@ -284,9 +210,6 @@ int main(int argc, char **argv) {
       // Treat Data
       fprintf(output, "%ld.%09ld ", ts_ref.tv_sec, ts_ref.tv_nsec);
     }
-    if(perf_mode==0)
-      for(int i=0; i<nb_perf;i++) 
-	fprintf(output, "%" PRIu64 " ", tmp_counter_values[i]-counter_values[i]);
     
     for(int i=0; i<nb_sensors; i++)
       fprintf(output, "%" PRIu64 " ", values[i]);
@@ -298,8 +221,6 @@ int main(int argc, char **argv) {
 
     if(application != NULL)
       break;
-    if(perf_mode==0)
-      memcpy(counter_values, tmp_counter_values, nb_perf*sizeof(uint64_t));
 
     clock_gettime(CLOCK_MONOTONIC, &ts);
     usleep(1000*1000/frequency-(ts.tv_nsec/1000)%(1000*1000/frequency));
@@ -308,14 +229,6 @@ int main(int argc, char **argv) {
   for(int i=0; i<nb_sources;i++)
     cleaner[i](states[i]);
 
-  if(perf_mode==0){
-    clean_counters(fd);
-    free(counter_values);
-    free(tmp_counter_values);
-    free(perf_type);
-    free(perf_key);
-    free(perf_indexes);
-  }
   if(nb_sources > 0) {
     free(getter);
     free(cleaner);

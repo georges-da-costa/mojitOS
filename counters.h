@@ -18,12 +18,9 @@
 
  *******************************************************/
 
-#include <linux/perf_event.h>
+unsigned int init_counters(char*, void **);
+unsigned int get_counters(uint64_t* results, void*);
+void clean_counters(void *);
+void label_counters(char **labels, void*);
 
-typedef struct _counter_t* counter_t;
-
-counter_t init_counters(const int nb_perf, const __u32 *types, const __u64 *names);
-void clean_counters(counter_t fd);
-void start_counters(counter_t fd);
-void reset_counters(counter_t fd);
-void get_counters(counter_t fd, uint64_t *values);
+void show_all_counters();

@@ -66,21 +66,3 @@ unsigned int init_infiniband(char* infi_path, void**ptr) {
 
   return 4;
 }
-
-/* void get_network(long long* results, char** sources) { */
-/*   if(sources==NULL) */
-/*     return; */
-/*   for(int i=0; i<4; i++){ */
-/*     FILE* f = fopen(sources[i], "rb"); */
-/*     fscanf(f, "%lld", &results[i]); */
-/*     fclose(f); */
-/*   } */
-/* } */
-
-/* void clean_network(char **sources) { */
-/*   if(sources==NULL) */
-/*     return; */
-/*   for(int i=0;i<4;i++) */
-/*     free(sources[i]); */
-/*   free(sources); */
-/* }     */
