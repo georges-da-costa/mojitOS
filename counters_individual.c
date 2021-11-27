@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2018-2021 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -45,7 +45,6 @@ typedef struct _counter_t* counter_t;
 void show_all_counters() {
   for(int i=0; i<nb_counter_option;i++)
     printf("%s\n", perf_static_info[i].name);
-  
 }
 
 void perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb){

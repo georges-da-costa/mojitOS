@@ -2,14 +2,14 @@ all: mojitos
 
 OBJECTS = mojitos.o counters_individual.o rapl.o network.o load.o infiniband.o temperature.o
 
-mojitos:$(OBJECTS) counters_option.h
+mojitos:$(OBJECTS)
 	gcc $(DEBUG) -O3 -Wall -o mojitos $(OBJECTS) -lpowercap
 
 OBJECTS_GRP = $(subst _individual,_group, $(OBJECTS))
 mojitos_group: $(OBJECTS_GRP) counters_option.h
 	gcc $(DEBUG) -O3 -Wall -o mojitos_group $(OBJECTS_GRP) -lpowercap
 
-counters_%.o: counters_%.c counters.h
+counters_%.o: counters_%.c counters.h counters_option.h
 	gcc $(DEBUG) -c -O3 -Wall $< -o $@
 
 counters_option.h: counters_option.py

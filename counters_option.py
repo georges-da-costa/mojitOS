@@ -35,9 +35,26 @@ with open(linux_include, 'r') as infile:
             short_perf = perf_name[14:].lower()
             if short_perf in black_list:
                 continue
-            res = '{ .name = "'+short_perf+'", .perf_type = '+mode+', .perf_key = '+perf_name+'},'
-            print(res)
-            nb += 1
+            if mode == 'PERF_TYPE_HW_CACHE':
+                for op_id, op_id_str in enumerate(['r', 'w', 'p']):
+                    op_id_names = ['PERF_COUNT_HW_CACHE_OP_READ', 'PERF_COUNT_HW_CACHE_OP_WRITE', 'PERF_COUNT_HW_CACHE_OP_PREFETCH']
+                    for result_id, result_id_str in enumerate(['a', 'm']):
+                        result_id_names = ['PERF_COUNT_HW_CACHE_RESULT_ACCESS', 'PERF_COUNT_HW_CACHE_RESULT_MISS']
+
+                        res = '{ .name = "%s_%s_%s", .perf_type = %s, .perf_key = %s | (%s >> 8) | (%s >> 16) },' % (
+                            short_perf, op_id_str, result_id_str,
+                            mode,
+                            perf_name,
+                            op_id_names[op_id],
+                            result_id_names[result_id])
+                                                                                     
+                        print(res)
+                        nb += 1
+
+            else:
+                res = '{ .name = "'+short_perf+'", .perf_type = '+mode+', .perf_key = '+perf_name+'},'
+                print(res)
+                nb += 1
 
 
 print('};')
