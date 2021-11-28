@@ -70,7 +70,8 @@ unsigned int init_rapl(char* none, void **ptr) {
   rapl->packages = NULL;
   rapl->zones = NULL;
 
-  rapl->nb_pkgs = powercap_rapl_get_num_packages();
+  rapl->nb_pkgs = powercap_rapl_get_num_instances();
+  
   if (rapl->nb_pkgs == 0) {
     perror("no packages found (maybe the kernel module isn't loaded?)");
     exit(-1);
