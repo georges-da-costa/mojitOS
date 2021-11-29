@@ -36,7 +36,7 @@ sudo apt install libpowercap0 libpowercap-dev powercap-utils python3
 ```
 Download the source code
 ```bash
-git clone https://git.renater.fr/anonscm/git/mojitos/mojitos.git
+git clone https://gitlab.irit.fr/sepia-pub/mojitos.git
 ```
 Compile the code
 ```bash
