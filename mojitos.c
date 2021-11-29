@@ -81,11 +81,17 @@ void add_source(initializer_t init, char* arg, labeler_t labeler,
 		getter_t get, cleaner_t clean) {
     nb_sources++;
     states = realloc(states, nb_sources*sizeof(void*));
+    int nb = init(arg, &states[nb_sources-1]);
+    if (nb == 0) {
+      nb_sources--;
+      states = realloc(states, nb_sources*sizeof(void*));
+      return;
+    }
+
     getter = realloc(getter, nb_sources*sizeof(void*));
     getter[nb_sources-1] = get;
     cleaner = realloc(cleaner, nb_sources*sizeof(void*));
     cleaner[nb_sources-1] = clean;
-    int nb = init(arg, &states[nb_sources-1]);
 
     labels = realloc(labels, (nb_sensors+nb)*sizeof(char*));
     labeler(labels+nb_sensors, states[nb_sources-1]);
@@ -128,7 +134,7 @@ int main(int argc, char **argv) {
       add_source(init_network, argv[optind], label_network, get_network, clean_network);
       break;
     case 'i':
-      add_source(init_infiniband, argv[optind], label_network, get_network, clean_network);
+      add_source(init_infiniband, argv[optind], label_infiniband, get_network, clean_network);
       break;
     case 'o':
       output = fopen(argv[optind],"wb");

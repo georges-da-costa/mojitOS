@@ -66,3 +66,9 @@ unsigned int init_infiniband(char* infi_path, void**ptr) {
 
   return 4;
 }
+
+char *_labels_infiniband[4] = {"irxp", "irxb", "itxp", "itxb"};
+void label_infiniband(char **labels, void*none) {
+  for(int i=0; i<4; i++)
+    labels[i] = _labels_infiniband[i];
+}
