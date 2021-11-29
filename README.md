@@ -64,10 +64,10 @@ $ ./mojitos -t 2 -f 2 -r
 1036390.000754048 1333553 228393 689513 
 1036390.500113978 1581967 267944 701536 
 ```
-Performance counters (cpu_cycle, cache_ll and page_faults) during 4 seconds with a frequency of 1Hz
+Performance counters (cpu_cycle, cache_ll_r_a and page_faults) during 4 seconds with a frequency of 1Hz. For cache performance counters, _r and _w are respectively read and write, and _a, _m and _p are respectively access, miss, pending.
 
 ```bash
-$ ./mojitos -t 4 -f 1 -p cpu_cycles,cache_ll,page_faults
+$ ./mojitos -t 4 -f 1 -p cpu_cycles,cache_ll_r_a,page_faults
 #timestamp cpu_cycles cache_ll page_faults 
 1036846.351749455 571199 1232 0 
 1036847.001098880 348173344 2451387 872 
