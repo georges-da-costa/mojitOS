@@ -70,8 +70,8 @@ unsigned int init_rapl(char* none, void **ptr) {
   rapl->packages = NULL;
   rapl->zones = NULL;
 
-  //rapl->nb_pkgs = powercap_rapl_get_num_instances();
-  rapl->nb_pkgs = powercap_rapl_get_num_packages();
+  rapl->nb_pkgs = powercap_rapl_get_num_instances();
+  //rapl->nb_pkgs = powercap_rapl_get_num_packages();
   
   if (rapl->nb_pkgs == 0) {
     perror("no packages found (maybe the kernel module isn't loaded?)");
@@ -87,7 +87,7 @@ unsigned int init_rapl(char* none, void **ptr) {
   rapl->names = NULL;
     
   char _name[MAX_LEN_NAME+1];
-  char _name2[MAX_LEN_NAME+10];
+  char _name2[MAX_LEN_NAME+11];
 
   for (unsigned int package = 0; package < rapl->nb_pkgs; package++) {
     for(unsigned int zone=0; zone < nb_zones; zone++) {
