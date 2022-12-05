@@ -27,6 +27,7 @@
 
 #include "counters.h"
 #include "rapl.h"
+#include "frapl.h"
 #include "network.h"
 #include "infiniband.h"
 #include "load.h"
@@ -39,6 +40,7 @@ void usage(char** argv) {
   printf("if time==0 then loops infinitively\n");
   printf("if -e is present, time and freq are not used\n");
   printf("-r activates RAPL\n");
+  printf("-R activates the file version of RAPL\n");
   printf("-p activates performance counters\n");
   printf("   perf_list is coma separated list of performance counters without space. Ex: instructions,cache_misses\n");
   printf("-l lists the possible performance counters and quits\n");
@@ -117,7 +119,7 @@ int main(int argc, char **argv) {
   signal(15, flush);
   
   int c;
-  while ((c = getopt (argc, argv, "ilhcftdeoprsu")) != -1 && application==NULL)
+  while ((c = getopt (argc, argv, "ilhcftdeoprRsu")) != -1 && application==NULL)
     switch (c) {
     case 'f':
       frequency=atoi(argv[optind]);
@@ -148,6 +150,9 @@ int main(int argc, char **argv) {
       break;
     case 'r':
       add_source(init_rapl, NULL, label_rapl, get_rapl, clean_rapl);
+      break;
+    case 'R':
+      add_source(init_frapl, NULL, label_frapl, get_frapl, clean_frapl);
       break;
     case 'u':
       add_source(init_load, NULL, label_load, get_load, clean_load);
