@@ -40,10 +40,10 @@ char *get_frapl_string(const char *filename) {
 }  
 
 void test_append(char* name, int i) {
-  char last = name[strlen(name)-1];
-  if (last>='0' && last <= '9')
-    return;
-  sprintf(name+strlen(name), "-%d", i);
+  //char last = name[strlen(name)-1];
+  //if (last>='0' && last <= '9')
+  //  return;
+  sprintf(name+strlen(name), "%d", i);
 }
 
 
