@@ -166,6 +166,7 @@ int main(int argc, char **argv) {
     }
 
 
+  setvbuf(output, NULL, _IONBF, BUFSIZ);
   struct timespec ts;
   struct timespec ts_ref;
 
