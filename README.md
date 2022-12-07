@@ -17,7 +17,8 @@ Timing
 - If -e is present, time and freq are not used
 
 Configuration
-- -r activates RAPL
+- -r activates RAPL (deprecated)
+- -R activates RAPL
 - -p activates performance counters. perf_list is coma separated list of performance counters without space.
 - -l lists the possible performance counters and quits
 - -d activates network monitoring
