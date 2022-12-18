@@ -1,1 +1,4 @@
 *.o
+src/counters_option.h
+bin
+obj
