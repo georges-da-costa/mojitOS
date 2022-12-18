@@ -18,9 +18,9 @@
 
  *******************************************************/
 
-unsigned int init_counters(char*, void **);
-unsigned int get_counters(uint64_t* results, void*);
+unsigned int init_counters(char *, void **);
+unsigned int get_counters(uint64_t *results, void *);
 void clean_counters(void *);
-void label_counters(char **labels, void*);
+void label_counters(char **labels, void *);
 
 void show_all_counters();

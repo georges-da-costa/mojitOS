@@ -18,8 +18,8 @@
 
  *******************************************************/
 
-unsigned int init_rapl(char*, void **);
-unsigned int get_rapl(uint64_t* results, void*);
+unsigned int init_rapl(char *, void **);
+unsigned int get_rapl(uint64_t *results, void *);
 void clean_rapl(void *);
-void label_rapl(char **labels, void*);
+void label_rapl(char **labels, void *);
 

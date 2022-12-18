@@ -18,8 +18,8 @@
 
  *******************************************************/
 
-unsigned int init_frapl(char*, void **);
-unsigned int get_frapl(uint64_t* results, void*);
+unsigned int init_frapl(char *, void **);
+unsigned int get_frapl(uint64_t *results, void *);
 void clean_frapl(void *);
-void label_frapl(char **labels, void*);
+void label_frapl(char **labels, void *);
 
