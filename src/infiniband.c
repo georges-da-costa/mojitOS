@@ -28,53 +28,53 @@
 
 struct network_t
 {
-  uint64_t values[4];
-  uint64_t tmp_values[4];
-  int sources[4];
+    uint64_t values[4];
+    uint64_t tmp_values[4];
+    int sources[4];
 };
 unsigned int _get_network(uint64_t *results, int *sources);
 
 
 unsigned int init_infiniband(char *infi_path, void **ptr)
 {
-  if(infi_path==NULL)
-    return 0;
-
-  if(strcmp(infi_path,"X")==0)
-    {
-
-      glob_t res;
-
-      glob("/sys/class/infiniband/*/ports/*/counters/", 0, NULL, &res);
-      if(res.gl_pathc == 0)
+    if(infi_path==NULL)
         return 0;
-      infi_path = res.gl_pathv[0];
-    }
 
-  char *filenames[] = {"%s/port_rcv_packets",
-                       "%s/port_rcv_data",
-                       "%s/port_xmit_packets",
-                       "%s/port_xmit_data"
-                      };
+    if(strcmp(infi_path,"X")==0)
+        {
 
-  struct network_t *state = malloc(sizeof(struct network_t));
+            glob_t res;
 
-  char buffer[1024];
-  for(int i=0; i<4; i++)
-    {
-      sprintf(buffer, filenames[i], infi_path);
-      state->sources[i] = open(buffer, O_RDONLY);
-    }
+            glob("/sys/class/infiniband/*/ports/*/counters/", 0, NULL, &res);
+            if(res.gl_pathc == 0)
+                return 0;
+            infi_path = res.gl_pathv[0];
+        }
 
-  *ptr = (void *) state;
-  _get_network(state->values, state->sources);
+    char *filenames[] = {"%s/port_rcv_packets",
+                         "%s/port_rcv_data",
+                         "%s/port_xmit_packets",
+                         "%s/port_xmit_data"
+                        };
 
-  return 4;
+    struct network_t *state = malloc(sizeof(struct network_t));
+
+    char buffer[1024];
+    for(int i=0; i<4; i++)
+        {
+            sprintf(buffer, filenames[i], infi_path);
+            state->sources[i] = open(buffer, O_RDONLY);
+        }
+
+    *ptr = (void *) state;
+    _get_network(state->values, state->sources);
+
+    return 4;
 }
 
 char *_labels_infiniband[4] = {"irxp", "irxb", "itxp", "itxb"};
 void label_infiniband(char **labels, void *none)
 {
-  for(int i=0; i<4; i++)
-    labels[i] = _labels_infiniband[i];
+    for(int i=0; i<4; i++)
+        labels[i] = _labels_infiniband[i];
 }

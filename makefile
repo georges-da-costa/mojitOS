@@ -1,4 +1,4 @@
-.PHONY: all clean mojitos mojitos_group debug format 
+.PHONY: all clean mojitos mojitos_group debug format
 
 SRC_DIR = src
 OBJ_DIR = obj
@@ -10,7 +10,7 @@ OBJECTS_GRP = $(subst _individual,_group, $(OBJECTS))
 CC = gcc
 CFLAGS = -std=gnu99 -O3 -Wall # -Wextra -Werror -Wpedantic
 
-ASTYLE = astyle --style=gnu -s2 -k3 -n -Z -Q
+ASTYLE = astyle --style=gnu -xf -s4 -k3 -n -Z -Q
 
 
 # depending on the context it may need to be changed to all: mojitos mojitos_group
@@ -34,7 +34,7 @@ $(OBJ_DIR)/mojitos.o: $(SRC_DIR)/mojitos.c $(SRC_DIR)/counters_option.h
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(SRC_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR): 
+$(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
 $(BIN_DIR):
@@ -43,7 +43,7 @@ $(BIN_DIR):
 debug: CFLAGS += -DDEBUG -g
 debug: all
 
-format: 
+format:
 	$(ASTYLE) $(SRC_DIR)/*.c $(SRC_DIR)/*.h
 
 clean:

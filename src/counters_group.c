@@ -31,104 +31,103 @@
 
 struct _counter_t
 {
-  int nbcores;
-  int nbperf;
-  int *counters;
+    int nbcores;
+    int nbperf;
+    int *counters;
 };
 
-static long
-perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
-                int cpu, int group_fd, unsigned long flags)
+static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
+                            int cpu, int group_fd, unsigned long flags)
 {
-  long res = syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags);
-  if (res == -1)
-    {
-      perror("perf_event_open");
-      fprintf(stderr, "Error opening leader %llx\n", hw_event->config);
-      exit(EXIT_FAILURE);
-    }
-  return res;
+    long res = syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags);
+    if (res == -1)
+        {
+            perror("perf_event_open");
+            fprintf(stderr, "Error opening leader %llx\n", hw_event->config);
+            exit(EXIT_FAILURE);
+        }
+    return res;
 }
 
 counter_t init_counters(const int nb_perf, const __u32 *types, const __u64 *names)
 {
-  struct perf_event_attr pe;
-  struct _counter_t *counters = malloc(sizeof(struct _counter_t));
+    struct perf_event_attr pe;
+    struct _counter_t *counters = malloc(sizeof(struct _counter_t));
 
-  unsigned int nbcores = sysconf(_SC_NPROCESSORS_ONLN);
-  counters->nbcores=nbcores;
-  counters->nbperf=nb_perf;
-  memset(&pe, 0, sizeof(struct perf_event_attr));
-  pe.size = sizeof(struct perf_event_attr);
-  pe.disabled = 1;
+    unsigned int nbcores = sysconf(_SC_NPROCESSORS_ONLN);
+    counters->nbcores=nbcores;
+    counters->nbperf=nb_perf;
+    memset(&pe, 0, sizeof(struct perf_event_attr));
+    pe.size = sizeof(struct perf_event_attr);
+    pe.disabled = 1;
 
-  pe.read_format = PERF_FORMAT_GROUP;
-  counters->counters = malloc((nbcores+1)*sizeof(int));
+    pe.read_format = PERF_FORMAT_GROUP;
+    counters->counters = malloc((nbcores+1)*sizeof(int));
 
-  for (int core=0; core<nbcores; core++)
-    {
-      counters->counters[core]=-1;
-      for(int idperf=0; idperf<nb_perf; idperf ++)
+    for (int core=0; core<nbcores; core++)
         {
-          pe.type = types[idperf];
-          pe.config = names[idperf];
-          int res=perf_event_open(&pe, -1, core, counters->counters[core], PERF_FLAG_FD_CLOEXEC);
-          if(counters->counters[core]==-1)
-            counters->counters[core]=res;
+            counters->counters[core]=-1;
+            for(int idperf=0; idperf<nb_perf; idperf ++)
+                {
+                    pe.type = types[idperf];
+                    pe.config = names[idperf];
+                    int res=perf_event_open(&pe, -1, core, counters->counters[core], PERF_FLAG_FD_CLOEXEC);
+                    if(counters->counters[core]==-1)
+                        counters->counters[core]=res;
+                }
         }
-    }
-  return counters;
+    return counters;
 }
 
 void clean_counters(counter_t counters)
 {
-  for(int core=0; core<counters->nbcores; core++)
-    close(counters->counters[core]);
-  free(counters->counters);
-  free(counters);
+    for(int core=0; core<counters->nbcores; core++)
+        close(counters->counters[core]);
+    free(counters->counters);
+    free(counters);
 }
 
 void start_counters(counter_t counters)
 {
-  for(int core=0; core<counters->nbcores; core++)
-    ioctl(counters->counters[core], PERF_EVENT_IOC_ENABLE, PERF_IOC_FLAG_GROUP);
+    for(int core=0; core<counters->nbcores; core++)
+        ioctl(counters->counters[core], PERF_EVENT_IOC_ENABLE, PERF_IOC_FLAG_GROUP);
 }
 void reset_counters(counter_t counters)
 {
-  for(int core=0; core<counters->nbcores; core++)
-    ioctl(counters->counters[core], PERF_EVENT_IOC_RESET, PERF_IOC_FLAG_GROUP);
+    for(int core=0; core<counters->nbcores; core++)
+        ioctl(counters->counters[core], PERF_EVENT_IOC_RESET, PERF_IOC_FLAG_GROUP);
 }
 
 struct read_format
 {
-  uint64_t nr;
-  struct
-  {
-    uint64_t value;
-  } values[];
+    uint64_t nr;
+    struct
+    {
+        uint64_t value;
+    } values[];
 };
 
 void get_counters(counter_t counters, long long *values)
 {
-  int nb_perf = counters->nbperf;
-  size_t buffer_size = sizeof(uint64_t)*(1+nb_perf);
-  struct read_format *buffer = NULL;
-  if(buffer==NULL)
-    buffer = malloc(buffer_size);
+    int nb_perf = counters->nbperf;
+    size_t buffer_size = sizeof(uint64_t)*(1+nb_perf);
+    struct read_format *buffer = NULL;
+    if(buffer==NULL)
+        buffer = malloc(buffer_size);
 
-  memset(values, 0, nb_perf*sizeof(long long));
+    memset(values, 0, nb_perf*sizeof(long long));
 
-  for (int core=0; core<counters->nbcores; core++)
-    {
-      if (-1 == read(counters->counters[core], buffer, buffer_size))
+    for (int core=0; core<counters->nbcores; core++)
         {
-          perror("PB Lecture resultat");
-          exit(EXIT_FAILURE);
+            if (-1 == read(counters->counters[core], buffer, buffer_size))
+                {
+                    perror("PB Lecture resultat");
+                    exit(EXIT_FAILURE);
+                }
+            for(int idperf=0; idperf<=nb_perf; idperf++)
+                {
+                    values[idperf] += buffer->values[idperf].value;
+                }
         }
-      for(int idperf=0; idperf<=nb_perf; idperf++)
-        {
-          values[idperf] += buffer->values[idperf].value;
-        }
-    }
-  reset_counters(counters);
+    reset_counters(counters);
 }
