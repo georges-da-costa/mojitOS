@@ -83,8 +83,14 @@ void add_temperature_sensor(int id_rep, struct temperature_t *state)
 
             sprintf(buffer_filename, "/sys/class/hwmon/hwmon%d/temp%d_input", id_rep, i);
             state->fid_list = realloc(state->fid_list, (state->nb_elem+1)*sizeof(int));
-            state->fid_list[state->nb_elem] = open(buffer_filename, O_RDONLY);
-
+            int fd = open(buffer_filename, O_RDONLY);
+            if (fd < 0)
+                {
+                    fprintf(stderr, "%s ", buffer_filename);
+                    perror("open");
+                    exit(1);
+                }
+            state->fid_list[state->nb_elem] = fd;
             state->nb_elem++;
             // printf("%s : %s\n", buffer_label, buffer_filename);
         }
@@ -123,7 +129,11 @@ unsigned int get_temperature(uint64_t *results, void *ptr)
     static char buffer[512];
     for(int i=0; i<state->nb_elem; i++)
         {
-            pread(state->fid_list[i], buffer, 100, 0);
+            if (pread(state->fid_list[i], buffer, 100, 0) < 0)
+                {
+                    perror("pread");
+                    exit(1);
+                }
             results[i] = strtoull(buffer, NULL, 10);
         }
     return state->nb_elem;

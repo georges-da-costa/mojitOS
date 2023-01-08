@@ -26,6 +26,7 @@
 
 #define NB_SENSOR 4
 
+static char *route = "/proc/net/route";
 struct network_t
 {
     uint64_t values[NB_SENSOR];
@@ -40,7 +41,11 @@ unsigned int _get_network(uint64_t *results, int *sources)
     char buffer[128];
     for(int i=0; i<NB_SENSOR; i++)
         {
-            pread(sources[i], buffer, 127, 0);
+            if (pread(sources[i], buffer, 127, 0) < 0)
+                {
+                    perror("pread");
+                    exit(1);
+                }
 
             results[i] = strtoull(buffer, NULL, 10);
         }
@@ -56,14 +61,27 @@ unsigned int init_network(char *dev, void **ptr)
 
     if(strcmp(dev,"X")==0)
         {
-            int f = open("/proc/net/route", O_RDONLY);
+            int fd = open(route, O_RDONLY);
+            if (fd < 0)
+                {
+                    fprintf(stderr, "%s ", route);
+                    perror("open");
+                    exit(1);
+                }
             char buffer[1000];
-            read(f, buffer, 999);
+
+            if ( read(fd, buffer, 999) < 0 )
+                {
+                    perror("read");
+                    close(fd);
+                    exit(1);
+                }
+
             char *start_of_dev = index(buffer, '\n')+1;
             char *end_of_dev = index(start_of_dev, '\t');
             *end_of_dev='\0';
             dev = start_of_dev;
-            close(f);
+            close(fd);
         }
 
     char *filenames[] = {"/sys/class/net/%s/statistics/rx_packets",

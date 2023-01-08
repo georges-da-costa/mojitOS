@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <errno.h>
 
 
 #define MAX_HEADER 128
@@ -32,7 +33,9 @@ char *get_frapl_string(const char *filename)
 {
     int fd = open(filename, O_RDONLY);
     if( fd == -1)
-        return NULL;
+        {
+            return NULL;
+        }
     char *result = malloc(MAX_HEADER);
     int nb = read(fd, result, MAX_HEADER);
     close(fd);
@@ -71,7 +74,15 @@ void add_frapl_source(_frapl_t *rapl, char *name, char *energy_uj)
     strcpy(rapl->names[rapl->nb-1], name);
     //printf("%s\n", energy_uj);
 
-    rapl->fids[rapl->nb-1] = open(energy_uj, O_RDONLY);
+    int fd = open(energy_uj, O_RDONLY);
+
+    if (fd < 0)
+        {
+            fprintf(stderr, "%s ", energy_uj);
+            perror("open");
+            exit(1);
+        }
+    rapl->fids[rapl->nb-1] = fd;
 }
 
 
@@ -82,7 +93,11 @@ void _get_frapl(uint64_t *values, _frapl_t *rapl)
     for (int i = 0; i < rapl->nb; i++)
         {
 
-            pread(rapl->fids[i], buffer, 100, 0);
+            if (pread(rapl->fids[i], buffer, 100, 0) < 0)
+                {
+                    perror("pread");
+                    exit(1);
+                }
             values[i] = strtoull(buffer, NULL, 10);
         }
 }

@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 #define LOAD_BUFFER_SIZE 1024
 char buffer[LOAD_BUFFER_SIZE];
@@ -29,10 +30,15 @@ char buffer[LOAD_BUFFER_SIZE];
 static int load_fid=-1;
 static uint64_t load_values[10]= {0,0,0,0,0,0,0,0,0,0};
 static uint64_t tmp_load_values[10]= {0,0,0,0,0,0,0,0,0,0};
+static char *stat = "/proc/stat";
 
 void _get_load(uint64_t *results)
 {
-    pread(load_fid, buffer, LOAD_BUFFER_SIZE-1, 0);
+    if (pread(load_fid, buffer, LOAD_BUFFER_SIZE-1, 0) < 0)
+        {
+            perror("pread");
+            exit(1);
+        }
     int pos=0;
     while(buffer[pos] > '9' || buffer[pos] < '0') pos++;
     for(int i=0; i<10; i++)
@@ -47,7 +53,13 @@ void _get_load(uint64_t *results)
 
 unsigned int init_load(char *argument, void **state)
 {
-    load_fid = open("/proc/stat", O_RDONLY);
+    load_fid = open(stat, O_RDONLY);
+    if (load_fid < 0)
+        {
+            fprintf(stderr,"%s ",stat);
+            perror("open");
+            exit(1);
+        }
     _get_load(load_values);
     return 10;
 }
