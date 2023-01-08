@@ -33,7 +33,7 @@
 #include "load.h"
 #include "temperature.h"
 
-
+#define UNUSED(expr) do { (void)(expr); } while (0)
 
 void usage(char **argv)
 {
@@ -57,10 +57,12 @@ void usage(char **argv)
 
 void sighandler(int none)
 {
+	UNUSED(none);
 }
 
 void flush(int none)
 {
+	UNUSED(none);
     exit(0);
 }
 
@@ -190,7 +192,7 @@ int main(int argc, char **argv)
 
     fprintf(output, "#timestamp ");
 
-    for (int i = 0; i < nb_sensors; i++)
+    for (unsigned int i = 0; i < nb_sensors; i++)
         {
             fprintf(output, "%s ", labels[i]);
         }
@@ -210,7 +212,7 @@ int main(int argc, char **argv)
 
             // Get Data
             unsigned int current = 0;
-            for (int i = 0; i < nb_sources; i++)
+            for (unsigned int i = 0; i < nb_sources; i++)
                 {
                     current += getter[i](&values[current], states[i]);
                 }
@@ -259,7 +261,7 @@ int main(int argc, char **argv)
                     fprintf(output, "%ld.%09ld ", ts_ref.tv_sec, ts_ref.tv_nsec);
                 }
 
-            for (int i = 0; i < nb_sensors; i++)
+            for (unsigned int i = 0; i < nb_sensors; i++)
                 {
                     fprintf(output, "%" PRIu64 " ", values[i]);
                 }
@@ -280,7 +282,7 @@ int main(int argc, char **argv)
             usleep(1000 * 1000 / frequency - (ts.tv_nsec / 1000) % (1000 * 1000 / frequency));
         }
 
-    for (int i = 0; i < nb_sources; i++)
+    for (unsigned int i = 0; i < nb_sources; i++)
         {
             cleaner[i](states[i]);
         }

@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define UNUSED(expr) do { (void)(expr); } while (0)
+
 struct temperature_t
 {
     char **label_list;
@@ -74,7 +76,7 @@ void add_temperature_sensor(int id_rep, struct temperature_t *state)
             if(get_string(buffer_filename, buffer_label+delta, 100) == -1)
                 break;
 
-            for(int pos = 0; pos < strlen(buffer_label); pos++)
+            for(unsigned int pos = 0; pos < strlen(buffer_label); pos++)
                 {
                     if (buffer_label[pos] == ' ')  buffer_label[pos] = '_';
                     if (buffer_label[pos] == '\n') buffer_label[pos] = '\0';
@@ -100,6 +102,7 @@ void add_temperature_sensor(int id_rep, struct temperature_t *state)
 
 unsigned int init_temperature(char *args, void **ptr)
 {
+	UNUSED(args);
     struct temperature_t *state = malloc(sizeof(struct temperature_t));
     state->nb_elem = 0;
     state->label_list = NULL;
