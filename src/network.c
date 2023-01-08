@@ -24,11 +24,13 @@
 #include <string.h>
 #include <stdint.h>
 
+#define NB_SENSOR 4
+
 struct network_t
 {
-    uint64_t values[4];
-    uint64_t tmp_values[4];
-    int sources[4];
+    uint64_t values[NB_SENSOR];
+    uint64_t tmp_values[NB_SENSOR];
+    int sources[NB_SENSOR];
 };
 
 unsigned int _get_network(uint64_t *results, int *sources)
@@ -36,13 +38,13 @@ unsigned int _get_network(uint64_t *results, int *sources)
     if(sources==NULL)
         return 0;
     char buffer[128];
-    for(int i=0; i<4; i++)
+    for(int i=0; i<NB_SENSOR; i++)
         {
             pread(sources[i], buffer, 127, 0);
 
             results[i] = strtoull(buffer, NULL, 10);
         }
-    return 4;
+    return NB_SENSOR;
 }
 
 
@@ -73,7 +75,7 @@ unsigned int init_network(char *dev, void **ptr)
     struct network_t *state = malloc(sizeof(struct network_t));
 
     char buffer2[256];
-    for(int i=0; i<4; i++)
+    for(int i=0; i<NB_SENSOR; i++)
         {
             sprintf(buffer2, filenames[i], dev);
             state->sources[i] = open(buffer2, O_RDONLY);
@@ -81,18 +83,18 @@ unsigned int init_network(char *dev, void **ptr)
     *ptr = (void *) state;
     _get_network(state->values, state->sources);
 
-    return 4;
+    return NB_SENSOR;
 }
 
 unsigned int get_network(uint64_t *results, void *ptr)
 {
     struct network_t *state = (struct network_t *) ptr;
     _get_network(state->tmp_values, state->sources);
-    for(int i=0; i<4; i++)
+    for(int i=0; i<NB_SENSOR; i++)
         results[i] = state->tmp_values[i] - state->values[i];
 
-    memcpy(state->values, state->tmp_values, 4*sizeof(uint64_t));
-    return 4;
+    memcpy(state->values, state->tmp_values, NB_SENSOR*sizeof(uint64_t));
+    return NB_SENSOR;
 }
 
 void clean_network(void *ptr)
@@ -100,14 +102,14 @@ void clean_network(void *ptr)
     struct network_t *state = (struct network_t *) ptr;
     if(state==NULL)
         return;
-    for(int i=0; i<4; i++)
+    for(int i=0; i<NB_SENSOR; i++)
         close(state->sources[i]);
     free(state);
 }
 
-char *_labels_network[4] = {"rxp", "rxb", "txp", "txb"};
+char *_labels_network[NB_SENSOR] = {"rxp", "rxb", "txp", "txb"};
 void label_network(char **labels, void *none)
 {
-    for(int i=0; i<4; i++)
+    for(int i=0; i<NB_SENSOR; i++)
         labels[i] = _labels_network[i];
 }
