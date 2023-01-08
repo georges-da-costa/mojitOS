@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #define NB_SENSOR 4
+#define UNUSED(expr) do { (void)(expr); } while (0)
 
 static char *route = "/proc/net/route";
 struct network_t
@@ -128,6 +129,7 @@ void clean_network(void *ptr)
 char *_labels_network[NB_SENSOR] = {"rxp", "rxb", "txp", "txb"};
 void label_network(char **labels, void *none)
 {
+	UNUSED(none);
     for(int i=0; i<NB_SENSOR; i++)
         labels[i] = _labels_network[i];
 }

@@ -8,7 +8,7 @@ OBJECTS = $(addprefix $(OBJ_DIR)/, mojitos.o counters_individual.o rapl.o frapl.
 OBJECTS_GRP = $(subst _individual,_group, $(OBJECTS))
 
 CC = gcc
-CFLAGS = -std=gnu99 -O3 -Wall # -Wextra -Werror -Wpedantic
+CFLAGS = -std=gnu99 -O3 -Wall -Wextra -Werror -Wpedantic
 
 ASTYLE = astyle --style=gnu -xf -s4 -k3 -n -Z -Q
 

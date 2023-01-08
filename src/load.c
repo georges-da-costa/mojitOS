@@ -25,6 +25,7 @@
 #include <stdio.h>
 
 #define LOAD_BUFFER_SIZE 1024
+#define UNUSED(expr) do { (void)(expr); } while (0)
 char buffer[LOAD_BUFFER_SIZE];
 
 static int load_fid=-1;
@@ -53,6 +54,8 @@ void _get_load(uint64_t *results)
 
 unsigned int init_load(char *argument, void **state)
 {
+	UNUSED(argument);
+	UNUSED(state);
     load_fid = open(stat, O_RDONLY);
     if (load_fid < 0)
         {
