@@ -26,11 +26,13 @@
 
 #include <stdint.h>
 
+#define NB_SENSOR 4
+
 struct network_t
 {
-    uint64_t values[4];
-    uint64_t tmp_values[4];
-    int sources[4];
+    uint64_t values[NB_SENSOR];
+    uint64_t tmp_values[NB_SENSOR];
+    int sources[NB_SENSOR];
 };
 unsigned int _get_network(uint64_t *results, int *sources);
 
@@ -60,7 +62,7 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
     struct network_t *state = malloc(sizeof(struct network_t));
 
     char buffer[1024];
-    for(int i=0; i<4; i++)
+    for(int i=0; i<NB_SENSOR; i++)
         {
             sprintf(buffer, filenames[i], infi_path);
             state->sources[i] = open(buffer, O_RDONLY);
@@ -69,12 +71,12 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
     *ptr = (void *) state;
     _get_network(state->values, state->sources);
 
-    return 4;
+    return NB_SENSOR;
 }
 
-char *_labels_infiniband[4] = {"irxp", "irxb", "itxp", "itxb"};
+char *_labels_infiniband[NB_SENSOR] = {"irxp", "irxb", "itxp", "itxb"};
 void label_infiniband(char **labels, void *none)
 {
-    for(int i=0; i<4; i++)
+    for(int i=0; i<NB_SENSOR; i++)
         labels[i] = _labels_infiniband[i];
 }
