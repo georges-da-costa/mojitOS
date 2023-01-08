@@ -45,7 +45,7 @@ typedef struct _counter_t *counter_t;
 
 void show_all_counters()
 {
-    for(int i=0; i<nb_counter_option; i++)
+    for(unsigned int i=0; i<nb_counter_option; i++)
         printf("%s\n", perf_static_info[i].name);
 }
 
@@ -67,7 +67,7 @@ void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes)
     while((token=strtok(perf_string, ",")) != NULL)
         {
             perf_string = NULL;
-            int i;
+            unsigned int i;
             for(i=0; i<nb_counter_option; i++)
                 {
                     if(strcmp(perf_static_info[i].name, token) == 0)
@@ -117,7 +117,7 @@ counter_t _init_counters(const int nb_perf, const __u32 *types, const __u64 *nam
             pe.config = names[i];
             counters->counters[i] = malloc(nbcores*sizeof(int));
 
-            for (int core=0; core<nbcores; core++)
+            for (unsigned int core=0; core<nbcores; core++)
                 {
                     counters->counters[i][core] = perf_event_open(&pe, -1, core, -1, PERF_FLAG_FD_CLOEXEC);
                 }
