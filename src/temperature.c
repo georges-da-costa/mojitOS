@@ -37,8 +37,10 @@ int get_string(char *filename, char *buffer, int max_size)
 {
     int fid = open(filename, O_RDONLY);
     //printf("Tries to open : %s : %d\n", filename, fid);
-    if(fid == -1)
-        return -1;
+    if (fid == -1)
+        {
+            return -1;
+        }
 
     int nb = read(fid, buffer, max_size);
     if(nb == -1) {
@@ -46,7 +48,7 @@ int get_string(char *filename, char *buffer, int max_size)
         return -1;
     }
 
-    buffer[nb]=0;
+    buffer[nb] = 0;
     close(fid);
     return 0;
 }
@@ -54,15 +56,15 @@ int get_string(char *filename, char *buffer, int max_size)
 void add_to_list(char ***list_name, char *source, int nb_elem)
 {
     //printf("Adds: %s\n", source);
-    *list_name = realloc(*list_name, (nb_elem+1)*sizeof(char *));
-    (*list_name)[nb_elem] = malloc(strlen(source)+1);
+    *list_name = realloc(*list_name, (nb_elem + 1) * sizeof(char *));
+    (*list_name)[nb_elem] = malloc(strlen(source) + 1);
     strcpy((*list_name)[nb_elem], source);
 
 }
 
 void add_temperature_sensor(int id_rep, struct temperature_t *state)
 {
-    static int key=0;
+    static int key = 0;
     static char buffer_filename[512];
     static char buffer_label[512];
 
@@ -150,6 +152,8 @@ void clean_temperature(void *ptr)
 void label_temperature(char **labels, void *ptr)
 {
     struct temperature_t *state = (struct temperature_t *)ptr;
-    for(int i=0; i<state->nb_elem; i++)
-        labels[i] = state->label_list[i];
+    for (int i = 0; i < state->nb_elem; i++)
+        {
+            labels[i] = state->label_list[i];
+        }
 }

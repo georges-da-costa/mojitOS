@@ -40,7 +40,7 @@ char *get_frapl_string(const char *filename)
     char *result = malloc(MAX_HEADER);
     int nb = read(fd, result, MAX_HEADER);
     close(fd);
-    result[nb-1] = 0;
+    result[nb - 1] = 0;
     return (result);
 }
 
@@ -49,7 +49,7 @@ void test_append(char *name, int i)
     //char last = name[strlen(name)-1];
     //if (last>='0' && last <= '9')
     //  return;
-    sprintf(name+strlen(name), "%d", i);
+    sprintf(name + strlen(name), "%d", i);
 }
 
 
@@ -70,8 +70,8 @@ void add_frapl_source(_frapl_t *rapl, char *name, char *energy_uj)
     rapl->names = realloc(rapl->names, sizeof(char **)*rapl->nb);
     rapl->fids = realloc(rapl->fids, sizeof(int *)*rapl->nb);
 
-    rapl->names[rapl->nb-1] = malloc(strlen(name)+1);
-    strcpy(rapl->names[rapl->nb-1], name);
+    rapl->names[rapl->nb - 1] = malloc(strlen(name) + 1);
+    strcpy(rapl->names[rapl->nb - 1], name);
     //printf("%s\n", energy_uj);
 
     int fd = open(energy_uj, O_RDONLY);
@@ -154,8 +154,10 @@ unsigned int get_frapl(uint64_t *results, void *ptr)
 {
     _frapl_t *state = (_frapl_t *) ptr;
     _get_frapl(state->tmp_values, state);
-    for(unsigned int i=0; i<state->nb; i++)
-        results[i] = state->tmp_values[i] - state->values[i];
+    for (unsigned int i = 0; i < state->nb; i++)
+        {
+            results[i] = state->tmp_values[i] - state->values[i];
+        }
 
     memcpy(state->values, state->tmp_values, sizeof(uint64_t)*state->nb);
     return state->nb;

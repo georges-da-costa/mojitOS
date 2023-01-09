@@ -36,8 +36,10 @@ struct network_t {
 
 unsigned int _get_network(uint64_t *results, int *sources)
 {
-    if(sources==NULL)
-        return 0;
+    if (sources == NULL)
+        {
+            return 0;
+        }
     char buffer[128];
     for(int i=0; i<NB_SENSOR; i++) {
         if (pread(sources[i], buffer, 127, 0) < 0) {
@@ -54,8 +56,10 @@ unsigned int _get_network(uint64_t *results, int *sources)
 
 unsigned int init_network(char *dev, void **ptr)
 {
-    if(dev==NULL)
-        return 0;
+    if (dev == NULL)
+        {
+            return 0;
+        }
 
     if(strcmp(dev,"X")==0) {
         int fd = open(route, O_RDONLY);
@@ -102,20 +106,26 @@ unsigned int get_network(uint64_t *results, void *ptr)
 {
     struct network_t *state = (struct network_t *) ptr;
     _get_network(state->tmp_values, state->sources);
-    for(int i=0; i<NB_SENSOR; i++)
-        results[i] = state->tmp_values[i] - state->values[i];
+    for (int i = 0; i < NB_SENSOR; i++)
+        {
+            results[i] = state->tmp_values[i] - state->values[i];
+        }
 
-    memcpy(state->values, state->tmp_values, NB_SENSOR*sizeof(uint64_t));
+    memcpy(state->values, state->tmp_values, NB_SENSOR * sizeof(uint64_t));
     return NB_SENSOR;
 }
 
 void clean_network(void *ptr)
 {
     struct network_t *state = (struct network_t *) ptr;
-    if(state==NULL)
-        return;
-    for(int i=0; i<NB_SENSOR; i++)
-        close(state->sources[i]);
+    if (state == NULL)
+        {
+            return;
+        }
+    for (int i = 0; i < NB_SENSOR; i++)
+        {
+            close(state->sources[i]);
+        }
     free(state);
 }
 

@@ -70,7 +70,7 @@ unsigned int init_rapl(char *none, void **ptr)
 {
     UNUSED(none);
     // get number of processor sockets
-    _rapl_t *rapl= malloc(sizeof(struct _rapl_t));
+    _rapl_t *rapl = malloc(sizeof(struct _rapl_t));
     rapl->nb = 0;
     rapl->packages = NULL;
     rapl->zones = NULL;
@@ -91,8 +91,8 @@ unsigned int init_rapl(char *none, void **ptr)
 
     rapl->names = NULL;
 
-    char _name[MAX_LEN_NAME+1];
-    char _name2[MAX_LEN_NAME+11];
+    char _name[MAX_LEN_NAME + 1];
+    char _name2[MAX_LEN_NAME + 11];
 
     for (unsigned int package = 0; package < rapl->nb_pkgs; package++) {
         for(unsigned int zone=0; zone < nb_zones; zone++) {
@@ -119,8 +119,10 @@ unsigned int init_rapl(char *none, void **ptr)
     }
 #ifdef DEBUG
     printf("Result of init\n");
-    for(unsigned int i=0; i<rapl->nb; i++)
-        printf("package %d, zone %d, name %s\n", rapl->packages[i], rapl->zones[i], rapl->names[i]);
+    for (unsigned int i = 0; i < rapl->nb; i++)
+        {
+            printf("package %d, zone %d, name %s\n", rapl->packages[i], rapl->zones[i], rapl->names[i]);
+        }
 #endif
 
     rapl->values = calloc(sizeof(uint64_t), rapl->nb);
@@ -138,8 +140,10 @@ unsigned int get_rapl(uint64_t *results, void *ptr)
 {
     _rapl_t *state = (_rapl_t *) ptr;
     _get_rapl(state->tmp_values, state);
-    for(unsigned int i=0; i<state->nb; i++)
-        results[i] = state->tmp_values[i] - state->values[i];
+    for (unsigned int i = 0; i < state->nb; i++)
+        {
+            results[i] = state->tmp_values[i] - state->values[i];
+        }
 
     memcpy(state->values, state->tmp_values, sizeof(uint64_t)*state->nb);
     return state->nb;
@@ -153,9 +157,13 @@ void clean_rapl(void *ptr)
     _rapl_t *rapl = (_rapl_t *) ptr;
     for (unsigned int package = 0; package < rapl->nb_pkgs; package++)
         if (powercap_rapl_destroy(&rapl->pkgs[package]))
-            perror("powercap_rapl_destroy");
-    for (unsigned int elem=0; elem<rapl->nb; elem++)
-        free(rapl->names[elem]);
+            {
+                perror("powercap_rapl_destroy");
+            }
+    for (unsigned int elem = 0; elem < rapl->nb; elem++)
+        {
+            free(rapl->names[elem]);
+        }
 
     free(rapl->names);
     free(rapl->pkgs);
@@ -169,6 +177,8 @@ void clean_rapl(void *ptr)
 void label_rapl(char **labels, void *ptr)
 {
     _rapl_t *rapl = (_rapl_t *) ptr;
-    for(unsigned int i=0; i<rapl->nb; i++)
-        labels[i] = rapl->names[i];
+    for (unsigned int i = 0; i < rapl->nb; i++)
+        {
+            labels[i] = rapl->names[i];
+        }
 }

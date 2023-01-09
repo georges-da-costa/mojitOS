@@ -39,8 +39,10 @@ unsigned int _get_network(uint64_t *results, int *sources);
 
 unsigned int init_infiniband(char *infi_path, void **ptr)
 {
-    if(infi_path==NULL)
-        return 0;
+    if (infi_path == NULL)
+        {
+            return 0;
+        }
 
     if(strcmp(infi_path,"X")==0) {
 

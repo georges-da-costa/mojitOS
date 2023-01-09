@@ -19,19 +19,19 @@
 
  *******************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <signal.h>
 #include <inttypes.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "counters.h"
-#include "rapl.h"
 #include "frapl.h"
-#include "network.h"
 #include "infiniband.h"
 #include "load.h"
+#include "network.h"
+#include "rapl.h"
 #include "temperature.h"
 
 #define UNUSED(expr) do { (void)(expr); } while (0)

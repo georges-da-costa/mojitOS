@@ -28,9 +28,9 @@
 #define UNUSED(expr) do { (void)(expr); } while (0)
 char buffer[LOAD_BUFFER_SIZE];
 
-static int load_fid=-1;
-static uint64_t load_values[10]= {0,0,0,0,0,0,0,0,0,0};
-static uint64_t tmp_load_values[10]= {0,0,0,0,0,0,0,0,0,0};
+static int load_fid = -1;
+static uint64_t load_values[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static uint64_t tmp_load_values[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static char *stat = "/proc/stat";
 
 void _get_load(uint64_t *results)
@@ -68,8 +68,10 @@ unsigned int get_load(uint64_t *results, void *state)
 {
     UNUSED(state);
     _get_load(tmp_load_values);
-    for(int i=0; i<10; i++)
-        results[i] = tmp_load_values[i] - load_values[i];
+    for (int i = 0; i < 10; i++)
+        {
+            results[i] = tmp_load_values[i] - load_values[i];
+        }
 
     memcpy(load_values, tmp_load_values, sizeof(load_values));
     return 10;
@@ -81,8 +83,8 @@ void clean_load(void *state)
     close(load_fid);
 }
 
-char *_labels[10] = {"user","nice","system","idle","iowait","irq",
-                     "softirq","steal","guest","guest_nice"
+char *_labels[10] = {"user", "nice", "system", "idle", "iowait", "irq",
+                     "softirq", "steal", "guest", "guest_nice"
                     };
 void label_load(char **labels, void *none)
 {
