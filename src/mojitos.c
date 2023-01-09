@@ -34,6 +34,14 @@
 #include "temperature.h"
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
+#define PANIC(code, fmt, ...)  				 \
+	do {									 \
+		fprintf(stderr, "Exit on error: ");  \
+		fprintf(stderr, fmt, ##__VA_ARGS__); \
+		fprintf(stderr, "\n"); 			     \
+		exit(code); 						 \
+	} while (0)
+
 
 void usage(char **argv)
 {
@@ -136,9 +144,11 @@ int main(int argc, char **argv)
         switch (c)
             {
             case 'f':
+				if (optind >= argc) PANIC(1,"-f, no frequency provided");
                 frequency = atoi(argv[optind]);
                 break;
             case 't':
+				if (optind >= argc) PANIC(1,"-t, no time provided");
                 total_time = atoi(argv[optind]);
                 delta = 1;
                 if (total_time == 0)
@@ -154,6 +164,7 @@ int main(int argc, char **argv)
                 add_source(init_infiniband, argv[optind], label_infiniband, get_network, clean_network);
                 break;
             case 'o':
+				if (optind >= argc) PANIC(1,"-o, no logfile provided");
                 output = fopen(argv[optind], "wb");
                 break;
             case 'e':
@@ -161,6 +172,7 @@ int main(int argc, char **argv)
                 signal(17, sighandler);
                 break;
             case 'p':
+				if (optind >= argc) PANIC(1,"-p, no counter provided");
                 add_source(init_counters, argv[optind], label_counters, get_counters, clean_counters);
                 break;
             case 'r':
