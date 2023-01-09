@@ -78,7 +78,7 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
 char *_labels_infiniband[NB_SENSOR] = {"irxp", "irxb", "itxp", "itxb"};
 void label_infiniband(char **labels, void *none)
 {
-	UNUSED(none);
+    UNUSED(none);
     for(int i=0; i<NB_SENSOR; i++)
         labels[i] = _labels_infiniband[i];
 }

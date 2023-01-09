@@ -107,7 +107,7 @@ void _get_frapl(uint64_t *values, _frapl_t *rapl)
 
 unsigned int init_frapl(char *none, void **ptr)
 {
-	UNUSED(none);
+    UNUSED(none);
     _frapl_t *rapl = malloc(sizeof(_frapl_t));
     rapl->nb = 0;
     rapl->names = NULL;
@@ -187,6 +187,6 @@ void clean_frapl(void *ptr)
 void label_frapl(char **labels, void *ptr)
 {
     _frapl_t *rapl = (_frapl_t *) ptr;
-	for(unsigned int i=0; i<rapl->nb; i++)
+    for(unsigned int i=0; i<rapl->nb; i++)
         labels[i] = rapl->names[i];
 }

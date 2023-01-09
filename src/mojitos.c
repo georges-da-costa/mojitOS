@@ -57,12 +57,12 @@ void usage(char **argv)
 
 void sighandler(int none)
 {
-	UNUSED(none);
+    UNUSED(none);
 }
 
 void flush(int none)
 {
-	UNUSED(none);
+    UNUSED(none);
     exit(0);
 }
 

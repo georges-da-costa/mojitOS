@@ -102,7 +102,7 @@ void add_temperature_sensor(int id_rep, struct temperature_t *state)
 
 unsigned int init_temperature(char *args, void **ptr)
 {
-	UNUSED(args);
+    UNUSED(args);
     struct temperature_t *state = malloc(sizeof(struct temperature_t));
     state->nb_elem = 0;
     state->label_list = NULL;

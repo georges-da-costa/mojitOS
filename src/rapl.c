@@ -70,7 +70,7 @@ void _get_rapl(uint64_t *values, _rapl_t *rapl)
 
 unsigned int init_rapl(char *none, void **ptr)
 {
-	UNUSED(none);
+    UNUSED(none);
     // get number of processor sockets
     _rapl_t *rapl= malloc(sizeof(struct _rapl_t));
     rapl->nb = 0;

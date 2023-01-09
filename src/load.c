@@ -54,8 +54,8 @@ void _get_load(uint64_t *results)
 
 unsigned int init_load(char *argument, void **state)
 {
-	UNUSED(argument);
-	UNUSED(state);
+    UNUSED(argument);
+    UNUSED(state);
     load_fid = open(stat, O_RDONLY);
     if (load_fid < 0)
         {
@@ -69,7 +69,7 @@ unsigned int init_load(char *argument, void **state)
 
 unsigned int get_load(uint64_t *results, void *state)
 {
-	UNUSED(state);
+    UNUSED(state);
     _get_load(tmp_load_values);
     for(int i=0; i<10; i++)
         results[i] = tmp_load_values[i] - load_values[i];
@@ -80,7 +80,7 @@ unsigned int get_load(uint64_t *results, void *state)
 
 void clean_load(void *state)
 {
-	UNUSED(state);
+    UNUSED(state);
     close(load_fid);
 }
 
@@ -89,7 +89,7 @@ char *_labels[10] = {"user","nice","system","idle","iowait","irq",
                     };
 void label_load(char **labels, void *none)
 {
-	UNUSED(none);
+    UNUSED(none);
     for(int i=0; i<10; i++)
         labels[i] = _labels[i];
 }
