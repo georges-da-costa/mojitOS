@@ -1,4 +1,5 @@
 /*******************************************************
+
  Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
@@ -65,20 +66,23 @@ void usage(char **argv)
 
 void sighandler(int none)
 {
-	UNUSED(none);
+    UNUSED(none);
 }
 
 void flush(int none)
 {
-	UNUSED(none);
+    UNUSED(none);
     exit(0);
 }
 
 FILE *output;
 void flushexit()
 {
-    fflush(output);
-    fclose(output);
+    if (output != NULL)
+        {
+            fflush(output);
+            fclose(output);
+        }
 }
 
 typedef unsigned int (initializer_t)(char *, void **);
@@ -144,11 +148,11 @@ int main(int argc, char **argv)
         switch (c)
             {
             case 'f':
-				if (optind >= argc) PANIC(1,"-f, no frequency provided");
+                if (optind >= argc) PANIC(1,"-f, no frequency provided");
                 frequency = atoi(argv[optind]);
                 break;
             case 't':
-				if (optind >= argc) PANIC(1,"-t, no time provided");
+                if (optind >= argc) PANIC(1,"-t, no time provided");
                 total_time = atoi(argv[optind]);
                 delta = 1;
                 if (total_time == 0)
@@ -164,15 +168,19 @@ int main(int argc, char **argv)
                 add_source(init_infiniband, argv[optind], label_infiniband, get_network, clean_network);
                 break;
             case 'o':
-				if (optind >= argc) PANIC(1,"-o, no logfile provided");
-                output = fopen(argv[optind], "wb");
+                if (optind >= argc) PANIC(1,"-o, no logfile provided");
+                if ((output = fopen(argv[optind], "wb")) == NULL)
+                    {
+                        perror("fopen");
+                        PANIC(1, "-o %s", argv[optind]);
+                    }
                 break;
             case 'e':
                 application = &argv[optind];
                 signal(17, sighandler);
                 break;
             case 'p':
-				if (optind >= argc) PANIC(1,"-p, no counter provided");
+                if (optind >= argc) PANIC(1,"-p, no counter provided");
                 add_source(init_counters, argv[optind], label_counters, get_counters, clean_counters);
                 break;
             case 'r':
