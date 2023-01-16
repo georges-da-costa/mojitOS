@@ -6,18 +6,35 @@ MojitO/S runs on GNU/Linux
 ## Usage
 
 ```bash
-Usage : mojitos [-Rsu] [-t time] [-f freq] [-p perf_list]  \
-                  [-u] [-d network_device] [-o logfile] [-e command arguments...]
+Usage : mojitos [-rsu] [-t time] [-f freq] [-p perf_list]  \
+                [-d network_device] [-o logfile] [-e command arguments...]
         mojitos [-l]
+
+     -s      Enable overhead statistics (in nanoseconds).
+
+     -u      Enable system-level load monitoring.
+
+     -r      Enable RAPL.
+
+     -p perf_list
+             Enable performance counters.  The argument is a coma separated
+             list of performance counters.
+
+     -d net_device
+             Enable network monitoring.
+
+     -l      List the available performance counters and quit.
+
+     -t time
+             Set duration value (in seconds). If 0, then loops indefinitely.
+
+     -f freq
+             Set amount of measurements per second.
+
+     -e cmd ...
+             Execute a command with optional arguments.  If this option is
+             used, any usage of -t or -f is ignored.
 ```
-
-For more information, see [mojitos(1)](doc/mojitos.1) under [doc/](doc).
-
-## License
-
-MojitO/S is published under the GPL3 license and is part of the [Energumen Project](https://www.irit.fr/energumen/)
-
-<img src="https://www.irit.fr/energumen/images/energumen.png" width="100">
 
 ## Installation Instructions
 
@@ -88,3 +105,9 @@ $ ./mojitos -t 5 -f 1 -p cpu_cycles -r -s
 1036991.000182835 525984292 3592582 691221 1385982 272182
 1036992.000165117 397678789 2770561 444030 1375729 510379
 ```
+
+## License
+
+MojitO/S is published under the GPL3 license and is part of the [Energumen Project](https://www.irit.fr/energumen/)
+
+<img src="https://www.irit.fr/energumen/images/energumen.png" width="100">
