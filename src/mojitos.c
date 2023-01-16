@@ -33,6 +33,10 @@
 #include "network.h"
 #include "temperature.h"
 
+#define OPTPARSE_IMPLEMENTATION
+#define OPTPARSE_API static
+#include "optparse.h"
+
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define PANIC(code, fmt, ...)  				 \
 	do {									 \
@@ -45,12 +49,11 @@
 
 void usage(char **argv)
 {
-    printf("Usage : %s [-rRluc] [-t time] [-f freq] [-p perf_list] [-d network_device]\n"
+    printf("Usage : %s [-rlucs] [-t time] [-f freq] [-p perf_list] [-d network_device]\n"
            "                    [-i infiniband_path] [-o logfile] [-e command arguments...]\n"
            "if time==0 then loops infinitively\n"
            "if -e is present, time and freq are not used\n"
            "-r activates RAPL\n"
-           "-R activates the file version of RAPL\n"
            "-p activates performance counters\n"
            "   perf_list is coma separated list of performance counters without space. Ex: instructions,cache_misses\n"
            "-l lists the possible performance counters and quits\n"
@@ -60,7 +63,7 @@ void usage(char **argv)
            "-u activates report of system load\n"
            "-c activates report of processor temperature\n"
            , argv[0]);
-    exit(EXIT_SUCCESS);
+    exit(EXIT_FAILURE);
 }
 
 void sighandler(int none)
@@ -140,17 +143,32 @@ int main(int argc, char **argv)
     atexit(flushexit);
     signal(15, flush);
 
-    int c;
+    int opt;
+    struct optparse options;
+    options.permute = 0;
+    struct optparse_long longopts[] = {
+        {"monitor-infiniband", 'i', OPTPARSE_REQUIRED},
+        {"freq", 'f', OPTPARSE_REQUIRED},
+        {"time", 't', OPTPARSE_REQUIRED},
+        {"net-dev", 'd', OPTPARSE_REQUIRED},
+        {"exec", 'e', OPTPARSE_REQUIRED},
+        {"logfile", 'o', OPTPARSE_REQUIRED},
+        {"perf-list", 'p', OPTPARSE_REQUIRED},
+        {"cpu-temp", 'c', OPTPARSE_NONE},
+        {"rapl", 'r', OPTPARSE_NONE},
+        {"overhead-stats", 's', OPTPARSE_NONE},
+        {"sysload", 'u', OPTPARSE_NONE},
+        {"list", 'l', OPTPARSE_NONE},
+    };
 
-    while ((c = getopt (argc, argv, "ilhcftdeoprRsu")) != -1 && application == NULL) {
-        switch (c) {
+    optparse_init(&options, argv);
+    while ((opt = optparse_long(&options, longopts, NULL)) != -1 && application == NULL) {
+        switch (opt) {
         case 'f':
-            if (optind >= argc) PANIC(1,"-f, no frequency provided");
-            frequency = atoi(argv[optind]);
+            frequency = atoi(options.optarg);
             break;
         case 't':
-            if (optind >= argc) PANIC(1,"-t, no time provided");
-            total_time = atoi(argv[optind]);
+            total_time = atoi(options.optarg);
             delta = 1;
             if (total_time == 0) {
                 total_time = 1;
@@ -158,25 +176,23 @@ int main(int argc, char **argv)
             }
             break;
         case 'd':
-            add_source(init_network, argv[optind], label_network, get_network, clean_network);
+            add_source(init_network, options.optarg, label_network, get_network, clean_network);
             break;
         case 'i':
-            add_source(init_infiniband, argv[optind], label_infiniband, get_network, clean_network);
+            add_source(init_infiniband, options.optarg, label_infiniband, get_network, clean_network);
             break;
         case 'o':
-            if (optind >= argc) PANIC(1,"-o, no logfile provided");
-            if ((output = fopen(argv[optind], "wb")) == NULL) {
+            if ((output = fopen(options.optarg, "wb")) == NULL) {
                 perror("fopen");
-                PANIC(1, "-o %s", argv[optind]);
+                PANIC(1, "-o %s", options.optarg);
             }
             break;
         case 'e':
-            application = &argv[optind];
+            application = options.argv;
             signal(17, sighandler);
             break;
         case 'p':
-            if (optind >= argc) PANIC(1,"-p, no counter provided");
-            add_source(init_counters, argv[optind], label_counters, get_counters, clean_counters);
+            add_source(init_counters, options.optarg, label_counters, get_counters, clean_counters);
             break;
         case 'r':
             add_source(init_rapl, NULL, label_rapl, get_rapl, clean_rapl);
@@ -194,6 +210,7 @@ int main(int argc, char **argv)
             show_all_counters();
             exit(EXIT_SUCCESS);
         default:
+            fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
             usage(argv);
         }
     }

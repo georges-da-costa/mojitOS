@@ -16,7 +16,7 @@ OBJ = $(addprefix $(OBJ_DIR)/,  \
 )
 
 CC = gcc
-CFLAGS = -std=gnu99 -O3 -Wall -Wextra -Werror -Wpedantic
+CFLAGS = -std=gnu99 -O3 -Wall -Wextra -Werror -Wpedantic -Wno-unused-function
 LDFLAGS = -lpowercap
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
