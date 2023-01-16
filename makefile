@@ -19,10 +19,10 @@ all: mojitos
 mojitos: $(OBJ_DIR) $(BIN_DIR) $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/mojitos $(OBJECTS) -lpowercap
 
-$(OBJ_DIR)/counters_%.o: $(SRC_DIR)/counters_%.c $(SRC_DIR)/counters.h $(SRC_DIR)/counters_option.h
+$(OBJ_DIR)/counters.o: $(SRC_DIR)/counters.c $(SRC_DIR)/counters.h $(SRC_DIR)/counters_option.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.py
+$(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.sh
 	sh ./$(SRC_DIR)/counters_option.sh > $(SRC_DIR)/counters_option.h
 
 $(OBJ_DIR)/mojitos.o: $(SRC_DIR)/mojitos.c $(SRC_DIR)/counters_option.h
