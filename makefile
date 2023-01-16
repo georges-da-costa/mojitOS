@@ -23,7 +23,7 @@ $(OBJ_DIR)/counters_%.o: $(SRC_DIR)/counters_%.c $(SRC_DIR)/counters.h $(SRC_DIR
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.py
-	python3 ./$(SRC_DIR)/counters_option.py > $(SRC_DIR)/counters_option.h
+	sh ./$(SRC_DIR)/counters_option.sh > $(SRC_DIR)/counters_option.h
 
 $(OBJ_DIR)/mojitos.o: $(SRC_DIR)/mojitos.c $(SRC_DIR)/counters_option.h
 	$(CC) $(CFLAGS) -c $< -o $@
