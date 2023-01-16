@@ -27,8 +27,7 @@
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 
-struct temperature_t
-{
+struct temperature_t {
     char **label_list;
     int *fid_list;
     int nb_elem;
@@ -42,11 +41,10 @@ int get_string(char *filename, char *buffer, int max_size)
         return -1;
 
     int nb = read(fid, buffer, max_size);
-    if(nb == -1)
-        {
-            close(fid);
-            return -1;
-        }
+    if(nb == -1) {
+        close(fid);
+        return -1;
+    }
 
     buffer[nb]=0;
     close(fid);
@@ -70,39 +68,36 @@ void add_temperature_sensor(int id_rep, struct temperature_t *state)
 
     int delta = sprintf(buffer_label, "Temp_%d_", key);
 
-    for(int i=1;; i++)
-        {
-            sprintf(buffer_filename, "/sys/class/hwmon/hwmon%d/temp%d_label", id_rep, i);
-            if(get_string(buffer_filename, buffer_label+delta, 100) == -1)
-                break;
+    for(int i=1;; i++) {
+        sprintf(buffer_filename, "/sys/class/hwmon/hwmon%d/temp%d_label", id_rep, i);
+        if(get_string(buffer_filename, buffer_label+delta, 100) == -1)
+            break;
 
-            for(unsigned int pos = 0; pos < strlen(buffer_label); pos++)
-                {
-                    if (buffer_label[pos] == ' ')  buffer_label[pos] = '_';
-                    if (buffer_label[pos] == '\n') buffer_label[pos] = '\0';
-                }
-            add_to_list(&state->label_list, buffer_label, state->nb_elem);
-
-            sprintf(buffer_filename, "/sys/class/hwmon/hwmon%d/temp%d_input", id_rep, i);
-            state->fid_list = realloc(state->fid_list, (state->nb_elem+1)*sizeof(int));
-            int fd = open(buffer_filename, O_RDONLY);
-            if (fd < 0)
-                {
-                    fprintf(stderr, "%s ", buffer_filename);
-                    perror("open");
-                    exit(1);
-                }
-            state->fid_list[state->nb_elem] = fd;
-            state->nb_elem++;
-            // printf("%s : %s\n", buffer_label, buffer_filename);
+        for(unsigned int pos = 0; pos < strlen(buffer_label); pos++) {
+            if (buffer_label[pos] == ' ')  buffer_label[pos] = '_';
+            if (buffer_label[pos] == '\n') buffer_label[pos] = '\0';
         }
+        add_to_list(&state->label_list, buffer_label, state->nb_elem);
+
+        sprintf(buffer_filename, "/sys/class/hwmon/hwmon%d/temp%d_input", id_rep, i);
+        state->fid_list = realloc(state->fid_list, (state->nb_elem+1)*sizeof(int));
+        int fd = open(buffer_filename, O_RDONLY);
+        if (fd < 0) {
+            fprintf(stderr, "%s ", buffer_filename);
+            perror("open");
+            exit(1);
+        }
+        state->fid_list[state->nb_elem] = fd;
+        state->nb_elem++;
+        // printf("%s : %s\n", buffer_label, buffer_filename);
+    }
 
     key++;
 }
 
 unsigned int init_temperature(char *args, void **ptr)
 {
-	UNUSED(args);
+    UNUSED(args);
     struct temperature_t *state = malloc(sizeof(struct temperature_t));
     state->nb_elem = 0;
     state->label_list = NULL;
@@ -114,14 +109,13 @@ unsigned int init_temperature(char *args, void **ptr)
 
     int i = 0;
     sprintf(name, base_name, i);
-    while(get_string(name, buffer, 8) != -1)
-        {
-            if (strcmp(buffer, "coretemp")==0)
-                add_temperature_sensor(i, state);
+    while(get_string(name, buffer, 8) != -1) {
+        if (strcmp(buffer, "coretemp")==0)
+            add_temperature_sensor(i, state);
 
-            i++;
-            sprintf(name, base_name, i);
-        }
+        i++;
+        sprintf(name, base_name, i);
+    }
     *ptr = (void *) state;
     return state->nb_elem;
 }
@@ -130,15 +124,13 @@ unsigned int get_temperature(uint64_t *results, void *ptr)
 {
     struct temperature_t *state = (struct temperature_t *)ptr;
     static char buffer[512];
-    for(int i=0; i<state->nb_elem; i++)
-        {
-            if (pread(state->fid_list[i], buffer, 100, 0) < 0)
-                {
-                    perror("pread");
-                    exit(1);
-                }
-            results[i] = strtoull(buffer, NULL, 10);
+    for(int i=0; i<state->nb_elem; i++) {
+        if (pread(state->fid_list[i], buffer, 100, 0) < 0) {
+            perror("pread");
+            exit(1);
         }
+        results[i] = strtoull(buffer, NULL, 10);
+    }
     return state->nb_elem;
 }
 
@@ -146,11 +138,10 @@ void clean_temperature(void *ptr)
 {
     struct temperature_t *state = (struct temperature_t *)ptr;
 
-    for(int i=0; i<state->nb_elem; i++)
-        {
-            free(state->label_list[i]);
-            close(state->fid_list[i]);
-        }
+    for(int i=0; i<state->nb_elem; i++) {
+        free(state->label_list[i]);
+        close(state->fid_list[i]);
+    }
     free(state->label_list);
     free(state->fid_list);
     free(state);

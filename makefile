@@ -10,7 +10,7 @@ OBJECTS_GRP = $(subst _individual,_group, $(OBJECTS))
 CC = gcc
 CFLAGS = -std=gnu99 -O3 -Wall -Wextra -Werror -Wpedantic
 
-ASTYLE = astyle --style=gnu -xf -s4 -k3 -n -Z -Q
+ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
 
 # depending on the context it may need to be changed to all: mojitos mojitos_group

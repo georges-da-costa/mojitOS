@@ -28,8 +28,7 @@
 #include <asm/unistd.h>
 #include <stdint.h>
 
-struct _counter_t
-{
+struct _counter_t {
     int nbcores;
     int nbperf;
     int **counters;
@@ -53,49 +52,43 @@ void perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb)
 {
     *perf_type = malloc(nb*sizeof(__u32));
     *perf_key  = malloc(nb*sizeof(__u64));
-    for(int i=0; i<nb; i++)
-        {
-            (*perf_key)[i]  = perf_static_info[indexes[i]].perf_key;
-            (*perf_type)[i] = perf_static_info[indexes[i]].perf_type;
-        }
+    for(int i=0; i<nb; i++) {
+        (*perf_key)[i]  = perf_static_info[indexes[i]].perf_key;
+        (*perf_type)[i] = perf_static_info[indexes[i]].perf_type;
+    }
 }
 void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes)
 {
     char *token;
     *nb_perf=0;
     *perf_indexes=NULL;
-    while((token=strtok(perf_string, ",")) != NULL)
-        {
-            perf_string = NULL;
-            unsigned int i;
-            for(i=0; i<nb_counter_option; i++)
-                {
-                    if(strcmp(perf_static_info[i].name, token) == 0)
-                        {
-                            (*nb_perf)++;
-                            (*perf_indexes) = realloc(*perf_indexes, sizeof(int)*(*nb_perf));
-                            (*perf_indexes)[*nb_perf-1]=i;
-                            break;
-                        }
-                }
-            if(i == nb_counter_option)
-                {
-                    fprintf(stderr, "Unknown performance counter: %s\n", token);
-                    exit(EXIT_FAILURE);
-                }
+    while((token=strtok(perf_string, ",")) != NULL) {
+        perf_string = NULL;
+        unsigned int i;
+        for(i=0; i<nb_counter_option; i++) {
+            if(strcmp(perf_static_info[i].name, token) == 0) {
+                (*nb_perf)++;
+                (*perf_indexes) = realloc(*perf_indexes, sizeof(int)*(*nb_perf));
+                (*perf_indexes)[*nb_perf-1]=i;
+                break;
+            }
         }
+        if(i == nb_counter_option) {
+            fprintf(stderr, "Unknown performance counter: %s\n", token);
+            exit(EXIT_FAILURE);
+        }
+    }
 }
 
 static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
                             int cpu, int group_fd, unsigned long flags)
 {
     long res = syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags);
-    if (res == -1)
-        {
-            perror("perf_event_open");
-            fprintf(stderr, "Error opening leader %llx\n", hw_event->config);
-            exit(EXIT_FAILURE);
-        }
+    if (res == -1) {
+        perror("perf_event_open");
+        fprintf(stderr, "Error opening leader %llx\n", hw_event->config);
+        exit(EXIT_FAILURE);
+    }
     return res;
 }
 
@@ -111,29 +104,26 @@ counter_t _init_counters(const int nb_perf, const __u32 *types, const __u64 *nam
     counters->nbperf = nb_perf;
     counters->nbcores=nbcores;
     counters->counters=malloc(nb_perf*sizeof(int *));
-    for (int i=0; i<nb_perf; i++)
-        {
-            pe.type = types[i];
-            pe.config = names[i];
-            counters->counters[i] = malloc(nbcores*sizeof(int));
+    for (int i=0; i<nb_perf; i++) {
+        pe.type = types[i];
+        pe.config = names[i];
+        counters->counters[i] = malloc(nbcores*sizeof(int));
 
-            for (unsigned int core=0; core<nbcores; core++)
-                {
-                    counters->counters[i][core] = perf_event_open(&pe, -1, core, -1, PERF_FLAG_FD_CLOEXEC);
-                }
+        for (unsigned int core=0; core<nbcores; core++) {
+            counters->counters[i][core] = perf_event_open(&pe, -1, core, -1, PERF_FLAG_FD_CLOEXEC);
         }
+    }
     return counters;
 }
 
 void clean_counters(void *ptr)
 {
     counter_t counters = (counter_t) ptr;
-    for(int counter=0; counter<counters->nbperf; counter++)
-        {
-            for(int core=0; core<counters->nbcores; core++)
-                close(counters->counters[counter][core]);
-            free(counters->counters[counter]);
-        }
+    for(int counter=0; counter<counters->nbperf; counter++) {
+        for(int core=0; core<counters->nbcores; core++)
+            close(counters->counters[counter][core]);
+        free(counters->counters[counter]);
+    }
     free(counters->counters);
     free(counters->counters_values);
     free(counters->tmp_counters_values);
@@ -158,21 +148,18 @@ void reset_counters(counter_t counters)
 
 void _get_counters(counter_t counters, uint64_t *values)
 {
-    for(int i=0; i<counters->nbperf; i++)
-        {
-            uint64_t accu=0;
-            uint64_t count=0;
-            for (int core=0; core<counters->nbcores; core++)
-                {
-                    if (-1 == read(counters->counters[i][core], &count, sizeof(uint64_t)))
-                        {
-                            fprintf(stderr, "Cannot read result");
-                            exit(EXIT_FAILURE);
-                        }
-                    accu += count;
-                }
-            values[i] = accu;
+    for(int i=0; i<counters->nbperf; i++) {
+        uint64_t accu=0;
+        uint64_t count=0;
+        for (int core=0; core<counters->nbcores; core++) {
+            if (-1 == read(counters->counters[i][core], &count, sizeof(uint64_t))) {
+                fprintf(stderr, "Cannot read result");
+                exit(EXIT_FAILURE);
+            }
+            accu += count;
         }
+        values[i] = accu;
+    }
 }
 
 

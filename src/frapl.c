@@ -34,10 +34,9 @@
 char *get_frapl_string(const char *filename)
 {
     int fd = open(filename, O_RDONLY);
-    if( fd == -1)
-        {
-            return NULL;
-        }
+    if( fd == -1) {
+        return NULL;
+    }
     char *result = malloc(MAX_HEADER);
     int nb = read(fd, result, MAX_HEADER);
     close(fd);
@@ -54,8 +53,7 @@ void test_append(char *name, int i)
 }
 
 
-struct _frapl_t
-{
+struct _frapl_t {
     unsigned int nb;
     char **names;
     int *fids;
@@ -78,12 +76,11 @@ void add_frapl_source(_frapl_t *rapl, char *name, char *energy_uj)
 
     int fd = open(energy_uj, O_RDONLY);
 
-    if (fd < 0)
-        {
-            fprintf(stderr, "%s ", energy_uj);
-            perror("open");
-            exit(1);
-        }
+    if (fd < 0) {
+        fprintf(stderr, "%s ", energy_uj);
+        perror("open");
+        exit(1);
+    }
     rapl->fids[rapl->nb-1] = fd;
 }
 
@@ -92,22 +89,20 @@ void _get_frapl(uint64_t *values, _frapl_t *rapl)
 {
     static char buffer[512];
 
-    for (unsigned int i = 0; i < rapl->nb; i++)
-        {
+    for (unsigned int i = 0; i < rapl->nb; i++) {
 
-            if (pread(rapl->fids[i], buffer, 100, 0) < 0)
-                {
-                    perror("pread");
-                    exit(1);
-                }
-            values[i] = strtoull(buffer, NULL, 10);
+        if (pread(rapl->fids[i], buffer, 100, 0) < 0) {
+            perror("pread");
+            exit(1);
         }
+        values[i] = strtoull(buffer, NULL, 10);
+    }
 }
 
 
 unsigned int init_frapl(char *none, void **ptr)
 {
-	UNUSED(none);
+    UNUSED(none);
     _frapl_t *rapl = malloc(sizeof(_frapl_t));
     rapl->nb = 0;
     rapl->names = NULL;
@@ -117,35 +112,33 @@ unsigned int init_frapl(char *none, void **ptr)
     char *name_base = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/%s";
     char *name_sub = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/intel-rapl:%d:%d/%s";
 
-    for (unsigned int i=0;; i++)
-        {
-            sprintf(buffer, name_base, i, "name");
-            char *tmp = get_frapl_string(buffer);
-            if (tmp == NULL) break;
-            //printf("%s\n", tmp);
-            test_append(tmp, i);
-            //printf("%s -> %s\n", buffer, tmp);
+    for (unsigned int i=0;; i++) {
+        sprintf(buffer, name_base, i, "name");
+        char *tmp = get_frapl_string(buffer);
+        if (tmp == NULL) break;
+        //printf("%s\n", tmp);
+        test_append(tmp, i);
+        //printf("%s -> %s\n", buffer, tmp);
 
-            sprintf(buffer, name_base, i, "energy_uj");
-            add_frapl_source(rapl, tmp, buffer);
-            free(tmp);
+        sprintf(buffer, name_base, i, "energy_uj");
+        add_frapl_source(rapl, tmp, buffer);
+        free(tmp);
 
-            for (unsigned int j=0;; j++)
-                {
-                    sprintf(buffer, name_sub, i, i, j, "name");
-                    char *tmp_sub = get_frapl_string(buffer);
-                    if (tmp_sub == NULL) break;
-                    //printf("%s\n", tmp_sub);
-                    test_append(tmp_sub, i);
-                    //printf("%s -> %s\n", buffer, tmp_sub);
+        for (unsigned int j=0;; j++) {
+            sprintf(buffer, name_sub, i, i, j, "name");
+            char *tmp_sub = get_frapl_string(buffer);
+            if (tmp_sub == NULL) break;
+            //printf("%s\n", tmp_sub);
+            test_append(tmp_sub, i);
+            //printf("%s -> %s\n", buffer, tmp_sub);
 
 
-                    sprintf(buffer, name_sub, i, i, j, "energy_uj");
-                    add_frapl_source(rapl, tmp_sub, buffer);
+            sprintf(buffer, name_sub, i, i, j, "energy_uj");
+            add_frapl_source(rapl, tmp_sub, buffer);
 
-                    free(tmp_sub);
-                }
+            free(tmp_sub);
         }
+    }
 
     rapl->values = calloc(sizeof(uint64_t), rapl->nb);
     rapl->tmp_values = calloc(sizeof(uint64_t), rapl->nb);
@@ -171,11 +164,10 @@ unsigned int get_frapl(uint64_t *results, void *ptr)
 void clean_frapl(void *ptr)
 {
     _frapl_t *rapl = (_frapl_t *) ptr;
-    for(unsigned int i=0; i<rapl->nb; i++)
-        {
-            free(rapl->names[i]);
-            close(rapl->fids[i]);
-        }
+    for(unsigned int i=0; i<rapl->nb; i++) {
+        free(rapl->names[i]);
+        close(rapl->fids[i]);
+    }
     free(rapl->names);
     free(rapl->fids);
     free(rapl->values);
@@ -187,6 +179,6 @@ void clean_frapl(void *ptr)
 void label_frapl(char **labels, void *ptr)
 {
     _frapl_t *rapl = (_frapl_t *) ptr;
-	for(unsigned int i=0; i<rapl->nb; i++)
+    for(unsigned int i=0; i<rapl->nb; i++)
         labels[i] = rapl->names[i];
 }
