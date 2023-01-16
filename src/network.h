@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2022-2023 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -18,8 +18,8 @@
 
  *******************************************************/
 
-unsigned int init_frapl(char*, void **);
-unsigned int get_frapl(uint64_t* results, void*);
-void clean_frapl(void *);
-void label_frapl(char **labels, void*);
+unsigned int init_network(char *, void **);
+unsigned int get_network(uint64_t *results, void *);
+void clean_network(void *);
+void label_network(char **labels, void *);
 

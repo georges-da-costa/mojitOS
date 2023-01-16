@@ -18,7 +18,5 @@
 
  *******************************************************/
 
-unsigned int init_load(char*, void **);
-unsigned int get_load(uint64_t* results, void*);
-void clean_load(void *);
-void label_load(char **labels, void*);
+unsigned int init_infiniband(char *infi_path, void **ptr);
+void label_infiniband(char **labels, void *);

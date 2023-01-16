@@ -18,8 +18,7 @@
 
  *******************************************************/
 
-unsigned int init_network(char*, void **);
-unsigned int get_network(uint64_t* results, void*);
-void clean_network(void *);
-void label_network(char **labels, void*);
-
+unsigned int init_load(char *, void **);
+unsigned int get_load(uint64_t *results, void *);
+void clean_load(void *);
+void label_load(char **labels, void *);

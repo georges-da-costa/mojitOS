@@ -18,9 +18,8 @@
 
  *******************************************************/
 
-unsigned int init_counters(char*, void **);
-unsigned int get_counters(uint64_t* results, void*);
-void clean_counters(void *);
-void label_counters(char **labels, void*);
+unsigned int init_rapl(char *, void **);
+unsigned int get_rapl(uint64_t *results, void *);
+void clean_rapl(void *);
+void label_rapl(char **labels, void *);
 
-void show_all_counters();
