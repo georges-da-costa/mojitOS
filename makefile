@@ -4,7 +4,7 @@ SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 
-OBJECTS = $(addprefix $(OBJ_DIR)/, mojitos.o counters_individual.o rapl.o frapl.o network.o load.o infiniband.o temperature.o)
+OBJECTS = $(addprefix $(OBJ_DIR)/, mojitos.o counters.o rapl.o frapl.o network.o load.o infiniband.o temperature.o)
 OBJECTS_GRP = $(subst _individual,_group, $(OBJECTS))
 
 CC = gcc
@@ -18,9 +18,6 @@ all: mojitos
 
 mojitos: $(OBJ_DIR) $(BIN_DIR) $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/mojitos $(OBJECTS) -lpowercap
-
-mojitos_group: $(OBJ_DIR) $(BIN_DIR) $(OBJECTS_GRP) $(SRC_DIR)/counters_option.h
-	$(CC) $(CFLAGS) -o $(BIN_DIR)/mojitos_group $(OBJECTS_GRP) -lpowercap
 
 $(OBJ_DIR)/counters_%.o: $(SRC_DIR)/counters_%.c $(SRC_DIR)/counters.h $(SRC_DIR)/counters_option.h
 	$(CC) $(CFLAGS) -c $< -o $@
