@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2022-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -21,117 +21,140 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <inttypes.h>
+#include <errno.h>
 
-#include <powercap/powercap-rapl.h>
 
+#define MAX_HEADER 128
 #define UNUSED(expr) do { (void)(expr); } while (0)
 
+
+char *
+get_rapl_string(const char *filename)
+{
+    int fd = open(filename, O_RDONLY);
+    if (fd == -1) {
+        return NULL;
+    }
+
+    char *result = malloc(MAX_HEADER);
+    int nb = read(fd, result, MAX_HEADER);
+    close(fd);
+    result[nb - 1] = 0;
+    return (result);
+}
+
+void
+test_append(char *name, int i)
+{
+    //char last = name[strlen(name)-1];
+    //if (last>='0' && last <= '9')
+    //  return;
+    sprintf(name + strlen(name), "%d", i);
+}
+
+
 struct _rapl_t {
-    powercap_rapl_pkg *pkgs;
-    uint32_t nb_pkgs;
-    uint32_t nb;
+    unsigned int nb;
     char **names;
-    uint32_t *zones;
-    uint32_t *packages;
+    int *fids;
     uint64_t *values;
     uint64_t *tmp_values;
-};
 
+};
 typedef struct _rapl_t _rapl_t;
 
 
+void
+add_rapl_source(_rapl_t *rapl, char *name, char *energy_uj)
+{
+    rapl->nb += 1;
+    rapl->names = realloc(rapl->names, sizeof(char **)*rapl->nb);
+    rapl->fids = realloc(rapl->fids, sizeof(int *)*rapl->nb);
+
+    rapl->names[rapl->nb - 1] = malloc(strlen(name) + 1);
+    strcpy(rapl->names[rapl->nb - 1], name);
+    //printf("%s\n", energy_uj);
+
+    int fd = open(energy_uj, O_RDONLY);
+
+    if (fd < 0) {
+        fprintf(stderr, "%s ", energy_uj);
+        perror("open");
+        exit(1);
+    }
+
+    rapl->fids[rapl->nb - 1] = fd;
+}
 
 
-
-
-const int nb_zones = 3;
-const int rapl_zones[3] = { POWERCAP_RAPL_ZONE_PACKAGE,   POWERCAP_RAPL_ZONE_CORE,   POWERCAP_RAPL_ZONE_DRAM};
-
-
-#define MAX_LEN_NAME 100
-
-// values [zone + package *nbzones] microjoules
 void
 _get_rapl(uint64_t *values, _rapl_t *rapl)
 {
+    static char buffer[512];
+
     for (unsigned int i = 0; i < rapl->nb; i++) {
-#ifdef DEBUG
-        int ret =
-#endif
-            powercap_rapl_get_energy_uj(&rapl->pkgs[rapl->packages[i]],
-                                        rapl->zones[i],
-                                        &values[i]);
-#ifdef DEBUG
-        printf("GETRAPL: package %d, zone %d, name %s, ret: %d\n", rapl->packages[i], rapl->zones[i], rapl->names[i], ret);
-#endif
+
+        if (pread(rapl->fids[i], buffer, 100, 0) < 0) {
+            perror("pread");
+            exit(1);
+        }
+
+        values[i] = strtoull(buffer, NULL, 10);
     }
 }
+
 
 unsigned int
 init_rapl(char *none, void **ptr)
 {
     UNUSED(none);
-    // get number of processor sockets
-    _rapl_t *rapl = malloc(sizeof(struct _rapl_t));
+    _rapl_t *rapl = malloc(sizeof(_rapl_t));
     rapl->nb = 0;
-    rapl->packages = NULL;
-    rapl->zones = NULL;
+    rapl->names = NULL;
+    rapl->fids = NULL;
 
-    rapl->nb_pkgs = powercap_rapl_get_num_instances();
-    //rapl->nb_pkgs = powercap_rapl_get_num_packages();
+    char buffer[1024];
+    char *name_base = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/%s";
+    char *name_sub = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/intel-rapl:%d:%d/%s";
 
-    if (rapl->nb_pkgs == 0) {
-        perror("no packages found (maybe the kernel module isn't loaded?)");
-        exit(-1);
-    }
+    for (unsigned int i = 0;; i++) {
+        sprintf(buffer, name_base, i, "name");
+        char *tmp = get_rapl_string(buffer);
 
-    rapl->pkgs = malloc(rapl->nb_pkgs * sizeof(powercap_rapl_pkg));
-
-    for (unsigned int package = 0; package < rapl->nb_pkgs; package++)
-        if (powercap_rapl_init(package, &rapl->pkgs[package], 0)) {
-            perror("powercap_rapl_init, check access (root needed ?)");
-            exit(-1);
+        if (tmp == NULL) {
+            break;
         }
 
-    rapl->names = NULL;
+        //printf("%s\n", tmp);
+        test_append(tmp, i);
+        //printf("%s -> %s\n", buffer, tmp);
 
-    char _name[MAX_LEN_NAME + 1];
-    char _name2[MAX_LEN_NAME + 11];
+        sprintf(buffer, name_base, i, "energy_uj");
+        add_rapl_source(rapl, tmp, buffer);
+        free(tmp);
 
-    for (unsigned int package = 0; package < rapl->nb_pkgs; package++) {
-        for (unsigned int zone = 0; zone < nb_zones; zone++) {
-            int length = powercap_rapl_get_name(&rapl->pkgs[package], rapl_zones[zone],
-                                                _name, MAX_LEN_NAME);
+        for (unsigned int j = 0;; j++) {
+            sprintf(buffer, name_sub, i, i, j, "name");
+            char *tmp_sub = get_rapl_string(buffer);
 
-            if (length > 0) {
-
-                sprintf(_name2, "%s%u", _name, package);
-
-                rapl->nb++;
-                rapl->names = realloc(rapl->names, sizeof(char *)*rapl->nb);
-                rapl->names[rapl->nb - 1] = malloc(sizeof(char) * (strlen(_name2) + 1));
-                rapl->zones = realloc(rapl->zones, sizeof(uint32_t) * rapl->nb);
-                rapl->packages = realloc(rapl->packages, sizeof(uint32_t) * rapl->nb);
-
-                strcpy(rapl->names[rapl->nb - 1], _name2);
-                rapl->zones[rapl->nb - 1] = rapl_zones[zone];
-                rapl->packages[rapl->nb - 1] = package;
+            if (tmp_sub == NULL) {
+                break;
             }
 
-#ifdef DEBUG
-            printf("%d %d %d %d %s\n\n", length, package, zone, rapl_zones[zone], _name2);
-#endif
+            //printf("%s\n", tmp_sub);
+            test_append(tmp_sub, i);
+            //printf("%s -> %s\n", buffer, tmp_sub);
+
+
+            sprintf(buffer, name_sub, i, i, j, "energy_uj");
+            add_rapl_source(rapl, tmp_sub, buffer);
+
+            free(tmp_sub);
         }
     }
-
-#ifdef DEBUG
-    printf("Result of init\n");
-
-    for (unsigned int i = 0; i < rapl->nb; i++) {
-        printf("package %d, zone %d, name %s\n", rapl->packages[i], rapl->zones[i], rapl->names[i]);
-    }
-
-#endif
 
     rapl->values = calloc(sizeof(uint64_t), rapl->nb);
     rapl->tmp_values = calloc(sizeof(uint64_t), rapl->nb);
@@ -141,7 +164,6 @@ init_rapl(char *none, void **ptr)
     *ptr = (void *)rapl;
     return rapl->nb;
 }
-
 
 
 unsigned int
@@ -158,31 +180,23 @@ get_rapl(uint64_t *results, void *ptr)
     return state->nb;
 }
 
-
-
-
 void
 clean_rapl(void *ptr)
 {
     _rapl_t *rapl = (_rapl_t *) ptr;
 
-    for (unsigned int package = 0; package < rapl->nb_pkgs; package++)
-        if (powercap_rapl_destroy(&rapl->pkgs[package])) {
-            perror("powercap_rapl_destroy");
-        }
-
-    for (unsigned int elem = 0; elem < rapl->nb; elem++) {
-        free(rapl->names[elem]);
+    for (unsigned int i = 0; i < rapl->nb; i++) {
+        free(rapl->names[i]);
+        close(rapl->fids[i]);
     }
 
     free(rapl->names);
-    free(rapl->pkgs);
-    free(rapl->zones);
-    free(rapl->packages);
+    free(rapl->fids);
     free(rapl->values);
     free(rapl->tmp_values);
     free(rapl);
 }
+
 
 void
 label_rapl(char **labels, void *ptr)

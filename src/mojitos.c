@@ -27,11 +27,10 @@
 #include <unistd.h>
 
 #include "counters.h"
-#include "frapl.h"
+#include "rapl.h"
 #include "infiniband.h"
 #include "load.h"
 #include "network.h"
-#include "rapl.h"
 #include "temperature.h"
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
@@ -187,9 +186,6 @@ main(int argc, char **argv)
             break;
         case 'r':
             add_source(init_rapl, NULL, label_rapl, get_rapl, clean_rapl);
-            break;
-        case 'R':
-            add_source(init_frapl, NULL, label_frapl, get_frapl, clean_frapl);
             break;
         case 'u':
             add_source(init_load, NULL, label_load, get_load, clean_load);
