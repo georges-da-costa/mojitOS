@@ -5,19 +5,19 @@ static int acc;
 unsigned int
 init_acc(char *a, void **b)
 {
-	acc = 0;
+    acc = 0;
 }
 
 unsigned int
 get_acc(uint64_t *results, void *none)
 {
-	UNUSED(none);
-	return a++;
+    UNUSED(none);
+    return a++;
 }
 
 void
 label_acc(char **labels, void *none)
 {
-	UNUSED(none);
-	labels[0] = "acc";
+    UNUSED(none);
+    labels[0] = "acc";
 }

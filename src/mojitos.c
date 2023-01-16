@@ -44,7 +44,8 @@
 	} while (0)
 
 
-void usage(char **argv)
+void
+usage(char **argv)
 {
     printf("Usage : %s [-rRluc] [-t time] [-f freq] [-p perf_list] [-d network_device]\n"
            "                    [-i infiniband_path] [-o logfile] [-e command arguments...]\n"
@@ -64,19 +65,22 @@ void usage(char **argv)
     exit(EXIT_SUCCESS);
 }
 
-void sighandler(int none)
+void
+sighandler(int none)
 {
     UNUSED(none);
 }
 
-void flush(int none)
+void
+flush(int none)
 {
     UNUSED(none);
     exit(0);
 }
 
 FILE *output;
-void flushexit()
+void
+flushexit()
 {
     if (output != NULL) {
         fflush(output);
@@ -98,12 +102,14 @@ unsigned int nb_sensors = 0;
 char **labels = NULL;
 uint64_t *values = NULL;
 
-void add_source(initializer_t init, char *arg, labeler_t labeler,
-                getter_t get, cleaner_t clean)
+void
+add_source(initializer_t init, char *arg, labeler_t labeler,
+           getter_t get, cleaner_t clean)
 {
     nb_sources++;
     states = realloc(states, nb_sources * sizeof(void *));
     int nb = init(arg, &states[nb_sources - 1]);
+
     if (nb == 0) {
         nb_sources--;
         states = realloc(states, nb_sources * sizeof(void *));
@@ -122,7 +128,8 @@ void add_source(initializer_t init, char *arg, labeler_t labeler,
     nb_sensors += nb;
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     int total_time = 1;
     int delta = 0;
@@ -141,7 +148,8 @@ int main(int argc, char **argv)
     signal(15, flush);
 
     int c;
-    while ((c = getopt (argc, argv, "ilhcftdeoprRsu")) != -1 && application == NULL)
+
+    while ((c = getopt (argc, argv, "ilhcftdeoprRsu")) != -1 && application == NULL) {
         switch (c) {
         case 'f':
             if (optind >= argc) PANIC(1,"-f, no frequency provided");
@@ -198,7 +206,7 @@ int main(int argc, char **argv)
         default:
             usage(argv);
         }
-
+    }
 
     setvbuf(output, NULL, _IONBF, BUFSIZ);
     struct timespec ts;
@@ -223,6 +231,7 @@ int main(int argc, char **argv)
 
         // Get Data
         unsigned int current = 0;
+
         for (unsigned int i = 0; i < nb_sources; i++) {
             current += getter[i](&values[current], states[i]);
         }
@@ -233,12 +242,14 @@ int main(int argc, char **argv)
                 execvp(application[0], application);
                 exit(0);
             }
+
             pause();
             clock_gettime(CLOCK_MONOTONIC, &ts);
+
             if (ts.tv_nsec >= ts_ref.tv_nsec) {
                 fprintf(output, "%ld.%09ld ", (ts.tv_sec - ts_ref.tv_sec), ts.tv_nsec - ts_ref.tv_nsec);
             } else {
-                fprintf(output, "%ld.%09ld ", (ts.tv_sec - ts_ref.tv_sec) - 1, 1000000000 + ts.tv_nsec - ts_ref.tv_nsec);
+                fprintf(output, "%ld.%09ld ", (ts.tv_sec - ts_ref.tv_sec) - 1, 1000 * 1000 * 1000 + ts.tv_nsec - ts_ref.tv_nsec);
             }
         } else {
 #ifdef DEBUG
@@ -247,12 +258,14 @@ int main(int argc, char **argv)
             //Indiv: mean: 148 std: 31 % med: 141 std: 28 %
             //Group: mean: 309 std: 41 % med: 297 std: 39 %
 #endif
+
             if (stat_mode == 0) {
                 clock_gettime(CLOCK_MONOTONIC, &ts);
+
                 if (ts.tv_nsec >= ts_ref.tv_nsec) {
                     stat_data = ts.tv_nsec - ts_ref.tv_nsec;
                 } else {
-                    stat_data = 1000000000 + ts.tv_nsec - ts_ref.tv_nsec;
+                    stat_data = 1000 * 1000 * 1000 + ts.tv_nsec - ts_ref.tv_nsec;
                 }
             }
 
@@ -261,6 +274,7 @@ int main(int argc, char **argv)
         }
 
         for (unsigned int i = 0; i < nb_sensors; i++) {
+            /* "PRIu64" is a format specifier to print uint64_t values */
             fprintf(output, "%" PRIu64 " ", values[i]);
         }
 
@@ -290,7 +304,4 @@ int main(int argc, char **argv)
         free(states);
     }
 }
-
-
-
 
