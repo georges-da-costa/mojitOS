@@ -132,9 +132,13 @@ unsigned int init_rapl(char* none, void **ptr) {
 unsigned int get_rapl(uint64_t* results, void* ptr) {
   _rapl_t* state = (_rapl_t*) ptr;
   _get_rapl(state->tmp_values, state);
-  for(int i=0; i<state->nb; i++)
-    results[i] = state->tmp_values[i] - state->values[i];
-
+  printf("results");
+    for (unsigned int i = 0; i < state->nb; i++)
+        {
+            results[i] = state->tmp_values[i] - state->values[i];
+            printf("%d, ", results[i]);
+        }
+    printf("\n");
   memcpy(state->values, state->tmp_values, sizeof(uint64_t)*state->nb);
   return state->nb;
 }

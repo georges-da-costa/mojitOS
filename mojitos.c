@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
     unsigned int current = 0;
     for(int i=0; i<nb_sources; i++)
       current += getter[i](&values[current], states[i]);
-    
+      printf("Current : %d\n");
     if(application != NULL) {
 
       if(fork()==0){

@@ -74,11 +74,14 @@ void add_frapl_source(_frapl_t* rapl, char*name, char*energy_uj) {
 void _get_frapl(uint64_t *values, _frapl_t* rapl) {
   static char buffer[512];
 
+  printf("Results : ");
   for (int i = 0; i < rapl->nb; i++) {
 
     pread(rapl->fids[i], buffer, 100, 0);
     values[i] = strtoull(buffer, NULL, 10);
+    printf("%d", values[i]);
   }
+  printf("\n");
 }
 
 
