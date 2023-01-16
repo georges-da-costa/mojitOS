@@ -31,8 +31,7 @@
 #define UNUSED(expr) do { (void)(expr); } while (0)
 
 
-char *
-get_rapl_string(const char *filename)
+char *get_rapl_string(const char *filename)
 {
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
@@ -46,8 +45,7 @@ get_rapl_string(const char *filename)
     return (result);
 }
 
-void
-test_append(char *name, int i)
+void test_append(char *name, int i)
 {
     //char last = name[strlen(name)-1];
     //if (last>='0' && last <= '9')
@@ -67,8 +65,7 @@ struct _rapl_t {
 typedef struct _rapl_t _rapl_t;
 
 
-void
-add_rapl_source(_rapl_t *rapl, char *name, char *energy_uj)
+void add_rapl_source(_rapl_t *rapl, char *name, char *energy_uj)
 {
     rapl->nb += 1;
     rapl->names = realloc(rapl->names, sizeof(char **)*rapl->nb);
@@ -90,8 +87,7 @@ add_rapl_source(_rapl_t *rapl, char *name, char *energy_uj)
 }
 
 
-void
-_get_rapl(uint64_t *values, _rapl_t *rapl)
+void _get_rapl(uint64_t *values, _rapl_t *rapl)
 {
     static char buffer[512];
 
@@ -107,8 +103,7 @@ _get_rapl(uint64_t *values, _rapl_t *rapl)
 }
 
 
-unsigned int
-init_rapl(char *none, void **ptr)
+unsigned int init_rapl(char *none, void **ptr)
 {
     UNUSED(none);
     _rapl_t *rapl = malloc(sizeof(_rapl_t));
@@ -166,8 +161,7 @@ init_rapl(char *none, void **ptr)
 }
 
 
-unsigned int
-get_rapl(uint64_t *results, void *ptr)
+unsigned int get_rapl(uint64_t *results, void *ptr)
 {
     _rapl_t *state = (_rapl_t *) ptr;
     _get_rapl(state->tmp_values, state);
@@ -180,8 +174,7 @@ get_rapl(uint64_t *results, void *ptr)
     return state->nb;
 }
 
-void
-clean_rapl(void *ptr)
+void clean_rapl(void *ptr)
 {
     _rapl_t *rapl = (_rapl_t *) ptr;
 
@@ -198,8 +191,7 @@ clean_rapl(void *ptr)
 }
 
 
-void
-label_rapl(char **labels, void *ptr)
+void label_rapl(char **labels, void *ptr)
 {
     _rapl_t *rapl = (_rapl_t *) ptr;
 

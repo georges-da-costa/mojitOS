@@ -34,8 +34,7 @@ struct network_t {
     int sources[NB_SENSOR];
 };
 
-unsigned int
-_get_network(uint64_t *results, int *sources)
+unsigned int _get_network(uint64_t *results, int *sources)
 {
     if (sources == NULL) {
         return 0;
@@ -57,8 +56,7 @@ _get_network(uint64_t *results, int *sources)
 
 
 
-unsigned int
-init_network(char *dev, void **ptr)
+unsigned int init_network(char *dev, void **ptr)
 {
     if (dev == NULL) {
         return 0;
@@ -108,8 +106,7 @@ init_network(char *dev, void **ptr)
     return NB_SENSOR;
 }
 
-unsigned int
-get_network(uint64_t *results, void *ptr)
+unsigned int get_network(uint64_t *results, void *ptr)
 {
     struct network_t *state = (struct network_t *) ptr;
     _get_network(state->tmp_values, state->sources);
@@ -122,8 +119,7 @@ get_network(uint64_t *results, void *ptr)
     return NB_SENSOR;
 }
 
-void
-clean_network(void *ptr)
+void clean_network(void *ptr)
 {
     struct network_t *state = (struct network_t *) ptr;
 
@@ -139,8 +135,7 @@ clean_network(void *ptr)
 }
 
 char *_labels_network[NB_SENSOR] = {"rxp", "rxb", "txp", "txb"};
-void
-label_network(char **labels, void *none)
+void label_network(char **labels, void *none)
 {
     UNUSED(none);
 

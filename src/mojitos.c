@@ -43,8 +43,7 @@
 	} while (0)
 
 
-void
-usage(char **argv)
+void usage(char **argv)
 {
     printf("Usage : %s [-rRluc] [-t time] [-f freq] [-p perf_list] [-d network_device]\n"
            "                    [-i infiniband_path] [-o logfile] [-e command arguments...]\n"
@@ -64,22 +63,19 @@ usage(char **argv)
     exit(EXIT_SUCCESS);
 }
 
-void
-sighandler(int none)
+void sighandler(int none)
 {
     UNUSED(none);
 }
 
-void
-flush(int none)
+void flush(int none)
 {
     UNUSED(none);
     exit(0);
 }
 
 FILE *output;
-void
-flushexit()
+void flushexit()
 {
     if (output != NULL) {
         fflush(output);
@@ -101,9 +97,8 @@ unsigned int nb_sensors = 0;
 char **labels = NULL;
 uint64_t *values = NULL;
 
-void
-add_source(initializer_t init, char *arg, labeler_t labeler,
-           getter_t get, cleaner_t clean)
+void add_source(initializer_t init, char *arg, labeler_t labeler,
+                getter_t get, cleaner_t clean)
 {
     nb_sources++;
     states = realloc(states, nb_sources * sizeof(void *));
@@ -127,8 +122,7 @@ add_source(initializer_t init, char *arg, labeler_t labeler,
     nb_sensors += nb;
 }
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     int total_time = 1;
     int delta = 0;

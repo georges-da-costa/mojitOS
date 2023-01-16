@@ -35,9 +35,8 @@ struct _counter_t {
     int *counters;
 };
 
-static long
-perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
-                int cpu, int group_fd, unsigned long flags)
+static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
+                            int cpu, int group_fd, unsigned long flags)
 {
     long res = syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags);
 
@@ -50,8 +49,7 @@ perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
     return res;
 }
 
-counter_t
-init_counters(const int nb_perf, const __u32 *types, const __u64 *names)
+counter_t init_counters(const int nb_perf, const __u32 *types, const __u64 *names)
 {
     struct perf_event_attr pe;
     struct _counter_t *counters = malloc(sizeof(struct _counter_t));
@@ -83,8 +81,7 @@ init_counters(const int nb_perf, const __u32 *types, const __u64 *names)
     return counters;
 }
 
-void
-clean_counters(counter_t counters)
+void clean_counters(counter_t counters)
 {
     for (int core = 0; core < counters->nbcores; core++) {
         close(counters->counters[core]);
@@ -94,15 +91,13 @@ clean_counters(counter_t counters)
     free(counters);
 }
 
-void
-start_counters(counter_t counters)
+void start_counters(counter_t counters)
 {
     for (int core = 0; core < counters->nbcores; core++) {
         ioctl(counters->counters[core], PERF_EVENT_IOC_ENABLE, PERF_IOC_FLAG_GROUP);
     }
 }
-void
-reset_counters(counter_t counters)
+void reset_counters(counter_t counters)
 {
     for (int core = 0; core < counters->nbcores; core++) {
         ioctl(counters->counters[core], PERF_EVENT_IOC_RESET, PERF_IOC_FLAG_GROUP);
@@ -116,8 +111,7 @@ struct read_format {
     } values[];
 };
 
-void
-get_counters(counter_t counters, long long *values)
+void get_counters(counter_t counters, long long *values)
 {
     int nb_perf = counters->nbperf;
     size_t buffer_size = sizeof(uint64_t) * (1 + nb_perf);

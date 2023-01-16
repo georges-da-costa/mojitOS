@@ -33,8 +33,7 @@ static uint64_t load_values[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static uint64_t tmp_load_values[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static char *stat = "/proc/stat";
 
-void
-_get_load(uint64_t *results)
+void _get_load(uint64_t *results)
 {
     if (pread(load_fid, buffer, LOAD_BUFFER_SIZE - 1, 0) < 0) {
         perror("pread");
@@ -60,8 +59,7 @@ _get_load(uint64_t *results)
 
 // Public interface
 
-unsigned int
-init_load(char *argument, void **state)
+unsigned int init_load(char *argument, void **state)
 {
     UNUSED(argument);
     UNUSED(state);
@@ -76,8 +74,7 @@ init_load(char *argument, void **state)
     return 10;
 }
 
-unsigned int
-get_load(uint64_t *results, void *state)
+unsigned int get_load(uint64_t *results, void *state)
 {
     UNUSED(state);
     _get_load(tmp_load_values);
@@ -90,8 +87,7 @@ get_load(uint64_t *results, void *state)
     return 10;
 }
 
-void
-clean_load(void *state)
+void clean_load(void *state)
 {
     UNUSED(state);
     close(load_fid);
@@ -100,8 +96,7 @@ clean_load(void *state)
 char *_labels[10] = {"user", "nice", "system", "idle", "iowait", "irq",
                      "softirq", "steal", "guest", "guest_nice"
                     };
-void
-label_load(char **labels, void *none)
+void label_load(char **labels, void *none)
 {
     UNUSED(none);
 

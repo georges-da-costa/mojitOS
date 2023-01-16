@@ -37,8 +37,7 @@ struct network_t {
 unsigned int _get_network(uint64_t *results, int *sources);
 
 
-unsigned int
-init_infiniband(char *infi_path, void **ptr)
+unsigned int init_infiniband(char *infi_path, void **ptr)
 {
     if (infi_path == NULL) {
         return 0;
@@ -78,8 +77,7 @@ init_infiniband(char *infi_path, void **ptr)
 }
 
 char *_labels_infiniband[NB_SENSOR] = {"irxp", "irxb", "itxp", "itxb"};
-void
-label_infiniband(char **labels, void *none)
+void label_infiniband(char **labels, void *none)
 {
     UNUSED(none);
 

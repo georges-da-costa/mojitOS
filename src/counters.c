@@ -42,16 +42,14 @@ typedef struct _counter_t *counter_t;
 
 #include "counters_option.h"
 
-void
-show_all_counters()
+void show_all_counters()
 {
     for (unsigned int i = 0; i < nb_counter_option; i++) {
         printf("%s\n", perf_static_info[i].name);
     }
 }
 
-void
-perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb)
+void perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb)
 {
     *perf_type = malloc(nb * sizeof(__u32));
     *perf_key  = malloc(nb * sizeof(__u64));
@@ -61,8 +59,7 @@ perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb)
         (*perf_type)[i] = perf_static_info[indexes[i]].perf_type;
     }
 }
-void
-perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes)
+void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes)
 {
     char *token;
     *nb_perf = 0;
@@ -88,9 +85,8 @@ perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes)
     }
 }
 
-static long
-perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
-                int cpu, int group_fd, unsigned long flags)
+static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
+                            int cpu, int group_fd, unsigned long flags)
 {
     long res = syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags);
 
@@ -103,8 +99,7 @@ perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
     return res;
 }
 
-counter_t
-_init_counters(const int nb_perf, const __u32 *types, const __u64 *names)
+counter_t _init_counters(const int nb_perf, const __u32 *types, const __u64 *names)
 {
     struct perf_event_attr pe;
     unsigned int nbcores = sysconf(_SC_NPROCESSORS_ONLN);
@@ -130,8 +125,7 @@ _init_counters(const int nb_perf, const __u32 *types, const __u64 *names)
     return counters;
 }
 
-void
-clean_counters(void *ptr)
+void clean_counters(void *ptr)
 {
     counter_t counters = (counter_t) ptr;
 
@@ -151,8 +145,7 @@ clean_counters(void *ptr)
     free(counters);
 }
 
-void
-start_counters(counter_t counters)
+void start_counters(counter_t counters)
 {
     for (int counter = 0; counter < counters->nbperf; counter++) {
         for (int core = 0; core < counters->nbcores; core++) {
@@ -161,8 +154,7 @@ start_counters(counter_t counters)
     }
 }
 
-void
-reset_counters(counter_t counters)
+void reset_counters(counter_t counters)
 {
     for (int counter = 0; counter < counters->nbperf; counter++) {
         for (int core = 0; core < counters->nbcores; core++) {
@@ -171,8 +163,7 @@ reset_counters(counter_t counters)
     }
 }
 
-void
-_get_counters(counter_t counters, uint64_t *values)
+void _get_counters(counter_t counters, uint64_t *values)
 {
     for (int i = 0; i < counters->nbperf; i++) {
         uint64_t accu = 0;
@@ -195,8 +186,7 @@ _get_counters(counter_t counters, uint64_t *values)
 
 
 
-unsigned int
-init_counters(char *args, void **state)
+unsigned int init_counters(char *args, void **state)
 {
     int nb_perf;
     int *perf_indexes = NULL;
@@ -220,8 +210,7 @@ init_counters(char *args, void **state)
     return nb_perf;
 }
 
-unsigned int
-get_counters(uint64_t *results, void *ptr)
+unsigned int get_counters(uint64_t *results, void *ptr)
 {
     counter_t state = (counter_t) ptr;
 
@@ -235,8 +224,7 @@ get_counters(uint64_t *results, void *ptr)
     return state->nbperf;
 }
 
-void
-label_counters(char **labels, void *ptr)
+void label_counters(char **labels, void *ptr)
 {
     counter_t state = (counter_t) ptr;
 

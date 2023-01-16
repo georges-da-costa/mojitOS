@@ -33,8 +33,7 @@ struct temperature_t {
     int nb_elem;
 };
 
-int
-get_string(char *filename, char *buffer, int max_size)
+int get_string(char *filename, char *buffer, int max_size)
 {
     int fid = open(filename, O_RDONLY);
 
@@ -54,8 +53,7 @@ get_string(char *filename, char *buffer, int max_size)
     return 0;
 }
 
-void
-add_to_list(char ***list_name, char *source, int nb_elem)
+void add_to_list(char ***list_name, char *source, int nb_elem)
 {
     //printf("Adds: %s\n", source);
     *list_name = realloc(*list_name, (nb_elem + 1) * sizeof(char *));
@@ -64,8 +62,7 @@ add_to_list(char ***list_name, char *source, int nb_elem)
 
 }
 
-void
-add_temperature_sensor(int id_rep, struct temperature_t *state)
+void add_temperature_sensor(int id_rep, struct temperature_t *state)
 {
     static int key = 0;
     static char buffer_filename[512];
@@ -110,8 +107,7 @@ add_temperature_sensor(int id_rep, struct temperature_t *state)
     key++;
 }
 
-unsigned int
-init_temperature(char *args, void **ptr)
+unsigned int init_temperature(char *args, void **ptr)
 {
     UNUSED(args);
     struct temperature_t *state = malloc(sizeof(struct temperature_t));
@@ -139,8 +135,7 @@ init_temperature(char *args, void **ptr)
     return state->nb_elem;
 }
 
-unsigned int
-get_temperature(uint64_t *results, void *ptr)
+unsigned int get_temperature(uint64_t *results, void *ptr)
 {
     struct temperature_t *state = (struct temperature_t *)ptr;
     static char buffer[512];
@@ -156,8 +151,7 @@ get_temperature(uint64_t *results, void *ptr)
     return state->nb_elem;
 }
 
-void
-clean_temperature(void *ptr)
+void clean_temperature(void *ptr)
 {
     struct temperature_t *state = (struct temperature_t *)ptr;
 
@@ -171,8 +165,7 @@ clean_temperature(void *ptr)
     free(state);
 }
 
-void
-label_temperature(char **labels, void *ptr)
+void label_temperature(char **labels, void *ptr)
 {
     struct temperature_t *state = (struct temperature_t *)ptr;
 
