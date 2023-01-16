@@ -1,35 +1,43 @@
-.PHONY: all clean mojitos mojitos_group debug format
+.POSIX:
 
 SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 
-OBJECTS = $(addprefix $(OBJ_DIR)/, mojitos.o counters.o rapl.o network.o load.o infiniband.o temperature.o)
-OBJECTS_GRP = $(subst _individual,_group, $(OBJECTS))
+BIN = mojitos
+
+OBJ = $(addprefix $(OBJ_DIR)/,  \
+	counters.o \
+	rapl.o \
+	network.o \
+	load.o \
+	infiniband.o \
+	temperature.o \
+)
 
 CC = gcc
 CFLAGS = -std=gnu99 -O3 -Wall -Wextra -Werror -Wpedantic
+LDFLAGS = -lpowercap
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
 
-# depending on the context it may need to be changed to all: mojitos mojitos_group
-all: mojitos
+all: $(BIN)
 
-mojitos: $(OBJ_DIR) $(BIN_DIR) $(OBJECTS)
-	$(CC) $(CFLAGS) -o $(BIN_DIR)/mojitos $(OBJECTS) -lpowercap
+$(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
+	$(CC) $(LDFLAGS) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o
 
-$(OBJ_DIR)/counters.o: $(SRC_DIR)/counters.c $(SRC_DIR)/counters.h $(SRC_DIR)/counters_option.h
+$(OBJ): $(OBJ_DIR)
+$(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
+
+$(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c $(SRC_DIR)/counters_option.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.sh
 	sh ./$(SRC_DIR)/counters_option.sh > $(SRC_DIR)/counters_option.h
-
-$(OBJ_DIR)/mojitos.o: $(SRC_DIR)/mojitos.c $(SRC_DIR)/counters_option.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(SRC_DIR)/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
@@ -46,3 +54,5 @@ format:
 clean:
 	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/*
 	\rm -f $(SRC_DIR)/counters_option.h
+
+.PHONY: all clean mojitos debug format
