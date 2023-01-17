@@ -4,11 +4,11 @@ SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 
-OBJECTS = $(addprefix $(OBJ_DIR)/, mojitos.o counters.o rapl.o frapl.o network.o load.o infiniband.o temperature.o)
+OBJECTS = $(addprefix $(OBJ_DIR)/, mojitos.o counters.o rapl.o network.o load.o infiniband.o temperature.o)
 OBJECTS_GRP = $(subst _individual,_group, $(OBJECTS))
 
 CC = gcc
-CFLAGS = -std=gnu99 -O3 -Wall -Wextra -Werror -Wpedantic
+CFLAGS = -std=gnu99 -O3 -Wall -Wextra -Werror -Wpedantic -Wno-unused-function
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 

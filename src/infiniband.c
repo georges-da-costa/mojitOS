@@ -39,16 +39,20 @@ unsigned int _get_network(uint64_t *results, int *sources);
 
 unsigned int init_infiniband(char *infi_path, void **ptr)
 {
-    if(infi_path==NULL)
+    if (infi_path == NULL) {
         return 0;
+    }
 
-    if(strcmp(infi_path,"X")==0) {
+    if (strcmp(infi_path, "X") == 0) {
 
         glob_t res;
 
         glob("/sys/class/infiniband/*/ports/*/counters/", 0, NULL, &res);
-        if(res.gl_pathc == 0)
+
+        if (res.gl_pathc == 0) {
             return 0;
+        }
+
         infi_path = res.gl_pathv[0];
     }
 
@@ -61,7 +65,7 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
     struct network_t *state = malloc(sizeof(struct network_t));
 
     char buffer[1024];
-    for(int i=0; i<NB_SENSOR; i++) {
+    for (int i = 0; i < NB_SENSOR; i++) {
         sprintf(buffer, filenames[i], infi_path);
         state->sources[i] = open(buffer, O_RDONLY);
     }
@@ -76,6 +80,8 @@ char *_labels_infiniband[NB_SENSOR] = {"irxp", "irxb", "itxp", "itxb"};
 void label_infiniband(char **labels, void *none)
 {
     UNUSED(none);
-    for(int i=0; i<NB_SENSOR; i++)
+
+    for (int i = 0; i < NB_SENSOR; i++) {
         labels[i] = _labels_infiniband[i];
+    }
 }

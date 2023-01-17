@@ -28,22 +28,31 @@
 #define UNUSED(expr) do { (void)(expr); } while (0)
 char buffer[LOAD_BUFFER_SIZE];
 
-static int load_fid=-1;
-static uint64_t load_values[10]= {0,0,0,0,0,0,0,0,0,0};
-static uint64_t tmp_load_values[10]= {0,0,0,0,0,0,0,0,0,0};
+static int load_fid = -1;
+static uint64_t load_values[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static uint64_t tmp_load_values[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static char *stat = "/proc/stat";
 
 void _get_load(uint64_t *results)
 {
-    if (pread(load_fid, buffer, LOAD_BUFFER_SIZE-1, 0) < 0) {
+    if (pread(load_fid, buffer, LOAD_BUFFER_SIZE - 1, 0) < 0) {
         perror("pread");
         exit(1);
     }
-    int pos=0;
-    while(buffer[pos] > '9' || buffer[pos] < '0') pos++;
-    for(int i=0; i<10; i++) {
-        results[i] = strtoull(buffer+pos, NULL, 10);
-        while(buffer[pos] <= '9' && buffer[pos] >= '0') pos++;
+
+    int pos = 0;
+
+    while (buffer[pos] > '9' || buffer[pos] < '0') {
+        pos++;
+    }
+
+    for (int i = 0; i < 10; i++) {
+        results[i] = strtoull(buffer + pos, NULL, 10);
+
+        while (buffer[pos] <= '9' && buffer[pos] >= '0') {
+            pos++;
+        }
+
         pos++;
     }
 }
@@ -56,10 +65,11 @@ unsigned int init_load(char *argument, void **state)
     UNUSED(state);
     load_fid = open(stat, O_RDONLY);
     if (load_fid < 0) {
-        fprintf(stderr,"%s ",stat);
+        fprintf(stderr, "%s ", stat);
         perror("open");
         exit(1);
     }
+
     _get_load(load_values);
     return 10;
 }
@@ -68,8 +78,10 @@ unsigned int get_load(uint64_t *results, void *state)
 {
     UNUSED(state);
     _get_load(tmp_load_values);
-    for(int i=0; i<10; i++)
+
+    for (int i = 0; i < 10; i++) {
         results[i] = tmp_load_values[i] - load_values[i];
+    }
 
     memcpy(load_values, tmp_load_values, sizeof(load_values));
     return 10;
@@ -81,12 +93,14 @@ void clean_load(void *state)
     close(load_fid);
 }
 
-char *_labels[10] = {"user","nice","system","idle","iowait","irq",
-                     "softirq","steal","guest","guest_nice"
+char *_labels[10] = {"user", "nice", "system", "idle", "iowait", "irq",
+                     "softirq", "steal", "guest", "guest_nice"
                     };
 void label_load(char **labels, void *none)
 {
     UNUSED(none);
-    for(int i=0; i<10; i++)
+
+    for (int i = 0; i < 10; i++) {
         labels[i] = _labels[i];
+    }
 }
