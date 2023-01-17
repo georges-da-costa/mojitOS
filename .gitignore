@@ -1,4 +1,5 @@
 *.o
 src/counters_option.h
+src/captors.h
 bin
 obj

@@ -22,3 +22,13 @@ unsigned int init_load(char *, void **);
 unsigned int get_load(uint64_t *results, void *);
 void clean_load(void *);
 void label_load(char **labels, void *);
+
+struct optparse_long load_opt = {"sysload", 'u', OPTPARSE_NONE};
+struct captor load = {
+    .usage_arg = NULL,
+    .usage_msg = "system load",
+    .init = init_load,
+    .get = get_load,
+    .clean = clean_load,
+    .label = label_load,
+};

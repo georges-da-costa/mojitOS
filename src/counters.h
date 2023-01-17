@@ -23,4 +23,16 @@ unsigned int get_counters(uint64_t *results, void *);
 void clean_counters(void *);
 void label_counters(char **labels, void *);
 
+struct optparse_long counters_opt = {"perf-list", 'p', OPTPARSE_REQUIRED};
+struct captor counters = {
+    .usage_arg = "<perf_list>",
+    .usage_msg = "performance counters\n"
+    "\tperf_list is a coma separated list of performance counters.\n"
+    "\tEx: instructions,cache_misses",
+    .init = init_counters,
+    .get = get_counters,
+    .clean = clean_counters,
+    .label = label_counters,
+};
+
 void show_all_counters();

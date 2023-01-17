@@ -22,3 +22,13 @@ unsigned int init_temperature(char *, void **);
 unsigned int get_temperature(uint64_t *results, void *);
 void clean_temperature(void *);
 void label_temperature(char **labels, void *);
+
+struct optparse_long temperature_opt = {"cpu-temp", 'c', OPTPARSE_NONE};
+struct captor temperature = {
+    .usage_arg = NULL,
+    .usage_msg = "processor temperature",
+    .init = init_temperature,
+    .get = get_temperature,
+    .clean = clean_temperature,
+    .label = label_temperature,
+};

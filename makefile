@@ -6,17 +6,17 @@ BIN_DIR = bin
 
 BIN = mojitos
 
-OBJ = $(addprefix $(OBJ_DIR)/,  \
-	counters.o \
-	rapl.o \
-	network.o \
-	load.o \
-	infiniband.o \
-	temperature.o \
-)
+OBJ =  \
+	$(OBJ_DIR)/counters.o \
+	$(OBJ_DIR)/rapl.o \
+	$(OBJ_DIR)/network.o \
+	$(OBJ_DIR)/load.o \
+	$(OBJ_DIR)/infiniband.o \
+	$(OBJ_DIR)/temperature.o
 
 CC = gcc
-CFLAGS = -std=gnu99 -O3 -Wall -Wextra -Werror -Wpedantic -Wno-unused-function
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Werror -Wpedantic -Wno-unused-function
+CFLAGS = $(CPPFLAGS) -O3
 LDFLAGS = -lpowercap
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
@@ -45,11 +45,11 @@ $(OBJ_DIR):
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
-debug: CFLAGS += -DDEBUG -g
+debug: CFLAGS = $(CPPFLAGS) -DDEBUG -g -Og
 debug: all
 
 format:
-	$(ASTYLE) $(SRC_DIR)/*.c $(SRC_DIR)/*.h
+	$(ASTYLE) $(SRC_DIR)/*.[ch]
 
 clean:
 	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/*
