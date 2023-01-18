@@ -15,8 +15,8 @@ OBJ =  \
 	$(OBJ_DIR)/temperature.o
 
 CC = gcc
-CPPFLAGS = -std=gnu99 -Wall -Wextra -Werror -Wpedantic -Wno-unused-function
-CFLAGS = $(CPPFLAGS) -O3
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function
+CFLAGS = $(CPPFLAGS) -O3 -Werror
 LDFLAGS = -lpowercap
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
