@@ -50,7 +50,6 @@ void usage(char **argv)
            "if time==0 then loops infinitively\n"
            "if -e is present, time and freq are not used\n"
            "-r activates RAPL\n"
-           "-R activates the file version of RAPL\n"
            "-p activates performance counters\n"
            "   perf_list is coma separated list of performance counters without space. Ex: instructions,cache_misses\n"
            "-l lists the possible performance counters and quits\n"
