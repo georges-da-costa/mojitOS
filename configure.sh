@@ -4,9 +4,19 @@ try() { "$@" || die "cannot $*"; }
 die() { yell "$*"; exit 111; }
 yell() { echo "$0: $*" >&2; }
 echo() { printf '%s\n' "$*"; }
+isnum() {
+	case "${1#[+-]}" in
+	*[!0-9]*|'') return 1 ;;
+	*) return 0 ;;
+	esac
+}
 
 target=src/captors.h
-hdr_blacklist='counters_option|optparse|captors'
+
+noncaptor='counters_option|optparse|captors'
+
+hdr_blacklist=$noncaptor
+hdr_whitelist=''
 
 usage() {
 	printf -- 'Usage: %s [-l] [-e <captor>] [-i <captor>]\n' "$(basename "$0")" >&2
@@ -18,7 +28,12 @@ usage() {
 
 ls_captors() {
 	try cd src
-	ls *.h | grep -vE "($hdr_blacklist)" | sed 's/\.h$//'
+	printf -- 'captors:\n' >&2
+	ls -1 *.h |
+		grep -vE "^($hdr_blacklist)\.h$" |
+		grep -E  "^($hdr_whitelist)\.h$" |
+		sed 's/\.h$//' |
+		tee /dev/stderr
 }
 
 gen_captors_h() {
@@ -44,8 +59,8 @@ gen_captors_h() {
 while [ "$1" ]; do
 	case $1 in
 	--include|-i)
-		# no-op for now
-		:
+		shift; [ "$1" ] || usage
+		hdr_whitelist="${hdr_whitelist}|${1}"
 		;;
 	--exclude|-e)
 		shift; [ "$1" ] || usage
@@ -61,5 +76,33 @@ while [ "$1" ]; do
 	esac
 	shift
 done
+
+[ -r /usr/include/linux/perf_event.h ] && hdr_whitelist=counters
+[ -d /sys/class/infiniband ] && hdr_whitelist=${hdr_whitelist}|infiniband
+[ -r /proc/stat ] && hdr_whitelist="${hdr_whitelist}|load"
+
+if [ -r /proc/net/route ]; then
+	dev=$(awk 'NR == 2 { print $1 }' /proc/net/route)
+	[ -e "/sys/class/net/$dev" ] && hdr_whitelist="${hdr_whitelist}|network"
+fi
+
+vendor=$(awk '/vendor_id/ {print $3; exit}' /proc/cpuinfo)
+vendor_lc=$(echo "$vendor" | tr 'A-Z' 'a-z')
+case $vendor_lc in
+*intel*)
+	hdr_whitelist="${hdr_whitelist}|rapl"
+	;;
+*amd*)
+	family=$(awk '/cpu[ \t]*family/ {print $3; exit}' /proc/cpuinfo)
+	if isnum "$family"; then
+		[ $family -ge 17 ] && hdr_whitelist="${hdr_whitelist}|amd_rapl"
+	fi
+	;;
+*)
+	yell "unsupported processor vendor id: $vendor"
+	;;
+esac
+
+[ $(ls -1 /sys/class/hwmon | wc -l) -gt 0 ] && hdr_whitelist="${hdr_whitelist}|temperature"
 
 gen_captors_h > "$target"
