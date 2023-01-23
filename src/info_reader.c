@@ -64,10 +64,12 @@ struct cpu_sensor_t {
 #warning "Check the reset of the msr registers"
     size_t cpu_id;
     size_t package_id;
+    char *name;
 
+    int *fd;
     uint64_t energy_units;
-    uint64_t core_energy_status;
-    uint64_t pkg_energy_status;
+    uint64_t core_energy;
+    uint64_t pkg_energy;
 };
 
 int main(int argc, char const *argv[])

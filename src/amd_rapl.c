@@ -53,7 +53,7 @@ struct cpu_sensor_t {
     size_t package_id;
     char *name;
 
-    int *fd;
+    int fd;
     uint64_t energy_units;
     uint64_t core_energy;
     uint64_t pkg_energy;
@@ -141,10 +141,12 @@ uint64_t raw_to_joule(uint64_t raw, uint64_t unit)
 #ifdef DEBUG
 void debug_print_sensor(cpu_sensor_t *sensor)
 {
-    CASSERT(sizeof(cpu_sensor_t) == 40, amd_rapl_c);
-    printf("cpu_id : %ld, package_id : %ld, energy_units : %ld, core_energy: %ld, pkg_energy: %ld\n",
+    CASSERT(sizeof(cpu_sensor_t) == 56, amd_rapl_c);
+	printf("cpu_id : %ld, package_id : %ld, name : %s, fd: %d,  energy_units : %ld, core_energy: %ld, pkg_energy: %ld\n",
            sensor->cpu_id,
            sensor->package_id,
+		   sensor->name,
+		   sensor->fd,
            sensor->energy_units,
            sensor->core_energy,
            sensor->pkg_energy
@@ -154,20 +156,12 @@ void debug_print_sensor(cpu_sensor_t *sensor)
 void debug_print_amd_rapl(_amd_rapl_t *rapl)
 {
     for (unsigned int i = 0; i < rapl->nb; i++) {
-        debug_print_sensor(rapl->sensors[i]);
+        debug_print_sensor(&rapl->sensors[i]);
     }
 }
 #endif
 
-
-
 // ---------------------------AMD_RAPL_UTIL
-
-uint64_t modulo_substraction(uint64_t previous, u_int64_t new)
-{
-    return new > previous ? (previous - new)
-           : (UINT64_MAX - new) + previous;
-}
 
 unsigned int get_nb_cpu()
 {
@@ -186,9 +180,16 @@ unsigned int get_nb_cpu()
     return n_cpu;
 }
 
+char* get_name(size_t cpu_id) {
+    static const char *base_name = "core%ld";
+	size_t memory_needed = snprintf(NULL, 0, base_name, cpu_id);
+	char* name = (char *)calloc(memory_needed, sizeof(char));
+	snprintf(name, memory_needed, base_name, cpu_id);
+	return name;
+}
+
 void init_cpu_sensor(cpu_sensor_t *sensor, unsigned int cpu_id)
 {
-    static const char *base_name = "core%ld";
     static char filename[BUFFER_SIZE];
     sprintf(filename, base_str, cpu_id);
 
@@ -202,7 +203,8 @@ void init_cpu_sensor(cpu_sensor_t *sensor, unsigned int cpu_id)
     u_int64_t raw_pkg_energy = read_raw_pkg_energy(fd);
 
     sensor->cpu_id = cpu_id;
-    asprintf(sensor->name, base_name, sensor->cpu_id);
+	sensor->name = get_name(cpu_id);
+	sensor->fd = fd;
     sensor->energy_units = read_unit(fd);
     sensor->core_energy = raw_to_microjoule(raw_core_energy, sensor->energy_units);
     sensor->pkg_energy = raw_to_microjoule(raw_pkg_energy, sensor->energy_units);
@@ -211,9 +213,9 @@ void init_cpu_sensor(cpu_sensor_t *sensor, unsigned int cpu_id)
 u_int64_t get_core_energy(cpu_sensor_t *sensor)
 {
     u_int64_t raw_core_energy = read_raw_core_energy(sensor->fd);
-    u_int64_t core_energy = raw_to_microjoule(raw_core_energy, sensor->energy_units)
+    u_int64_t core_energy = raw_to_microjoule(raw_core_energy, sensor->energy_units);
 
-                            u_int64_t energy_consumed = modulo_substraction(sensor->core_energy, core_energy);
+	u_int64_t energy_consumed = modulo_substraction(sensor->core_energy, core_energy);
     sensor->core_energy = core_energy;
     return energy_consumed;
 }
@@ -221,11 +223,16 @@ u_int64_t get_core_energy(cpu_sensor_t *sensor)
 u_int64_t get_pkg_energy(cpu_sensor_t *sensor)
 {
     u_int64_t raw_pkg_energy = read_raw_pkg_energy(sensor->fd);
-    u_int64_t pkg_energy = raw_to_microjoule(raw_pkg_energy, sensor->energy_units)
-
-                           u_int64_t energy_consumed = modulo_substraction(sensor->pkg_energy, pkg_energy);
+    u_int64_t pkg_energy = raw_to_microjoule(raw_pkg_energy, sensor->energy_units);
+	
+	u_int64_t energy_consumed = modulo_substraction(sensor->pkg_energy, pkg_energy);
     sensor->pkg_energy = pkg_energy;
     return energy_consumed;
+}
+
+void clean_cpu_sensor(cpu_sensor_t* sensor) {
+	close(sensor->fd);
+	free(sensor->name);
 }
 
 // ----------------------AMD_RAPL_INTERFACE
@@ -273,7 +280,7 @@ unsigned int init_amd_rapl(char *none, void **ptr)
         exit(127);
     }
 
-    cpu_sensor_tr *cpus = (cpu_sensor_t *) calloc(nb_cpu, sizeof(cpu_sensor_t));
+    cpu_sensor_t *cpus = (cpu_sensor_t *) calloc(nb_cpu, sizeof(cpu_sensor_t));
 
     rapl->nb = nb_cpu;
     rapl->sensors = cpus;
@@ -281,43 +288,70 @@ unsigned int init_amd_rapl(char *none, void **ptr)
     for (unsigned int i = 0; i < nb_cpu; i++) {
         init_cpu_sensor(&rapl->sensors[i], i);
     }
+
+	*ptr = (void*) rapl;
     return rapl->nb;
 }
 
 
-unsigned int get_amd_rapl(uint64_t results, void *ptr)
+unsigned int get_amd_rapl(uint64_t *results, void *ptr)
 {
-    _amd_rapl_t *rapl = (_amd_rapl_t) ptr;
+    _amd_rapl_t *rapl = (_amd_rapl_t *) ptr;
     for (unsigned int i = 0; i < rapl->nb; i++) {
         // TODO: check if unit is the same
 #warning "check if unit is the same"
-        results[i] = get_core_energy(rapl->sensors[i]);
+        results[i] = get_core_energy(&rapl->sensors[i]);
     }
     return rapl->nb;
 }
 
+void label_amd_rapl(char **labels, void* ptr) {
+	_amd_rapl_t *rapl = (_amd_rapl_t *) ptr;
+    for (unsigned int i = 0; i < rapl->nb; i++) {
+         labels[i] = rapl->sensors[i].name;
+    }
+}
+
+void clean_amd_rapl(void *ptr) {
+	_amd_rapl_t *rapl = (_amd_rapl_t *) ptr;
+
+	for (unsigned int i = 0; i < rapl->nb; ++i) {
+		clean_cpu_sensor(&rapl->sensors[i]);
+	}
+	free(rapl->sensors);
+	free(rapl);
+}
 
 
 
 int main()
 {
-    _amd_rapl_t *rapl = (_amd_rapl_t *)malloc(sizeof(_amd_rapl_t));
-    init_amd_rapl(rapl);
-    print_amd_rapl(rapl);
-    sleep(1);
-    print_amd_rapl(rapl);
-    sleep(1);
-    print_amd_rapl(rapl);
-    sleep(1);
-    print_amd_rapl(rapl);
-    sleep(1);
-    print_amd_rapl(rapl);
-    sleep(1);
-    print_amd_rapl(rapl);
-    sleep(1);
-    print_amd_rapl(rapl);
+	static const unsigned int time = 10;
+	_amd_rapl_t *rapl = NULL;
+    unsigned int nb_cpu = init_amd_rapl(NULL, (void **) &rapl);
+	uint64_t results[nb_cpu];
+	char* labels[nb_cpu];
 
-    free_amd_rapl(rapl);
+	label_amd_rapl(labels, (void *) rapl);
+
+	for (unsigned int i = 0; i < rapl->nb; ++i) {
+		printf("%s ", labels[i]);
+	}
+	printf("\n");
+
+	// -- Run
+
+	for (unsigned int i = 0; i < time; ++i) {
+		sleep(1);
+		get_amd_rapl(results, (void*)rapl);
+
+		for (unsigned int j = 0; j < rapl->nb; ++j) {
+			printf("%ln ", results);
+		}
+		printf("\n");
+	}
+
+	clean_amd_rapl(rapl);
     return 0;
 }
 
