@@ -1,8 +1,10 @@
 .PHONY: all clean mojitos mojitos_group debug format
 
 SRC_DIR = src
+DOC_DIR = doc
 OBJ_DIR = obj
 BIN_DIR = bin
+
 
 OBJECTS = $(addprefix $(OBJ_DIR)/, mojitos.o counters.o rapl.o network.o load.o infiniband.o temperature.o util.o)
 OBJECTS_GRP = $(subst _individual,_group, $(OBJECTS))
@@ -42,6 +44,7 @@ debug: all
 
 format:
 	$(ASTYLE) $(SRC_DIR)/*.c $(SRC_DIR)/*.h
+	$(ASTYLE) $(DOC_DIR)/*.c $(DOC_DIR)/*.h
 
 clean:
 	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/*
