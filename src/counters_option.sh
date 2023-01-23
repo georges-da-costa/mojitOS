@@ -5,12 +5,11 @@
 
 linux_include=/usr/include/linux/perf_event.h
 
-echo '#include <linux/perf_event.h>
-
+echo '
 typedef struct counter_option {
-  char *name;
-  __u32 perf_type;
-  __u64 perf_key;
+    char *name;
+    __u32 perf_type;
+    __u64 perf_key;
 } counter_option;
 
 static counter_option perf_static_info[] = {'
@@ -39,7 +38,7 @@ while IFS= read line; do
 		esac
 
 		if [ "$mode" != 'PERF_TYPE_HW_CACHE' ]; then
-			printf '{ .name = "%s", .perf_type = %s, .perf_key = %s},\n' \
+			printf '    { .name = "%s", .perf_type = %s, .perf_key = %s},\n' \
 					"$short_perf" \
 					"$mode" \
 					"$perf_name"
@@ -64,7 +63,7 @@ while IFS= read line; do
                 result_id_str=${result_id% *}
                 result_id_name=${result_id#* }
 
-            	printf '{'
+            	printf '    {'
             	printf ' .name = "%s_%s_%s",' \
             		"$short_perf" \
             		"$op_id_str" \
@@ -85,5 +84,5 @@ done < "$linux_include"
 
 echo '};'
 
-printf 'static unsigned int nb_counter_option = %d;\n' "$nb"
+printf '\nstatic unsigned int nb_counter_option = %d;\n' "$nb"
 
