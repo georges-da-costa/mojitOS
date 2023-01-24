@@ -113,14 +113,6 @@ static void set_value(Parser *parser, KeyFinder *key_finder, char *raw_value)
     key_finder->set(address, value);
 }
 
-// static void storage_zero(Parser *parser) {
-// 	static const int zero = 0;
-// 	GenericPointer storage = parser->storage;
-// 	size_t capacity = parser->capacity;
-// 	size_t struct_size = parser->storage_struct_size;
-// 	memset(storage, zero, struct_size * capacity);
-// }
-
 static unsigned int match(Parser *parser, char *line, KeyFinder **key_finder, char **raw_value)
 {
     for (unsigned int i = 0; i < parser->nb_keys; i++) {

@@ -29,6 +29,12 @@
 #define _impl_CASSERT_LINE(predicate, line, file) \
     typedef char _impl_PASTE(assertion_failed_##file##_,line)[2*!!(predicate)-1];
 
+#ifdef DEBUG					
+	#define DEBUG_WARNING(warning) #warning warning
+#else
+	#define DEBUG_WARNING(warning) do { } while(0);		
+#endif
+
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define PANIC(code, fmt, ...)                \
     do {                                     \
