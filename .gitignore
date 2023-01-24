@@ -1,5 +1,5 @@
 src/counters_option.h
 src/captors.h
-tests/tests
+tests/run
 bin
 obj
