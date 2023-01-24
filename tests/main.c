@@ -1,4 +1,5 @@
 #include "amd_rapl.c"
+#include "util.c"
 #include "info_reader.c"
 
 int main()
@@ -7,6 +8,7 @@ int main()
 
     nb_error += test_amd_rapl();
     nb_error += test_info_reader();
+	nb_error += test_util();
 
     return nb_error;
 }

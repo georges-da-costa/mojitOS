@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -75,7 +76,7 @@ int uint64_t_compare(uint64_t *value1, uint64_t *value2)
 
 char *uint64_t_format(char *buffer, uint64_t *value)
 {
-    sprintf(buffer, "%ld", *value);
+    sprintf(buffer, "%"PRIu64"", *value);
     return buffer;
 }
 

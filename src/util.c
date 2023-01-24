@@ -22,6 +22,6 @@
 
 uint64_t modulo_substraction(uint64_t previous, uint64_t new)
 {
-    return new > previous ? (new - previous)
-           : (UINT64_MAX - previous) + new;
+    return new >= previous ? (new - previous)
+           : (UINT64_MAX - previous + 1) + new;
 }

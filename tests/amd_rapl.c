@@ -60,6 +60,8 @@ int test_raw_to_microjoule()
     result = raw_to_microjoule(raw, unit);
     // -- Verification
     nb_error += TEST_UINT64_T(&result, &expected);
+
+	return nb_error;
 }
 
 int test_get_name()
