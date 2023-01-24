@@ -14,7 +14,8 @@ OBJ =  \
 	$(OBJ_DIR)/network.o \
 	$(OBJ_DIR)/load.o \
 	$(OBJ_DIR)/infiniband.o \
-	$(OBJ_DIR)/temperature.o
+	$(OBJ_DIR)/temperature.o \
+	$(OBJ_DIR)/util.o
 
 CC = gcc
 CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function
