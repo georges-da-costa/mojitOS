@@ -1,5 +1,10 @@
 #ifndef __SMALL_TEST_H
-#define __SMALL_TEST_H 
+#define __SMALL_TEST_H
+
+#include <stdbool.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #define FMT_NULL(string) \
 	string = string ? string : "NULL"
@@ -16,9 +21,9 @@
 #define TEST_UINT64_T(result, expected) \
 	test_uint64_t(__FILE__, __LINE__, result, expected)
 
-#define TEST_T_ARRAY(function, size, results, expecteds)	\
-	for (unsigned int i = 0; i < size; i++) {				\
-		function(results[i], expecteds[i]);					\
+#define TEST_T_ARRAY(function, nb_error, size, results, expecteds)	\
+	for (unsigned int i = 0; i < size; i++) {						\
+		nb_error += function(results[i], expecteds[i]);				\
 	}
 
 typedef int (Comparator) (void *, void *);
@@ -74,11 +79,12 @@ char *uint64_t_format(char *buffer, uint64_t *value)
     return buffer;
 }
 
-void test(char *file, int line, void *result, void *expected, Comparator *compare, Formatter *format)
+int test(char *file, int line, void *result, void *expected, Comparator *compare, Formatter *format)
 {
     static char buffer_result[1000];
     static char buffer_expected[1000];
-    if (compare(result, expected) == 0) {
+    int is_equal = compare(result, expected);
+    if  (!is_equal) {
         printf("Test %s:%d failed: expected %s, got %s\n",
                file,
                line,
@@ -88,37 +94,39 @@ void test(char *file, int line, void *result, void *expected, Comparator *compar
     } else {
         printf("Test %s:%d passed\n", file, line);
     }
+    return !is_equal;
 }
 
-void test_str(char *file, int line, char *result, char *expected)
+int test_str(char *file, int line, char *result, char *expected)
 {
     Comparator *compare = (Comparator *) string_compare;
     Formatter *format = (Formatter *) string_format;
 
-    test(file, line, result, expected, compare, format);
+    return test(file, line, result, expected, compare, format);
 }
 
-void test_boolean(char *file, int line, bool *result, bool *expected)
+int test_boolean(char *file, int line, bool *result, bool *expected)
 {
     Comparator *compare = (Comparator *) boolean_compare;
     Formatter *format = (Formatter *) boolean_format;
 
-    test(file, line, (void *) result, (void *) expected, compare, format);
+    return test(file, line, (int *) result, (void *) expected, compare, format);
 }
 
-void test_ptr(char *file, int line, void *result, void *expected)
+int test_ptr(char *file, int line, void *result, void *expected)
 {
     Comparator *compare = (Comparator *) ptr_compare;
     Formatter *format = (Formatter *) ptr_format;
 
-    test(file, line, result, expected, compare, format);
+    return test(file, line, result, expected, compare, format);
 }
 
-void test_uint64_t(char *file, int line, void *result, void *expected)
+int test_uint64_t(char *file, int line, void *result, void *expected)
 {
     Comparator *compare = (Comparator *) uint64_t_compare;
     Formatter *format = (Formatter *) uint64_t_format;
 
-    test(file, line, (uint64_t *)result, (uint64_t *)expected, compare, format);
+    return test(file, line, (uint64_t *)result, (uint64_t *)expected, compare, format);
 }
 #endif
+

@@ -1,9 +1,10 @@
-.PHONY: all clean mojitos mojitos_group debug format
+.PHONY: all clean mojitos mojitos_group debug format tests
 
 SRC_DIR = src
 DOC_DIR = doc
 OBJ_DIR = obj
 BIN_DIR = bin
+TESTS_DIR = tests
 
 
 OBJECTS = $(addprefix $(OBJ_DIR)/, mojitos.o counters.o rapl.o network.o load.o infiniband.o temperature.o util.o)
@@ -42,10 +43,17 @@ $(BIN_DIR):
 debug: CFLAGS += -DDEBUG -g
 debug: all
 
+tests: 	
+	gcc -Wall -Wextra -Wpedantic $(TESTS_DIR)/main.c $(SRC_DIR)/util.c -o $(TESTS_DIR)/tests
+	$(TESTS_DIR)/tests
+
 format:
 	$(ASTYLE) $(SRC_DIR)/*.c $(SRC_DIR)/*.h
 	$(ASTYLE) $(DOC_DIR)/*.c $(DOC_DIR)/*.h
+	$(ASTYLE) $(TESTS_DIR)/*.c $(TESTS_DIR)/*.h
+
 
 clean:
 	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/*
 	\rm -f $(SRC_DIR)/counters_option.h
+	\rm $(TESTS_DIR)/tests

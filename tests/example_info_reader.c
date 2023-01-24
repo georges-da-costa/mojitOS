@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #ifdef DEBUG
-#warning "PTR_TO_TPTR hide a cast warning"aa
+#warning "PTR_TO_TPTR hide a cast warning"
 #endif
 
 #define MAX_PROCS 2
