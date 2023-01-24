@@ -1,5 +1,49 @@
-#pragma once
+/*******************************************************
+ Copyright (C) 2022-2023 Georges Da Costa <georges.da-costa@irit.fr>
+
+    This file is part of Mojitos.
+
+    Mojitos is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Mojitos is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
+
+*******************************************************/
+
+#ifndef _UTIL_H
+#define _UTIL_H
 
 #include <stdint.h>
 
-inline uint64_t substractAcc(const uint64_t l, const uint64_t r);
+#define CASSERT(predicate, file) _impl_CASSERT_LINE(predicate,__LINE__,file)
+
+#define _impl_PASTE(a,b) a##b
+#define _impl_CASSERT_LINE(predicate, line, file) \
+    typedef char _impl_PASTE(assertion_failed_##file##_,line)[2*!!(predicate)-1];
+
+#ifdef DEBUG
+#define DEBUG_WARNING(warning) #warning warning
+#else
+#define DEBUG_WARNING(warning) do { } while(0);
+#endif
+
+#define UNUSED(expr) do { (void)(expr); } while (0)
+#define PANIC(code, fmt, ...)                \
+    do {                                     \
+        fprintf(stderr, "Exit on error: ");  \
+        fprintf(stderr, fmt, ##__VA_ARGS__); \
+        fprintf(stderr, "\n");               \
+        exit(code);                          \
+    } while (0)
+
+uint64_t modulo_substraction(const uint64_t l, const uint64_t r);
+
+#endif

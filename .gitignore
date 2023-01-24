@@ -1,4 +1,7 @@
-*.o
 src/counters_option.h
+src/captors.h
+tests/run
 bin
 obj
+*.swp
+*.swo
