@@ -3,7 +3,7 @@
 
 int test_raw_to_microjoule()
 {
-    printf("==== TEST raw_to_microjoule() ====\n");
+    INIT_TEST_FUNCTION();
     int nb_error = 0;
 
     uint64_t raw = 0;
@@ -61,14 +61,14 @@ int test_raw_to_microjoule()
     // -- Verification
     nb_error += TEST_UINT64_T(&result, &expected);
 
-	return nb_error;
+    return nb_error;
 }
 
 int test_get_name()
 {
+    INIT_TEST_FUNCTION();
     int nb_error = 0;
 
-    printf("==== TEST get_name() ====\n");
     size_t cpu_id = 0;
     char *result = NULL;
     char expected[100];
@@ -120,8 +120,8 @@ int test_get_name()
 
 int test_label_amd_rapl()
 {
+    INIT_TEST_FUNCTION();
     int nb_error = 0;
-    printf("==== TEST label_amd_rapl() ====\n");
     cpu_sensor_t sensors[100];
     _amd_rapl_t rapl;
     char *results[100];
@@ -178,6 +178,8 @@ int test_label_amd_rapl()
 
 int test_amd_rapl()
 {
+    INIT_TEST_FILE();
+
     int nb_error = 0;
     nb_error += test_raw_to_microjoule();
     nb_error += test_get_name();

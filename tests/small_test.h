@@ -27,6 +27,15 @@
 		nb_error += function(results[i], expecteds[i]);				\
 	}
 
+#define INIT_TEST_FILE() \
+	init_test_file(__FILE__, __func__);
+
+#define INIT_TEST_FUNCTION() \
+	init_test_function(__func__);
+
+#define DEFERRED_ERROR(nb_error) \
+	do { printf("========== Deferred Error : %d\n", nb_error); } while(0)
+
 typedef int (Comparator) (void *, void *);
 typedef char *(Formatter) (char *, void *);
 
@@ -80,20 +89,31 @@ char *uint64_t_format(char *buffer, uint64_t *value)
     return buffer;
 }
 
+void init_test_file(const char *file, const char *function)
+{
+    printf("========== TEST in %s -> %s()\n", file, function);
+}
+
+void init_test_function(const char *function)
+{
+    printf("|=> %s()\n", function);
+}
+
 int test(char *file, int line, void *result, void *expected, Comparator *compare, Formatter *format)
 {
     static char buffer_result[1000];
     static char buffer_expected[1000];
     int is_equal = compare(result, expected);
+    char c_result = is_equal ? 'V' : 'X';
+    printf("[%c]    | %s:%d: ", c_result, file, line);
+
     if  (!is_equal) {
-        printf("Test %s:%d failed: expected %s, got %s\n",
-               file,
-               line,
+        printf("failed, expected %s, got %s\n",
                format(buffer_result, expected),
                format(buffer_expected, result)
               );
     } else {
-        printf("Test %s:%d passed\n", file, line);
+        printf("passed\n");
     }
     return !is_equal;
 }

@@ -2,9 +2,9 @@
 
 int test_replace_first()
 {
+    INIT_TEST_FUNCTION();
     int nb_error = 0;
 
-    printf("==== TEST replace_first() ====\n");
     char test1[] = "This is my string";
     replace_first(test1, 'i', 'I');
     nb_error += TEST_STR(test1, "ThIs is my string");
@@ -22,9 +22,9 @@ int test_replace_first()
 
 int test_split_on_delimiter()
 {
+    INIT_TEST_FUNCTION();
     int nb_error = 0;
 
-    printf("==== TEST split_on_delimite() ====\n");
     char test4[] = "key:value";
     char *key;
     char *value;
@@ -63,9 +63,9 @@ int test_split_on_delimiter()
 
 int test_start_with()
 {
+    INIT_TEST_FUNCTION();
     int nb_error = 0;
 
-    printf("==== TEST start_with() ====\n");
     char *prefix = NULL;
     char *string = NULL;
     bool result = false;
@@ -126,8 +126,8 @@ int test_start_with()
 
 int test_match()
 {
+    INIT_TEST_FUNCTION();
     int nb_error = 0;
-    printf("==== TEST match() ====\n");
     // usefull variable :
     bool _true = true;
     bool _false = false;
@@ -213,6 +213,7 @@ int test_match()
 
 int test_info_reader()
 {
+    INIT_TEST_FILE();
     int nb_error = 0;
 
     nb_error += test_replace_first();

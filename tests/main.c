@@ -8,8 +8,9 @@ int main()
 
     nb_error += test_amd_rapl();
     nb_error += test_info_reader();
-	nb_error += test_util();
+    nb_error += test_util();
 
+    DEFERRED_ERROR(nb_error);
     return nb_error;
 }
 
