@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include "util.h"
 
 #define NB_SENSOR 4
 #define UNUSED(expr) do { (void)(expr); } while (0)
@@ -112,7 +113,7 @@ unsigned int get_network(uint64_t *results, void *ptr)
     _get_network(state->tmp_values, state->sources);
 
     for (int i = 0; i < NB_SENSOR; i++) {
-        results[i] = state->tmp_values[i] - state->values[i];
+        results[i] = modulo_substraction(state->tmp_values[i], state->values[i]);
     }
 
     memcpy(state->values, state->tmp_values, NB_SENSOR * sizeof(uint64_t));

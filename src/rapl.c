@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <errno.h>
+#include "util.h"
 
 
 #define MAX_HEADER 128
@@ -167,7 +168,7 @@ unsigned int get_rapl(uint64_t *results, void *ptr)
     _get_rapl(state->tmp_values, state);
 
     for (unsigned int i = 0; i < state->nb; i++) {
-        results[i] = state->tmp_values[i] - state->values[i];
+        results[i] = modulo_substraction(state->tmp_values[i], state->values[i]);
     }
 
     memcpy(state->values, state->tmp_values, sizeof(uint64_t)*state->nb);

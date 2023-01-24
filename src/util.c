@@ -20,8 +20,8 @@
 
 #include "util.h"
 
-uint64_t modulo_substraction(uint64_t previous, uint64_t new)
+uint64_t uint64_t modulo_substraction(const uint64_t l, const uint64_t r)
 {
-    return new >= previous ? (new - previous)
-           : (UINT64_MAX - previous + 1) + new;
+    return l >= r ? (l - r)
+           : (UINT64_MAX - r + 1) + l;
 }

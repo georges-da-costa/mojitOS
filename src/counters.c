@@ -27,6 +27,8 @@
 #include <stdint.h>
 #include <asm/unistd.h>
 #include <stdint.h>
+#include "util.h"
+
 
 struct _counter_t {
     int nbcores;
@@ -217,7 +219,7 @@ unsigned int get_counters(uint64_t *results, void *ptr)
     _get_counters(state, state->tmp_counters_values);
 
     for (int i = 0; i < state->nbperf; i++) {
-        results[i] = state->tmp_counters_values[i] - state->counters_values[i];
+        results[i] = modulo_substraction(state->tmp_counters_values[i], state->counters_values[i]);
     }
 
     memcpy(state->counters_values, state->tmp_counters_values, state->nbperf * sizeof(uint64_t));
