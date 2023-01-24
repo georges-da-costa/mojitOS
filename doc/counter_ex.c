@@ -21,6 +21,6 @@ void label_acc(char **labels, void *none)
 
 void clean_acc(void *none)
 {
-	/* That's a no-op for this example */
-	UNUSED(none);
+    /* That's a no-op for this example */
+    UNUSED(none);
 }

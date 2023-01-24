@@ -4,7 +4,7 @@
 
 unsigned int init_acc(char *, void **);
 unsigned int get_acc(uint64_t *results, void *);
-void clean_acc(void*);
+void clean_acc(void *);
 void label_acc(char **labels, void *);
 
 struct optparse_long counters_opt = {"accumulator", 'a', OPTPARSE_NONE};

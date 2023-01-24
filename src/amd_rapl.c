@@ -320,7 +320,7 @@ unsigned int get_amd_rapl(uint64_t *results, void *ptr)
 {
     _amd_rapl_t *rapl = (_amd_rapl_t *) ptr;
     for (unsigned int i = 0; i < rapl->nb; i++) {
-		DEBUG_WARNING("check if unit is the same")
+        DEBUG_WARNING("check if unit is the same")
         results[i] = get_core_energy(&rapl->sensors[i]);
     }
     return rapl->nb;
