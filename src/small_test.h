@@ -16,6 +16,11 @@
 #define TEST_UINT64_T(result, expected) \
 	test_uint64_t(__FILE__, __LINE__, result, expected)
 
+#define TEST_T_ARRAY(function, size, results, expecteds)	\
+	for (unsigned int i = 0; i < size; i++) {				\
+		function(results[i], expecteds[i]);					\
+	}
+
 typedef int (Comparator) (void *, void *);
 typedef char *(Formatter) (char *, void *);
 
