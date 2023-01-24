@@ -23,3 +23,13 @@ unsigned int get_rapl(uint64_t *results, void *);
 void clean_rapl(void *);
 void label_rapl(char **labels, void *);
 
+struct optparse_long rapl_opt = {"rapl", 'r', OPTPARSE_NONE};
+struct captor rapl = {
+    .usage_arg = NULL,
+    .usage_msg = "RAPL",
+    .init = init_rapl,
+    .get = get_rapl,
+    .clean = clean_rapl,
+    .label = label_rapl,
+};
+

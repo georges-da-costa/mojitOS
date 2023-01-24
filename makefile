@@ -1,4 +1,4 @@
-.PHONY: all clean mojitos mojitos_group debug format tests
+.POSIX:
 
 SRC_DIR = src
 DOC_DIR = doc
@@ -6,33 +6,40 @@ OBJ_DIR = obj
 BIN_DIR = bin
 TESTS_DIR = tests
 
+BIN = mojitos
 
-OBJECTS = $(addprefix $(OBJ_DIR)/, mojitos.o counters.o rapl.o network.o load.o infiniband.o temperature.o util.o)
-OBJECTS_GRP = $(subst _individual,_group, $(OBJECTS))
+OBJ =  \
+	$(OBJ_DIR)/counters.o \
+	$(OBJ_DIR)/rapl.o \
+	$(OBJ_DIR)/network.o \
+	$(OBJ_DIR)/load.o \
+	$(OBJ_DIR)/infiniband.o \
+	$(OBJ_DIR)/temperature.o
 
 CC = gcc
-CFLAGS = -std=gnu99 -Wall -Wextra -Werror -Wpedantic -Wno-unused-function
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function
+CFLAGS = $(CPPFLAGS) -O3 -Werror
+LDFLAGS =
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
 
-# depending on the context it may need to be changed to all: mojitos mojitos_group
-all: mojitos
+all: $(BIN)
 
-mojitos: $(OBJ_DIR) $(BIN_DIR) $(OBJECTS)
-	$(CC) $(CFLAGS) -o $(BIN_DIR)/mojitos $(OBJECTS) -lpowercap
+$(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
+	$(CC) $(LDFLAGS) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o
 
-$(OBJ_DIR)/counters_%.o: $(SRC_DIR)/counters_%.c $(SRC_DIR)/counters.h $(SRC_DIR)/counters_option.h
+$(OBJ): $(OBJ_DIR)
+$(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
+
+$(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c $(SRC_DIR)/counters_option.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.py
-	python3 ./$(SRC_DIR)/counters_option.py > $(SRC_DIR)/counters_option.h
-
-$(OBJ_DIR)/mojitos.o: $(SRC_DIR)/mojitos.c $(SRC_DIR)/counters_option.h
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(SRC_DIR)/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+$(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.sh
+	sh ./$(SRC_DIR)/counters_option.sh > $(SRC_DIR)/counters_option.h
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
@@ -40,20 +47,21 @@ $(OBJ_DIR):
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
-debug: CFLAGS += -DDEBUG -g
+debug: CFLAGS = $(CPPFLAGS) -DDEBUG -g -Og
 debug: all
 
-tests: 	
-	gcc -Wall -Wextra -Wpedantic $(TESTS_DIR)/main.c $(SRC_DIR)/util.c -o $(TESTS_DIR)/tests
-	$(TESTS_DIR)/tests
+tests:
+	gcc -Wall -Wextra -Wpedantic $(TESTS_DIR)/main.c $(SRC_DIR)/util.c -o $(TESTS_DIR)/run
+	$(TESTS_DIR)/run
 
 format:
-	$(ASTYLE) $(SRC_DIR)/*.c $(SRC_DIR)/*.h
-	$(ASTYLE) $(DOC_DIR)/*.c $(DOC_DIR)/*.h
-	$(ASTYLE) $(TESTS_DIR)/*.c $(TESTS_DIR)/*.h
-
+	$(ASTYLE) $(SRC_DIR)/*.[ch]
+	$(ASTYLE) $(DOC_DIR)/*.[ch]
+	$(ASTYLE) $(TESTS_DIR)/*.[ch]
 
 clean:
 	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/*
 	\rm -f $(SRC_DIR)/counters_option.h
-	\rm $(TESTS_DIR)/tests
+	\rm $(TESTS_DIR)/run
+
+.PHONY: all clean mojitos debug format tests

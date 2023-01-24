@@ -18,3 +18,9 @@ void label_acc(char **labels, void *none)
     UNUSED(none);
     labels[0] = "acc";
 }
+
+void clean_acc(void *none)
+{
+	/* That's a no-op for this example */
+	UNUSED(none);
+}

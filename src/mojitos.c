@@ -26,12 +26,12 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "counters.h"
-#include "rapl.h"
-#include "infiniband.h"
-#include "load.h"
-#include "network.h"
-#include "temperature.h"
+#define NB_MAX_OPTS 10
+#define NB_MAX_CAPTORS 20
+
+#define OPTPARSE_IMPLEMENTATION
+#define OPTPARSE_API static
+#include "optparse.h"
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define PANIC(code, fmt, ...)  				 \
@@ -42,24 +42,63 @@
 		exit(code); 						 \
 	} while (0)
 
+typedef unsigned int (*initializer_t)(char *, void **);
+typedef void (*labeler_t)(char **, void *);
+typedef unsigned int (*getter_t)(uint64_t *, void *);
+typedef void (*cleaner_t)(void *);
+
+struct captor {
+    char *usage_arg;
+    char *usage_msg;
+    initializer_t init;
+    getter_t get;
+    cleaner_t clean;
+    labeler_t label;
+};
+
+struct captor captors[NB_MAX_CAPTORS];
+
+struct optparse_long longopts[NB_MAX_OPTS + NB_MAX_CAPTORS] = {
+    {"overhead-stats", 's', OPTPARSE_NONE},
+    {"list", 'l', OPTPARSE_NONE},
+    {"freq", 'f', OPTPARSE_REQUIRED},
+    {"time", 't', OPTPARSE_REQUIRED},
+    {"exec", 'e', OPTPARSE_REQUIRED},
+    {"logfile", 'o', OPTPARSE_REQUIRED},
+};
+
+int nb_defined_captors = 0;
+
+#include "captors.h"
 
 void usage(char **argv)
 {
-    printf("Usage : %s [-rRluc] [-t time] [-f freq] [-p perf_list] [-d network_device]\n"
-           "                    [-i infiniband_path] [-o logfile] [-e command arguments...]\n"
+    printf("Usage : %s [OPTIONS] [CAPTOR ...] [-o logfile] [-e cmd ...]\n"
+           "\nOPTIONS:\n"
+           "-t <time>\n"
+           "-f <freq>\n"
+           "-l\t\tlist the possible performance counters and quit\n"
+           "-s\t\tenable overhead statistics in nanoseconds\n"
            "if time==0 then loops infinitively\n"
            "if -e is present, time and freq are not used\n"
-           "-r activates RAPL\n"
-           "-p activates performance counters\n"
-           "   perf_list is coma separated list of performance counters without space. Ex: instructions,cache_misses\n"
-           "-l lists the possible performance counters and quits\n"
-           "-d activates network monitoring (if network_device is X, tries to detect it automatically)\n"
-           "-i activates infiniband monitoring (if infiniband_path is X, tries to detect it automatically)\n"
-           "-s activates statistics of overhead in nanoseconds\n"
-           "-u activates report of system load\n"
-           "-c activates report of processor temperature\n"
            , argv[0]);
-    exit(EXIT_SUCCESS);
+
+    if (nb_defined_captors == 0) {
+        // no captor to show
+        exit(EXIT_FAILURE);
+    }
+
+    printf("\nCAPTORS:\n");
+
+    for (int i = 0; i < nb_defined_captors; i++) {
+        printf("-%c", longopts[NB_MAX_OPTS + i].shortname);
+        if (captors[i].usage_arg != NULL) {
+            printf(" %s", captors[i].usage_arg);
+        }
+        printf("\n\t%s\n", captors[i].usage_msg);
+    }
+
+    exit(EXIT_FAILURE);
 }
 
 void sighandler(int none)
@@ -82,11 +121,6 @@ void flushexit()
     }
 }
 
-typedef unsigned int (initializer_t)(char *, void **);
-typedef void (labeler_t)(char **, void *);
-typedef unsigned int (*getter_t)(uint64_t *, void *);
-typedef void (*cleaner_t)(void *);
-
 unsigned int nb_sources = 0;
 void **states = NULL;
 getter_t *getter = NULL;
@@ -96,10 +130,14 @@ unsigned int nb_sensors = 0;
 char **labels = NULL;
 uint64_t *values = NULL;
 
-void add_source(initializer_t init, char *arg, labeler_t labeler,
-                getter_t get, cleaner_t clean)
+void add_source(struct captor *cpt, char *arg)
 {
     nb_sources++;
+    initializer_t init = cpt->init;
+    labeler_t labeler = cpt->label;
+    getter_t get = cpt->get;
+    cleaner_t clean = cpt->clean;
+
     states = realloc(states, nb_sources * sizeof(void *));
     int nb = init(arg, &states[nb_sources - 1]);
 
@@ -127,8 +165,9 @@ int main(int argc, char **argv)
     int delta = 0;
     int frequency = 1;
     char **application = NULL;
-
     int stat_mode = -1;
+
+    init_captors();
 
     if (argc == 1) {
         usage(argv);
@@ -139,52 +178,23 @@ int main(int argc, char **argv)
     atexit(flushexit);
     signal(15, flush);
 
-    int c;
+    int opt;
+    struct optparse options;
+    options.permute = 0;
 
-    while ((c = getopt (argc, argv, "ilhcftdeoprRsu")) != -1 && application == NULL) {
-        switch (c) {
+    optparse_init(&options, argv);
+    while ((opt = optparse_long(&options, longopts, NULL)) != -1 && application == NULL) {
+        switch (opt) {
         case 'f':
-            if (optind >= argc) PANIC(1,"-f, no frequency provided");
-            frequency = atoi(argv[optind]);
+            frequency = atoi(options.optarg);
             break;
         case 't':
-            if (optind >= argc) PANIC(1,"-t, no time provided");
-            total_time = atoi(argv[optind]);
+            total_time = atoi(options.optarg);
             delta = 1;
             if (total_time == 0) {
                 total_time = 1;
                 delta = 0;
             }
-            break;
-        case 'd':
-            add_source(init_network, argv[optind], label_network, get_network, clean_network);
-            break;
-        case 'i':
-            add_source(init_infiniband, argv[optind], label_infiniband, get_network, clean_network);
-            break;
-        case 'o':
-            if (optind >= argc) PANIC(1,"-o, no logfile provided");
-            if ((output = fopen(argv[optind], "wb")) == NULL) {
-                perror("fopen");
-                PANIC(1, "-o %s", argv[optind]);
-            }
-            break;
-        case 'e':
-            application = &argv[optind];
-            signal(17, sighandler);
-            break;
-        case 'p':
-            if (optind >= argc) PANIC(1,"-p, no counter provided");
-            add_source(init_counters, argv[optind], label_counters, get_counters, clean_counters);
-            break;
-        case 'r':
-            add_source(init_rapl, NULL, label_rapl, get_rapl, clean_rapl);
-            break;
-        case 'u':
-            add_source(init_load, NULL, label_load, get_load, clean_load);
-            break;
-        case 'c':
-            add_source(init_temperature, NULL, label_temperature, get_temperature, clean_temperature);
             break;
         case 's':
             stat_mode = 0;
@@ -192,8 +202,29 @@ int main(int argc, char **argv)
         case 'l':
             show_all_counters();
             exit(EXIT_SUCCESS);
-        default:
-            usage(argv);
+        case 'o':
+            if ((output = fopen(options.optarg, "wb")) == NULL) {
+                perror("fopen");
+                PANIC(1, "-o %s", options.optarg);
+            }
+            break;
+        case 'e':
+            application = options.argv;
+            signal(17, sighandler);
+            break;
+        default: {
+            int ismatch = 0;
+            for (int i = 0; i < nb_defined_captors && !ismatch; i++) {
+                if (opt == longopts[NB_MAX_OPTS + i].shortname) {
+                    ismatch = 1;
+                    add_source(&captors[i], options.optarg);
+                }
+            }
+            if (!ismatch) {
+                fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
+                usage(argv);
+            }
+        }
         }
     }
 
