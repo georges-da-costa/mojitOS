@@ -20,8 +20,15 @@
 
 #include "util.h"
 
-uint64_t modulo_substraction(const uint64_t l, const uint64_t r)
+/**
+ * @brief Substracts lhs by rhs, assuming that lhs is a cyclic increment from rhs, 
+ * meaning that if lhs is greater, rhs's value overflowed.
+ * @param lhs 
+ * @param rhs 
+ * @return uint64_t 
+ */
+uint64_t modulo_substraction(const uint64_t lhs, const uint64_t rhs)
 {
-    return l >= r ? (l - r)
-           : (UINT64_MAX - r + 1) + l;
+    return rhs >= lhs ? (rhs - lhs)
+           : (UINT64_MAX - lhs + 1) + rhs;
 }
