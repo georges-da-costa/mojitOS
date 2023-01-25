@@ -44,6 +44,14 @@
         exit(code);                          \
     } while (0)
 
+
+/**
+ * @brief Substracts lhs by rhs, assuming that lhs is a cyclic increment from rhs, 
+ * meaning that if lhs is greater, rhs's value overflowed.
+ * @param lhs 
+ * @param rhs 
+ * @return uint64_t 
+ */
 uint64_t modulo_substraction(const uint64_t l, const uint64_t r);
 
 #endif
