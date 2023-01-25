@@ -26,7 +26,6 @@
 #include "util.h"
 
 #define NB_SENSOR 4
-#define UNUSED(expr) do { (void)(expr); } while (0)
 
 static char *route = "/proc/net/route";
 struct network_t {

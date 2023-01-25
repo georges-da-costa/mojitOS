@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include "util.h"
 
 #define NB_MAX_OPTS 10
 #define NB_MAX_CAPTORS 20
@@ -32,15 +33,6 @@
 #define OPTPARSE_IMPLEMENTATION
 #define OPTPARSE_API static
 #include "optparse.h"
-
-#define UNUSED(expr) do { (void)(expr); } while (0)
-#define PANIC(code, fmt, ...)  				 \
-	do {									 \
-		fprintf(stderr, "Exit on error: ");  \
-		fprintf(stderr, fmt, ##__VA_ARGS__); \
-		fprintf(stderr, "\n"); 			     \
-		exit(code); 						 \
-	} while (0)
 
 typedef unsigned int (*initializer_t)(char *, void **);
 typedef void (*labeler_t)(char **, void *);

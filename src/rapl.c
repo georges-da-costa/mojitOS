@@ -27,10 +27,7 @@
 #include <errno.h>
 #include "util.h"
 
-
 #define MAX_HEADER 128
-#define UNUSED(expr) do { (void)(expr); } while (0)
-
 
 char *get_rapl_string(const char *filename)
 {

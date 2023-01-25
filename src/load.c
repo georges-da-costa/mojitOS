@@ -23,9 +23,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include "util.h"
 
 #define LOAD_BUFFER_SIZE 1024
-#define UNUSED(expr) do { (void)(expr); } while (0)
 char buffer[LOAD_BUFFER_SIZE];
 
 static int load_fid = -1;

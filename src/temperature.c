@@ -24,8 +24,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
-
-#define UNUSED(expr) do { (void)(expr); } while (0)
+#include "util.h"
 
 struct temperature_t {
     char **label_list;

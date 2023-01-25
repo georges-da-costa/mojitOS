@@ -21,13 +21,11 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <glob.h>
-
 #include <stdint.h>
+#include "util.h"
 
 #define NB_SENSOR 4
-#define UNUSED(expr) do { (void)(expr); } while (0)
 
 struct network_t {
     uint64_t values[NB_SENSOR];

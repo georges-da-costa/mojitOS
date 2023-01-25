@@ -63,6 +63,6 @@ format:
 clean:
 	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/*
 	\rm -f $(SRC_DIR)/counters_option.h
-	\rm $(TESTS_DIR)/run
+	\rm -f $(TESTS_DIR)/run
 
 .PHONY: all clean mojitos debug format tests
