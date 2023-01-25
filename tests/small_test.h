@@ -11,13 +11,13 @@
 // ---------------------------API_INTERFACE
 
 #define INIT_TEST_FILE() \
-	init_test_file(__FILE__, __func__);
+	init_test_file(__FILE__, __func__)
 
 #define INIT_TEST_FUNCTION() \
-	init_test_function(__func__);
+	init_test_function(__func__)
 
 #define DEFERRED_ERROR(nb_error) \
-	do { printf("========== Deferred Error : %d\n", nb_error); } while(0)
+	printf("========== Deferred Error : %d\n", nb_error)
 
 #define TEST_STR(result, expected) \
 	test_str(__FILE__, __LINE__, result, expected)
