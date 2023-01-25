@@ -7,8 +7,17 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define FMT_NULL(string) \
-	string = string ? string : "NULL"
+
+// ---------------------------API_INTERFACE
+
+#define INIT_TEST_FILE() \
+	init_test_file(__FILE__, __func__);
+
+#define INIT_TEST_FUNCTION() \
+	init_test_function(__func__);
+
+#define DEFERRED_ERROR(nb_error) \
+	do { printf("========== Deferred Error : %d\n", nb_error); } while(0)
 
 #define TEST_STR(result, expected) \
 	test_str(__FILE__, __LINE__, result, expected)
@@ -27,14 +36,11 @@
 		nb_error += function(results[i], expecteds[i]);				\
 	}
 
-#define INIT_TEST_FILE() \
-	init_test_file(__FILE__, __func__);
 
-#define INIT_TEST_FUNCTION() \
-	init_test_function(__func__);
+// --------------------------------API_CODE
 
-#define DEFERRED_ERROR(nb_error) \
-	do { printf("========== Deferred Error : %d\n", nb_error); } while(0)
+#define FMT_NULL(string) \
+	string = string ? string : "NULL"
 
 typedef int (Comparator) (void *, void *);
 typedef char *(Formatter) (char *, void *);
