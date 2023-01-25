@@ -52,7 +52,7 @@ debug: CFLAGS = $(CPPFLAGS) -DDEBUG -g -Og
 debug: all
 
 tests:
-	gcc -Wall -Wextra -Wpedantic $(TESTS_DIR)/main.c $(SRC_DIR)/util.c -o $(TESTS_DIR)/run
+	gcc $(CPPFLAGS) $(TESTS_DIR)/main.c $(SRC_DIR)/util.c -o $(TESTS_DIR)/run
 	$(TESTS_DIR)/run
 
 format:
