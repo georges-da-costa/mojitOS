@@ -19,6 +19,7 @@
 
  *******************************************************/
 
+#include <assert.h>
 #include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
@@ -26,9 +27,6 @@
 #include <time.h>
 #include <unistd.h>
 #include "util.h"
-
-#define NB_MAX_OPTS 10
-#define NB_MAX_CAPTORS 20
 
 #define OPTPARSE_IMPLEMENTATION
 #define OPTPARSE_API static
@@ -48,9 +46,14 @@ struct captor {
     labeler_t label;
 };
 
-struct captor captors[NB_MAX_CAPTORS];
+int nb_defined_captors = 0;
 
-struct optparse_long longopts[NB_MAX_OPTS + NB_MAX_CAPTORS] = {
+#include "captors.h"
+
+struct captor captors[NB_CAPTORS];
+
+#define NB_OPTS 6
+struct optparse_long longopts[NB_OPTS + NB_CAPTORS + 1] = {
     {"overhead-stats", 's', OPTPARSE_NONE},
     {"list", 'l', OPTPARSE_NONE},
     {"freq", 'f', OPTPARSE_REQUIRED},
@@ -59,16 +62,14 @@ struct optparse_long longopts[NB_MAX_OPTS + NB_MAX_CAPTORS] = {
     {"logfile", 'o', OPTPARSE_REQUIRED},
 };
 
-int nb_defined_captors = 0;
-
-#include "captors.h"
 
 void usage(char **argv)
 {
     printf("Usage : %s [OPTIONS] [CAPTOR ...] [-o logfile] [-e cmd ...]\n"
            "\nOPTIONS:\n"
-           "-t <time>\n"
-           "-f <freq>\n"
+           "-t <time>\t\tspecify time\n"
+           "-f <freq>\t\tspecify frequency\n"
+           "-e <cmd>\t\tspecify a command\n"
            "-l\t\tlist the possible performance counters and quit\n"
            "-s\t\tenable overhead statistics in nanoseconds\n"
            "if time==0 then loops infinitively\n"
@@ -83,7 +84,7 @@ void usage(char **argv)
     printf("\nCAPTORS:\n");
 
     for (int i = 0; i < nb_defined_captors; i++) {
-        printf("-%c", longopts[NB_MAX_OPTS + i].shortname);
+        printf("-%c", longopts[NB_OPTS + i].shortname);
         if (captors[i].usage_arg != NULL) {
             printf(" %s", captors[i].usage_arg);
         }
@@ -159,7 +160,7 @@ int main(int argc, char **argv)
     char **application = NULL;
     int stat_mode = -1;
 
-    init_captors();
+    init_captors(longopts, captors, NB_OPTS + NB_CAPTORS, NB_OPTS, &nb_defined_captors);
 
     if (argc == 1) {
         usage(argv);
@@ -207,7 +208,7 @@ int main(int argc, char **argv)
         default: {
             int ismatch = 0;
             for (int i = 0; i < nb_defined_captors && !ismatch; i++) {
-                if (opt == longopts[NB_MAX_OPTS + i].shortname) {
+                if (opt == longopts[NB_OPTS + i].shortname) {
                     ismatch = 1;
                     add_source(&captors[i], options.optarg);
                 }
