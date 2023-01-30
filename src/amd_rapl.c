@@ -258,15 +258,13 @@ void clean_cpu_sensor(cpu_sensor_t *sensor)
     free(sensor->name);
 }
 
-// ----------------------AMD_RAPL_INTERFACE
-
-
 void free_amd_rapl(_amd_rapl_t *rapl)
 {
     free(rapl->sensors);
     free(rapl);
 }
 
+// ----------------------AMD_RAPL_INTERFACE
 
 unsigned int init_amd_rapl(char *none, void **ptr)
 {
