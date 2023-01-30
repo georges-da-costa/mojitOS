@@ -22,3 +22,13 @@ unsigned int init_amd_rapl(char *, void **);
 unsigned int get_amd_rapl(uint64_t *results, void *);
 void clean_amd_rapl(void *);
 void label_amd_rapl(char **labels, void *);
+
+struct optparse_long amd_rapl_opt = {"amd_rapl", 'a', OPTPARSE_NONE};
+struct captor amd_rapl = {
+    .usage_arg = NULL,
+    .usage_msg = "AMD_RAPL",
+    .init = init_amd_rapl,
+    .get = get_amd_rapl,
+    .clean = clean_amd_rapl,
+    .label = label_amd_rapl,
+};

@@ -29,7 +29,6 @@
 
 #include "info_reader.h"
 #include "util.h"
-#include "amd_rapl.h"
 
 #define BUFFER_SIZE 64
 
@@ -100,7 +99,7 @@ uint64_t read_msr(int fd, uint64_t msr)
 {
     uint64_t data;
     if (pread(fd, &data, sizeof data, msr) != sizeof data) {
-        fprintf(stderr, "msr(%ld):", msr);
+        fprintf(stderr, "read_msr(%ld):", msr);
         perror("pread");
         exit(127);
     }
@@ -217,7 +216,9 @@ void init_cpu_sensor(cpu_sensor_t *sensor, unsigned int cpu_id)
 
     int fd = open(filename, O_RDONLY);
     if (fd < 0) {
-        perror("rdmsr:open");
+        fprintf(stderr, "open(");
+        fprintf(stderr, base_str, cpu_id);
+        perror(")");
         exit(127);
     }
 
@@ -273,7 +274,9 @@ unsigned int init_amd_rapl(char *none, void **ptr)
 
     unsigned int nb_cpu = get_nb_cpu();
     if (nb_cpu == 0) {
-        perror("get_nb_cpu");
+        fprintf(stderr, "open(");
+        fprintf(stderr, base_str,0);
+        perror(")");
         exit(127);
     }
 
@@ -319,6 +322,7 @@ void clean_amd_rapl(void *ptr)
     free(rapl);
 }
 
+// -----------------------------ENTRY_POINT
 
 #ifdef __TESTING_AMD__
 #ifdef DEBUG
