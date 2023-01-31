@@ -21,7 +21,7 @@
 unsigned int init_infiniband(char *infi_path, void **ptr);
 void label_infiniband(char **labels, void *);
 
-Captor infiniband = {
+Sensor infiniband = {
     .init = init_infiniband,
     .get = NULL,
     .clean = NULL,

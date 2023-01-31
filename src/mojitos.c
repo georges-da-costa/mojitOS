@@ -38,11 +38,11 @@ typedef unsigned int (*getter_t)(uint64_t *, void *);
 typedef void (*cleaner_t)(void *);
 
 typedef struct Opt Opt;
-typedef struct Captor Captor;
+typedef struct Sensor Sensor;
 /* optparse typedef */
 typedef struct optparse_long Optparse;
 
-struct Captor {
+struct Sensor {
     initializer_t init;
     getter_t get;
     cleaner_t clean;
@@ -50,41 +50,70 @@ struct Captor {
     int nb_opt;
 };
 
-int nb_defined_captors = 0;
+int nb_defined_sensors = 0;
 
-#include "captors.h"
+#include "sensors.h"
 
-Captor captors[NB_CAPTOR];
+Sensor sensors[NB_SENSOR];
 
 #define NB_OPT 5
-Optparse longopts[NB_OPT + NB_CAPTOR_OPT + 1] = {
+Optparse opts[NB_OPT + NB_SENSOR_OPT + 1] = {
     {
         .longname = "freq", .shortname = 'f', .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<freq>",
-        .usage_msg = "specify frequency",
+        .usage_msg = "set amount of measurements per second.",
     },
     {
         .longname = "time", .shortname = 't', .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<time>",
-        .usage_msg = "specify time",
+        .usage_msg = "set duration value (seconds). If 0, then loops infinitely.",
     },
     {
         .longname = "exec", .shortname = 'e', .argtype = OPTPARSE_REQUIRED,
-        .usage_arg = "<cmd>",
-        .usage_msg = "specify a command",
+        .usage_arg = "<cmd> ...",
+        .usage_msg = "Execute a command with optional arguments.\n"
+        "\tIf this option is used, any usage of -t or -f is ignored.",
     },
     {
         .longname = "logfile", .shortname = 'o', .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<file>",
-        .usage_msg = "specify a log file",
+        .usage_msg = "specify a log file.",
     },
     {
         .longname = "overhead-stats", .shortname = 's', .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
-        .usage_msg = "enable overhead statistics in nanoseconds",
+        .usage_msg = "enable overhead statistics (nanoseconds).",
     },
 };
 
+void dumpopt(Optparse *opt)
+{
+    printf(".It Fl %c | Fl \\-%s", opt->shortname, opt->longname);
+    if (opt->usage_arg != NULL) {
+        printf(" Ar %s", opt->usage_arg);
+    }
+    printf("\n");
+    printf("%s\n", opt->usage_msg);
+}
+
+void dumpopts(Optparse *opts, size_t nb_opt, size_t nb_sensor_opt)
+{
+    size_t i;
+
+    /* options */
+    printf(".Pp\nOPTIONS:\n.Bl -tag -width Ds\n");
+    for (i = 0; i < nb_opt; i++) {
+        dumpopt(&opts[i]);
+    }
+    printf(".El\n");
+
+    /* sensors */
+    printf(".Pp\nSENSORS:\n.Bl -tag -width Ds\n");
+    for (i++; i < nb_opt + nb_sensor_opt; i++) {
+        dumpopt(&opts[i]);
+    }
+    printf(".El\n");
+}
 
 void printopt(Optparse *opt)
 {
@@ -98,23 +127,21 @@ void printopt(Optparse *opt)
 
 void usage(char **argv)
 {
-    printf("Usage : %s [OPTIONS] [CAPTOR ...]\n", argv[0]);
+    printf("Usage : %s [OPTIONS] [SENSOR ...] [-e <cmd> ...]\n", argv[0]);
 
     printf("\nOPTIONS:\n");
     for (int i = 0; i < NB_OPT; i++) {
-        printopt(&longopts[i]);
+        printopt(&opts[i]);
     }
-    printf("if time==0 then loops infinitively\n"
-           "if -e is present, time and freq are not used\n");
 
-    if (nb_defined_captors == 0) {
+    if (nb_defined_sensors == 0) {
         // no captor to show
         exit(EXIT_FAILURE);
     }
 
-    printf("\nCAPTORS:\n");
-    for (int i = 0; i < NB_CAPTOR_OPT; i++) {
-        printopt(&longopts[NB_OPT + i]);
+    printf("\nSENSORS:\n");
+    for (int i = 0; i < NB_SENSOR_OPT; i++) {
+        printopt(&opts[NB_OPT + i]);
     }
 
     exit(EXIT_FAILURE);
@@ -149,7 +176,7 @@ unsigned int nb_sensors = 0;
 char **labels = NULL;
 uint64_t *values = NULL;
 
-void add_source(Captor *cpt, char *arg)
+void add_source(Sensor *cpt, char *arg)
 {
     nb_sources++;
     initializer_t init = cpt->init;
@@ -186,10 +213,15 @@ int main(int argc, char **argv)
     char **application = NULL;
     int stat_mode = -1;
 
-    init_captors(longopts, captors, NB_OPT + NB_CAPTOR_OPT, NB_OPT, &nb_defined_captors);
+    init_sensors(opts, sensors, NB_OPT + NB_SENSOR_OPT, NB_OPT, &nb_defined_sensors);
 
     if (argc == 1) {
         usage(argv);
+    }
+
+    if (argc == 2 && argv[1][0] == '-' && argv[1][1] == '1' && argv[1][2] == '\0') {
+        dumpopts(opts, NB_OPT, NB_SENSOR_OPT);
+        exit(EXIT_SUCCESS);
     }
 
     output = stdout;
@@ -202,7 +234,7 @@ int main(int argc, char **argv)
     options.permute = 0;
 
     optparse_init(&options, argv);
-    while ((opt = optparse_long(&options, longopts, NULL)) != -1 && application == NULL) {
+    while ((opt = optparse_long(&options, opts, NULL)) != -1 && application == NULL) {
         switch (opt) {
         case 'f':
             frequency = atoi(options.optarg);
@@ -218,9 +250,6 @@ int main(int argc, char **argv)
         case 's':
             stat_mode = 0;
             break;
-        case 'l':
-            show_all_counters();
-            exit(EXIT_SUCCESS);
         case 'o':
             if ((output = fopen(options.optarg, "wb")) == NULL) {
                 perror("fopen");
@@ -234,11 +263,15 @@ int main(int argc, char **argv)
         default: {
             int ismatch = 0;
             int opt_idx = NB_OPT;
-            for (int i = 0; i < nb_defined_captors && !ismatch; i++) {
-                for (int j = 0; j < captors[i].nb_opt; j++) {
-                    if (opt == longopts[opt_idx].shortname) {
+            for (int i = 0; i < nb_defined_sensors && !ismatch; i++) {
+                for (int j = 0; j < sensors[i].nb_opt; j++) {
+                    if (opt == opts[opt_idx].shortname) {
                         ismatch = 1;
-                        add_source(&captors[i], options.optarg);
+                        if (opts[opt_idx].fn != NULL) {
+                            (void) opts[opt_idx].fn(NULL, 0);
+                        } else {
+                            add_source(&sensors[i], options.optarg);
+                        }
                         break;
                     }
                     opt_idx++;

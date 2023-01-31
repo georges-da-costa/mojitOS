@@ -3,47 +3,18 @@
 .Os
 .Sh NAME
 .Nm mojitos
-.Nd An open source system, energy and network monitoring tool.
+.Nd An open source system monitoring tool.
 .Sh SYNOPSIS
 .Nm mojitos
-.Op Fl rsu
-.Op Fl t Ar time
-.Op Fl f Ar freq
-.Op Fl p Ar perf_list
-.Op Fl d Ar net_device
-.Op Fl o Ar logfile
+.Op Ar OPTIONS
+.Op Ar SENSOR ...
 .Op Fl e Ar cmd ...
-.Nm mojitos
-.Op Fl l
 .Sh DESCRIPTION
 .Nm
-enables monitoring the system, its energy comsumption and the network activity, at the OS level.
-It runs on GNU/Linux.
-.Pp
+is a monitoring tool with a multitude of sensors that does measurements at the OS level.
 .Nm
-supports the following options:
-.Bl -tag -width Ds
-.It Fl s
-Enable overhead statistics (in nanoseconds).
-.It Fl u
-Enable system-level load monitoring.
-.It Fl r
-Enable RAPL.
-.It Fl p Ar perf_list
-Enable performance counters.
-The argument is a coma separated list of performance counters.
-.It Fl d Ar net_device
-Enable network monitoring.
-.It Fl l
-List the available performance counters and quit.
-.It Fl t Ar time
-Set duration value (in seconds). If 0, then loops indefinitely.
-.It Fl f Ar freq
-Set amount of measurements per second.
-.It Fl e Ar cmd ...
-Execute a command with optional arguments.
-If this option is used, any usage of -t or -f is ignored.
-.El
+runs on GNU/Linux.
+USAGE
 .Sh EXIT STATUS
 .Ex
 .Sh EXAMPLES

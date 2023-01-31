@@ -23,7 +23,7 @@ unsigned int get_temperature(uint64_t *results, void *);
 void clean_temperature(void *);
 void label_temperature(char **labels, void *);
 
-Captor temperature = {
+Sensor temperature = {
     .init = init_temperature,
     .get = get_temperature,
     .clean = clean_temperature,

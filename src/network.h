@@ -23,7 +23,7 @@ unsigned int get_network(uint64_t *results, void *);
 void clean_network(void *);
 void label_network(char **labels, void *);
 
-Captor network = {
+Sensor network = {
     .init = init_network,
     .get = get_network,
     .clean = clean_network,

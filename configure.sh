@@ -20,25 +20,25 @@ decho() {
 }
 
 debug=0
-target_hdr=src/captors.h
-target_mk=captors.mk
+target_hdr=src/sensors.h
+target_mk=sensors.mk
 
-noncaptor='counters_option|optparse|captors|util|info_reader'
+nonsensor='counters_option|optparse|sensors|util|info_reader'
 
-hdr_blacklist=$noncaptor
+hdr_blacklist=$nonsensor
 hdr_whitelist=''
 
 usage() {
-	printf -- 'Usage: %s [-l] [-e <captor>] [-i <captor>] [-u <captor>]\n' "$(basename "$0")" >&2
-	printf -- '-e | --exclude      :   exclude captor, can be called multiple times\n' >&2
-	printf -- '-i | --include      :   include captor, can be called multiple times\n' >&2
-	printf -- '-l | --list-captors :   list all captors and exit\n' >&2
-	printf -- '-u | --unique       :   only include the specified captor\n' >&2
+	printf -- 'Usage: %s [-l] [-e <sensor>] [-i <sensor>] [-u <sensor>]\n' "$(basename "$0")" >&2
+	printf -- '-e | --exclude      :   exclude sensor, can be called multiple times\n' >&2
+	printf -- '-i | --include      :   include sensor, can be called multiple times\n' >&2
+	printf -- '-l | --list-sensors :   list all sensors and exit\n' >&2
+	printf -- '-u | --unique       :   only include the specified sensor\n' >&2
 	printf -- '                        if this option is used, any usage of `-e` or `-i` will be ignored\n' >&2
 	exit 1
 }
 
-ls_captors() {
+ls_sensors() {
 	try cd src
 
 	[ -z "$hdr_whitelist" ] && hdr_whitelist='.*'
@@ -51,49 +51,52 @@ ls_captors() {
 		sed 's/\.h$//'
 }
 
-# gen_captors_h(captors, nb_captors)
-gen_captors_h() {
-	captors=$1
-	nb_captors=$2
-	nb_captor_opts=$(
-		for captor in $captors; do
-			sed -n 's/.*'"${captor}"'_opt\[\([0-9]\+\)\].*/\1/p' "src/${captor}.h"
+# gen_sensors_h(sensor, nb_sensors)
+gen_sensors_h() {
+	sensors=$1
+	nb_sensors=$2
+	nb_sensor_opts=$(
+		for sensor in $sensors; do
+			sed -n 's/.*'"${sensor}"'_opt\[\([0-9]\+\)\].*/\1/p' "src/${sensor}.h"
 		done |
 			paste -s -d '+' |
 			bc
 	)
 
-	dprint captors >&2
-	dprint nb_captor_opts >&2
-	isnum "$nb_captor_opts" || die "could not get total number of captors's command-line options"
+	dprint sensors >&2
+	dprint nb_sensor_opts >&2
+	isnum "$nb_sensor_opts" || die "could not get total number of sensors's command-line options"
 
 	# gen includes
-	for captor in $captors; do
-		printf '#include "%s.h"\n' "$captor"
+	for sensor in $sensors; do
+		printf '#include "%s.h"\n' "$sensor"
 	done
-	printf '\n#define NB_CAPTOR %d\n\n' "$nb_captors"
-	printf '\n#define NB_CAPTOR_OPT %d\n\n' "$nb_captor_opts"
+	printf '\n'
 
-	# gen `init_captors()`
-	printf 'void init_captors(Optparse *longopts, Captor *captors, size_t len, size_t offset, int *nb_defined)\n{\n'
+	printf '#define NB_SENSOR %d\n' "$nb_sensors"
+	printf '#define NB_SENSOR_OPT %d\n' "$nb_sensor_opts"
+	printf '\n'
+
+	# gen `init_sensors()`
+	printf 'void init_sensors(Optparse *opts, Sensor *sensors, size_t len, size_t offset, int *nb_defined)\n{\n'
 	printf '    int opt_idx = offset;\n'
-	for captor in $captors; do
+	for sensor in $sensors; do
 		cat <<-!
-		    for (int i = 0; i < ${captor}.nb_opt; i++) {
-		        longopts[opt_idx++] = ${captor}_opt[i];
+		    for (int i = 0; i < ${sensor}.nb_opt; i++) {
+		        opts[opt_idx++] = ${sensor}_opt[i];
 		    }
-		    captors[(*nb_defined)++] = ${captor};
+		    sensors[(*nb_defined)++] = ${sensor};
 		!
 	done
 	printf '    assert((offset + *nb_defined) <= len);\n'
 	printf '}\n'
 }
 
-gen_captors_mk() {
-	captors=$1
+gen_sensors_mk() {
+	sensors=$1
 	printf 'CAPTOR_OBJ = '
-	for captor in $captors; do
-		printf '$(OBJ_DIR)/%s.o ' "$captor"
+	for sensor in $sensors; do
+		printf '$(OBJ_DIR)/%s.o ' "$sensor"
 	done
 	printf '\n'
 }
@@ -140,8 +143,8 @@ while [ "$1" ]; do
 		shift; [ "$1" ] || usage
 		hdr_blacklist="${hdr_blacklist}|${1}"
 		;;
-	--list-captors|-l)
-		ls_captors
+	--list-sensors|-l)
+		ls_sensors
 		exit 0
 		;;
 	--unique|-u)
@@ -155,20 +158,20 @@ while [ "$1" ]; do
 	shift
 done
 
-captors=$(ls_captors)
-nb_captors=$(echo "$captors" | sed '/^$/d' | wc -l)
+sensors=$(ls_sensors)
+nb_sensors=$(echo "$sensors" | sed '/^$/d' | wc -l)
 
-if [ "$nb_captors" -eq 0 ]; then
-	printf -- '0 captors are selected. cannot build.\n' >&2
+if [ "$nb_sensors" -eq 0 ]; then
+	printf -- '0 sensors are selected. cannot build.\n' >&2
 	exit 1
 fi
 
-try gen_captors_h "$captors" "$nb_captors" > "$target_hdr"
-try gen_captors_mk "$captors" > "$target_mk"
+try gen_sensors_h "$sensors" "$nb_sensors" > "$target_hdr"
+try gen_sensors_mk "$sensors" > "$target_mk"
 
 printf -- 'Run `make` to build `bin/mojitos`.\n' >&2
-printf -- 'The resulting binary will have the %d following captors:\n' "$nb_captors" >&2
-echo "$captors" >&2
+printf -- 'The resulting binary will have the %d following sensors:\n' "$nb_sensors" >&2
+echo "$sensors" >&2
 
 make clean >/dev/null
 

@@ -7,7 +7,7 @@ unsigned int get_acc(uint64_t *results, void *);
 void clean_acc(void *);
 void label_acc(char **labels, void *);
 
-Captor rapl = {
+Sensor rapl = {
     .init = init_acc,
     .get = get_acc,
     .clean = clean_acc,

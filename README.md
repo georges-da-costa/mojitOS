@@ -6,51 +6,52 @@ MojitO/S runs on GNU/Linux
 ## Usage
 
 ```bash
-Usage : mojitos [-rsu] [-t time] [-f freq] [-p perf_list]  \
-                [-d network_device] [-o logfile] [-e command arguments...]
-        mojitos [-l]
+Usage : ./bin/mojitos [OPTIONS] [SENSOR ...] [-e <cmd> ...]
 
-     -s      Enable overhead statistics (in nanoseconds).
+OPTIONS:
+-f|--freq <freq>
+	set amount of measurements per second.
+-t|--time <time>
+	set duration value (seconds). If 0, then loops infinitely.
+-e|--exec <cmd> ...
+	Execute a command with optional arguments.
+	If this option is used, any usage of -t or -f is ignored.
+-o|--logfile <file>
+	specify a log file.
+-s|--overhead-stats
+	enable overhead statistics (nanoseconds).
 
-     -u      Enable system-level load monitoring.
-
-     -r      Enable RAPL.
-
-     -p perf_list
-             Enable performance counters.  The argument is a coma separated
-             list of performance counters.
-
-     -d net_device
-             Enable network monitoring.
-
-     -l      List the available performance counters and quit.
-
-     -t time
-             Set duration value (in seconds). If 0, then loops indefinitely.
-
-     -f freq
-             Set amount of measurements per second.
-
-     -e cmd ...
-             Execute a command with optional arguments.  If this option is
-             used, any usage of -t or -f is ignored.
+SENSORS:
+-p|--perf-list <perf_list>
+	performance counters
+	perf_list is a coma separated list of performance counters.
+	Ex: instructions,cache_misses
+-l|--list
+	list the available performance counters and quit
+-u|--sysload
+	system load
+-d|--net-dev <net_dev>
+	network monitoring (if network_device is X, tries to detect it automatically)
+-r|--rapl
+	RAPL
+-c|--cpu-temp
+	processor temperature
 ```
 
 ## Installation Instructions
 
-Dependencies
-```bash
-sudo apt install libpowercap0 libpowercap-dev powercap-utils python3
-```
 Download the source code
 ```bash
 git clone https://gitlab.irit.fr/sepia-pub/mojitos.git
 ```
-Compile the code
+The quickest way to compile the code is:
 ```bash
 cd mojitos
+./configure.sh
 make
 ```
+You may want to run `./configure.sh --help` to see configuration options.
+
 To execute mojitos without being root to monitor performance counters
 ```bash
 sudo sh -c 'echo 0 >/proc/sys/kernel/perf_event_paranoid'
@@ -65,7 +66,7 @@ sudo chmod a+w /sys/class/powercap/intel-rapl/*/*/*
 
 RAPL values during 2 seconds with a frequency of 2 Hz
 ```bash
-$ ./mojitos -t 2 -f 2 -r
+$ ./bin/mojitos -t 2 -f 2 -r
 #timestamp package-00 core0 dram0
 1036389.135659868 10986 2869 1526
 1036389.500183551 1291440 255736 515562
@@ -75,7 +76,7 @@ $ ./mojitos -t 2 -f 2 -r
 Performance counters (cpu_cycle, cache_ll_r_a and page_faults) during 4 seconds with a frequency of 1Hz. For cache performance counters, _r and _w are respectively read and write, and _a, _m and _p are respectively access, miss, pending.
 
 ```bash
-$ ./mojitos -t 4 -f 1 -p cpu_cycles,cache_ll_r_a,page_faults
+$ ./bin/mojitos -t 4 -f 1 -p cpu_cycles,cache_ll_r_a,page_faults
 #timestamp cpu_cycles cache_ll page_faults
 1036846.351749455 571199 1232 0
 1036847.001098880 348173344 2451387 872
@@ -85,7 +86,7 @@ $ ./mojitos -t 4 -f 1 -p cpu_cycles,cache_ll_r_a,page_faults
 
 Network values with no time limit with a frequency of 1Hz. rxp and txp are the number of received and sent packets, while rxb and txp are the number of received and sent bytes.
 ```bash
-$ ./mojitos -t 0 -f 1 -d enp0s25
+$ ./bin/mojitos -t 0 -f 1 -d enp0s25
 #timestamp rxp rxb txp txb
 1036559.277376027 0 0 0 0
 1036560.000161101 4 581 2 179
@@ -97,7 +98,7 @@ $ ./mojitos -t 0 -f 1 -d enp0s25
 
 Overhead of the monitoring for RAPL and cpu_cycle
 ```bash
-$ ./mojitos -t 5 -f 1 -p cpu_cycles -r -s
+$ ./bin/mojitos -t 5 -f 1 -p cpu_cycles -r -s
 #timestamp cpu_cycles package-00 core0 dram0 overhead
 1036988.197227391 162214 19898 4944 1586 149612
 1036989.000151326 332613664 2513116 379577 1115171 739573

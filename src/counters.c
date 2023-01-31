@@ -44,11 +44,15 @@ typedef struct _counter_t *counter_t;
 
 #include "counters_option.h"
 
-void show_all_counters()
+void *show_all_counters(void *none1, size_t none2)
 {
     for (unsigned int i = 0; i < nb_counter_option; i++) {
         printf("%s\n", perf_static_info[i].name);
     }
+    UNUSED(none1);
+    UNUSED(none2);
+    exit(EXIT_SUCCESS);
+    return NULL;	/* not reached */
 }
 
 void perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb)
