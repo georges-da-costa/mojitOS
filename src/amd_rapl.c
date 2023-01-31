@@ -240,7 +240,7 @@ uint64_t get_core_energy(cpu_sensor_t *sensor)
     uint64_t raw_core_energy = read_raw_core_energy(sensor->fd);
     uint64_t core_energy = raw_to_microjoule(raw_core_energy, sensor->energy_units);
 
-    uint64_t energy_consumed = modulo_substraction(sensor->core_energy, core_energy);
+    uint64_t energy_consumed = modulo_substraction(core_energy, sensor->core_energy);
     sensor->core_energy = core_energy;
     return energy_consumed;
 }
@@ -250,7 +250,7 @@ uint64_t get_pkg_energy(cpu_sensor_t *sensor)
     uint64_t raw_pkg_energy = read_raw_pkg_energy(sensor->fd);
     uint64_t pkg_energy = raw_to_microjoule(raw_pkg_energy, sensor->energy_units);
 
-    uint64_t energy_consumed = modulo_substraction(sensor->pkg_energy, pkg_energy);
+    uint64_t energy_consumed = modulo_substraction(pkg_energy, sensor->pkg_energy);
     sensor->pkg_energy = pkg_energy;
     return energy_consumed;
 }

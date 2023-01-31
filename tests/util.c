@@ -3,49 +3,57 @@
 
 
 TFUNCTION(test_modulo_substraction, {
-    uint64_t previous = 0;
-    uint64_t new = 0;
+    uint64_t lhs = 0;
+    uint64_t rhs = 0;
     uint64_t result = 0;
     uint64_t expected = 0;
 
     // Test 1:
     // -- Setup
-    previous = 10;
-    new = 10;
+    lhs = 10;
+    rhs = 10;
     expected = 0;
     // -- Run
-    result = modulo_substraction(previous, new);
+    result = modulo_substraction(lhs, rhs);
     // -- Verification
     TEST_UINT64_T(&result, &expected);
 
     // Test 2:
     // -- Setup
-    previous = UINT64_MAX;
-    new = 0;
-    expected = 1;
+    lhs = UINT64_MAX;
+    rhs = 0;
+    expected = UINT64_MAX;
     // -- Run
-    result = modulo_substraction(previous, new);
+    result = modulo_substraction(lhs, rhs);
     // -- Verification
     TEST_UINT64_T(&result, &expected);
 
     // Test 3:
     // -- Setup
-    previous = 0;
-    new = UINT64_MAX;
-    expected = UINT64_MAX;
+    lhs = 0;
+    rhs = UINT64_MAX;
+    expected = 1;
     // -- Run
-    result = modulo_substraction(previous, new);
+    result = modulo_substraction(lhs, rhs);
     // -- Verification
     TEST_UINT64_T(&result, &expected);
 
     // Test 4:
     // -- Setup
-    previous = 20;
-    new = 10;
+    lhs = 10;
+    rhs = 20;
     expected = UINT64_MAX - 9;
     // -- Run
-    result = modulo_substraction(previous, new);
+    result = modulo_substraction(lhs, rhs);
     // -- Verification
+    TEST_UINT64_T(&result, &expected);
+
+    // Test 5:
+    // -- Setup
+    lhs = 1000;
+    rhs = 1000;
+    expected = 0;
+    result = modulo_substraction(lhs, rhs);
     TEST_UINT64_T(&result, &expected);
 })
 
