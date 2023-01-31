@@ -23,7 +23,7 @@ unsigned int get_load(uint64_t *results, void *);
 void clean_load(void *);
 void label_load(char **labels, void *);
 
-Captor load = {
+Sensor load = {
     .init = init_load,
     .get = get_load,
     .clean = clean_load,

@@ -23,7 +23,7 @@ unsigned int get_amd_rapl(uint64_t *results, void *);
 void clean_amd_rapl(void *);
 void label_amd_rapl(char **labels, void *);
 
-Captor amd_rapl = {
+Sensor amd_rapl = {
     .init = init_amd_rapl,
     .get = get_amd_rapl,
     .clean = clean_amd_rapl,

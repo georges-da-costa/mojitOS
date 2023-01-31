@@ -22,9 +22,9 @@ unsigned int init_counters(char *, void **);
 unsigned int get_counters(uint64_t *results, void *);
 void clean_counters(void *);
 void label_counters(char **labels, void *);
-void show_all_counters();
+void *show_all_counters(void *, size_t);
 
-Captor counters = {
+Sensor counters = {
     .init = init_counters,
     .get = get_counters,
     .clean = clean_counters,
@@ -47,7 +47,8 @@ Optparse counters_opt[2] = {
         .shortname = 'l',
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
-        .usage_msg = "list the possible performance counters and quit"
+        .usage_msg = "list the available performance counters and quit",
+        .fn = show_all_counters,
     },
 };
 
