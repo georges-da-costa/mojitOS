@@ -84,28 +84,29 @@ TFUNCTION(test_start_with, {
     TEST_BOOLEAN(&result, &_false);
 })
 
-#define DUMB_KEYFINDER(key_finder, key, delimiter)  \
-	do { 											\
-		key_finder = (KeyFinder) {					\
-			key,									\
-			delimiter,								\
-			0,										\
-			0										\
-		}; 											\
-	} while (0);
+#define NONE 0
+#define DUMMY_KEYFINDER(__key_finder, __key, __delimiter) \
+  do {                                                    \
+    __key_finder = (KeyFinder) {                          \
+      .key = __key,                                       \
+      .delimiter = __delimiter,                           \
+      .copy = NONE,                                       \
+      .set = NONE                                         \
+    };                                                    \
+  } while (0);
 
-#define DUMB_PARSER(parser, keys, nb_keys)  \
-	do {									\
-		parser = (Parser) {					\
-			0,			   					\
-			0,			   					\
-			0,			   					\
-			0,  							\
-			keys,			   				\
-			nb_keys, 		   				\
-			0								\
-		};							   		\
-	} while (0);
+#define DUMMY_PARSER(__parser, __keys, __nb_keys) \
+  do {                                            \
+    __parser = (Parser) {                         \
+      .storage = NONE,                            \
+      .nb_stored = NONE,                          \
+      .capacity = NONE,                           \
+      .storage_struct_size = NONE,                \
+      .keys = __keys,                             \
+      .nb_keys = __nb_keys,                       \
+      .file = NONE                                \
+    };                                            \
+  } while (0);
 
 
 TFUNCTION(test_match, {
@@ -121,8 +122,8 @@ TFUNCTION(test_match, {
 
     // Test 1:
     // -- Setup
-    DUMB_KEYFINDER(keys[0], "key", ": ");
-    DUMB_PARSER(parser, keys, 1);
+    DUMMY_KEYFINDER(keys[0], "key", ": ");
+    DUMMY_PARSER(parser, keys, 1);
     strcpy(line, "key: value");
     found_key_finder = NULL;
     raw_value = NULL;
@@ -135,8 +136,8 @@ TFUNCTION(test_match, {
 
     // Test 2:
     // -- Setup
-    DUMB_KEYFINDER(keys[0], "key", ": ");
-    DUMB_PARSER(parser, keys, 1)
+    DUMMY_KEYFINDER(keys[0], "key", ": ");
+    DUMMY_PARSER(parser, keys, 1)
     strcpy(line, "not a key: value");
     found_key_finder = NULL;
     raw_value = NULL;
@@ -149,8 +150,8 @@ TFUNCTION(test_match, {
 
     // Test 3:
     // -- Setup
-    DUMB_KEYFINDER(keys[0],"key", ": ");
-    DUMB_PARSER(parser, keys, 1);
+    DUMMY_KEYFINDER(keys[0],"key", ": ");
+    DUMMY_PARSER(parser, keys, 1);
     strcpy(line, "key:value");
     found_key_finder = NULL;
     raw_value = NULL;
@@ -163,9 +164,9 @@ TFUNCTION(test_match, {
 
     // Test 4:
     // -- Setup
-    DUMB_KEYFINDER(keys[0], "key", ": ");
-    DUMB_KEYFINDER(keys[1], "second_key", ": ");
-    DUMB_PARSER(parser, keys, 2);
+    DUMMY_KEYFINDER(keys[0], "key", ": ");
+    DUMMY_KEYFINDER(keys[1], "second_key", ": ");
+    DUMMY_PARSER(parser, keys, 2);
     strcpy(line, "second_key: value");
     found_key_finder = NULL;
     raw_value = NULL;
@@ -178,8 +179,8 @@ TFUNCTION(test_match, {
 
     // Test 5:
     // -- Setup
-    DUMB_KEYFINDER(keys[0], "key", ": ");
-    DUMB_PARSER(parser, keys, 1);
+    DUMMY_KEYFINDER(keys[0], "key", ": ");
+    DUMMY_PARSER(parser, keys, 1);
     strcpy(line, "");
     found_key_finder = NULL;
     raw_value = NULL;
