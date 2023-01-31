@@ -7,8 +7,159 @@
 #include <stdint.h>
 #include <stdio.h>
 
-
 // ---------------------------API_INTERFACE
+
+/**
+ * @brief Define the entry point of a test file.
+ * This macro is used to define the entry point of a test file.
+ * It defines a function with the specified file_name that contains the test code specified in code.
+ *
+ * When the function is called, it initializes the test file using the INIT_TEST_FILE macro,
+ * declares an integer variable __error_counter__ to keep track of any errors encountered during the tests,
+ * executes the test code in a do-while loop, and then checks for any deferred errors using the DEFERRED_ERROR macro.
+ * The function returns the value of __error_counter__,
+ * which indicates the number of errors encountered during the tests.
+ *
+ * @param file_name The name of the function that serves as the entry point for the test file.
+ * @param code The test code to be executed in the function.
+ */
+#define TFILE_ENTRY_POINT(file_name, code) \
+  int file_name() \
+{ \
+  INIT_TEST_FILE();\
+  int __error_counter__ = 0;\
+  do code while(0);\
+  DEFERRED_FILE_ERROR(__error_counter__); \
+  return __error_counter__;\
+}
+
+/**
+ * @brief Define a test function within a test file.
+ * This macro is used to define a test function within a test file.
+ * It defines a function with the specified function_name that contains the test code specified in code.
+ *
+ * When the function is called, it initializes the test function using the INIT_TEST_FUNCTION macro,
+ * declares an integer variable __error_counter__ to keep track of any errors encountered during the tests,
+ * executes the test code in a do-while loop, and then checks for any deferred errors using the DEFERRED_ERROR macro.
+ * The function returns the value of __error_counter__, which indicates the number of errors encountered during the tests.
+ *
+ * @param function_name The name of the test function.
+ * @param code The test code to be executed in the function.
+ */
+#define TFUNCTION(function_name, code) \
+  int function_name() \
+{ \
+  INIT_TEST_FUNCTION(); \
+  int __error_counter__ = 0; \
+  do code while(0); \
+  DEFERRED_FUNCTION_ERROR(__error_counter__); \
+  return __error_counter__; \
+}
+
+/**
+ * @brief Call a test function within a test file.
+ * This macro is used to call a test function within a test file.
+ * It calls the function specified by function_name and adds the return value to the __error_counter__ variable.
+ * This allows multiple test functions to be executed and their error count to be accumulated.
+ *
+ * @param function_name The name of the test function to be called.
+ */
+#define CALL_TFUNCTION(function_name) \
+  __error_counter__ += function_name()
+
+
+/**
+ * @def TEST_STR(result, expected)
+ * @brief Test strings
+ * This macro is used to test strings. It takes two arguments: `result`, which is the string to be tested, and `expected`, which is the expected value of the string.
+ * The macro uses the `test_str()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
+ *
+ * @param result the string to be tested
+ * @param expected the expected value of the string
+ *
+ * @code
+ * TEST_STR("Hello", "Hello");
+ * @endcode
+ */
+#define TEST_STR(result, expected) \
+	__error_counter__ += test_str(__FILE__, __LINE__, result, expected)
+
+/**
+ * @def TEST_BOOLEAN(result, expected)
+ * @brief Test booleans
+ * This macro is used to test booleans. It takes two arguments: `result`, which is the boolean to be tested, and `expected`, which is the expected value of the boolean.
+ * The macro uses the `test_boolean()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
+ *
+ * @param result the boolean to be tested
+ * @param expected the expected value of the boolean
+ *
+ * @code
+ * TEST_BOOLEAN(1 == 1, true);
+ * @endcode
+ */
+#define TEST_BOOLEAN(result, expected) \
+	__error_counter__ += test_boolean(__FILE__, __LINE__, result, expected)
+
+/**
+ * @def TEST_PTR(result, expected)
+ * @brief Test pointers
+ * This macro is used to test pointers. It takes two arguments: `result`, which is the pointer to be tested, and `expected`, which is the expected value of the pointer.
+ * The macro uses the `test_ptr()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
+ *
+ * @param result the pointer to be tested
+ * @param expected the expected value of the pointer
+ *
+ * @code
+ * int x = 5;
+ * int *ptr = &x;
+ * TEST_PTR(ptr, &x);
+ * @endcode
+ */
+#define TEST_PTR(result, expected) \
+	__error_counter__ += test_ptr(__FILE__, __LINE__, result, expected)
+
+
+/**
+ * @def TEST_UINT64_T(result, expected)
+ * @brief Test 64-bit unsigned integers
+ * This macro is used to test 64-bit unsigned integers. It takes two arguments: `result`, which is the integer to be tested, and `expected`, which is the expected value of the integer.
+ * The macro uses the `test_uint64_t()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
+ *
+ * @param result the integer to be tested
+ * @param expected the expected value of the integer
+ *
+ * @code
+ * TEST_UINT64_T(5, 5);
+ * @endcode
+ */
+#define TEST_UINT64_T(result, expected) \
+	__error_counter__ += test_uint64_t(__FILE__, __LINE__, result, expected)
+
+/**
+ * @def TEST_T_ARRAY(function, nb_error, size, results, expecteds)
+ * @brief Test arrays of data
+ * The macro uses a for loop to iterate through the array and apply the test function to each element,
+ * adding any errors to the nb_error variable.
+ *
+ * @param function the test function to be used on each element of the array
+ * @param nb_error the number of errors encountered during the test
+ * @param size the number of elements in the array
+ * @param results the array of elements to be tested
+ * @param expecteds the array of expected values
+
+ * @code
+ * int results[3] = {1, 2, 3};
+ * int expecteds[3] = {1, 2, 3};
+ * TEST_T_ARRAY(TEST_INT, errors, 3, results, expecteds);
+ * @endcode
+*/
+#define TEST_T_ARRAY(function, size, results, expecteds)	\
+	for (unsigned int i = 0; i < size; i++) {						\
+		function(results[i], expecteds[i]);				\
+	}
+
+
+// --------------------------------API_CODE
 
 /**
  * @def INIT_TEST_FILE()
@@ -39,112 +190,11 @@
 #define INIT_TEST_FUNCTION() \
 	init_test_function(__func__)
 
-/**
- * @def DEFERRED_ERROR(nb_error)
- * @brief Print deferred errors
- * This macro is used to print deferred errors. It takes a single argument, `nb_error`, which is the number of errors encountered during the test.
- *
- * @param nb_error the number of errors encountered during the test
- *
- * @code
- * DEFERRED_ERROR(5);
- * @endcode
- */
-#define DEFERRED_ERROR(nb_error) \
-	printf("========== Deferred Error : %d\n", nb_error)
+#define DEFERRED_FILE_ERROR(nb_error) \
+	  printf("========== Deferred Error : %d\n", nb_error);
 
-/**
- * @def TEST_STR(result, expected)
- * @brief Test strings
- * This macro is used to test strings. It takes two arguments: `result`, which is the string to be tested, and `expected`, which is the expected value of the string.
- * The macro uses the `test_str()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
- *
- * @param result the string to be tested
- * @param expected the expected value of the string
- *
- * @code
- * TEST_STR("Hello", "Hello");
- * @endcode
- */
-#define TEST_STR(result, expected) \
-	test_str(__FILE__, __LINE__, result, expected)
-
-/**
- * @def TEST_BOOLEAN(result, expected)
- * @brief Test booleans
- * This macro is used to test booleans. It takes two arguments: `result`, which is the boolean to be tested, and `expected`, which is the expected value of the boolean.
- * The macro uses the `test_boolean()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
- *
- * @param result the boolean to be tested
- * @param expected the expected value of the boolean
- *
- * @code
- * TEST_BOOLEAN(1 == 1, true);
- * @endcode
- */
-#define TEST_BOOLEAN(result, expected) \
-	test_boolean(__FILE__, __LINE__, result, expected)
-
-/**
- * @def TEST_PTR(result, expected)
- * @brief Test pointers
- * This macro is used to test pointers. It takes two arguments: `result`, which is the pointer to be tested, and `expected`, which is the expected value of the pointer.
- * The macro uses the `test_ptr()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
- *
- * @param result the pointer to be tested
- * @param expected the expected value of the pointer
- *
- * @code
- * int x = 5;
- * int *ptr = &x;
- * TEST_PTR(ptr, &x);
- * @endcode
- */
-#define TEST_PTR(result, expected) \
-	test_ptr(__FILE__, __LINE__, result, expected)
-
-
-/**
- * @def TEST_UINT64_T(result, expected)
- * @brief Test 64-bit unsigned integers
- * This macro is used to test 64-bit unsigned integers. It takes two arguments: `result`, which is the integer to be tested, and `expected`, which is the expected value of the integer.
- * The macro uses the `test_uint64_t()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
- *
- * @param result the integer to be tested
- * @param expected the expected value of the integer
- *
- * @code
- * TEST_UINT64_T(5, 5);
- * @endcode
- */
-#define TEST_UINT64_T(result, expected) \
-	test_uint64_t(__FILE__, __LINE__, result, expected)
-
-/**
- * @def TEST_T_ARRAY(function, nb_error, size, results, expecteds)
- * @brief Test arrays of data
- * The macro uses a for loop to iterate through the array and apply the test function to each element,
- * adding any errors to the nb_error variable.
- *
- * @param function the test function to be used on each element of the array
- * @param nb_error the number of errors encountered during the test
- * @param size the number of elements in the array
- * @param results the array of elements to be tested
- * @param expecteds the array of expected values
-
- * @code
- * int results[3] = {1, 2, 3};
- * int expecteds[3] = {1, 2, 3};
- * TEST_T_ARRAY(TEST_INT, errors, 3, results, expecteds);
- * @endcode
-*/
-#define TEST_T_ARRAY(function, nb_error, size, results, expecteds)	\
-	for (unsigned int i = 0; i < size; i++) {						\
-		nb_error += function(results[i], expecteds[i]);				\
-	}
-
-
-// --------------------------------API_CODE
+#define DEFERRED_FUNCTION_ERROR(nb_error) \
+	  printf("       | Deferred Error : %d\n", nb_error);
 
 #define FMT_NULL(string) \
 	string = string ? string : "NULL"

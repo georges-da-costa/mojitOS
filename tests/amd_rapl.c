@@ -1,11 +1,7 @@
 #include "small_test.h"
 #include "../src/amd_rapl.c"
 
-int test_raw_to_microjoule()
-{
-    INIT_TEST_FUNCTION();
-    int nb_error = 0;
-
+TFUNCTION(test_raw_to_microjoule, {
     uint64_t raw = 0;
     uint64_t unit = 0;
     uint64_t result = 0;
@@ -19,9 +15,9 @@ int test_raw_to_microjoule()
     // -- Run
     result = raw_to_microjoule(raw, unit);
     // -- Verification
-    nb_error += TEST_UINT64_T(&result, &expected);
+    TEST_UINT64_T(&result, &expected);
 
-    // nb_error += TEST 2:
+    // TEST 2:
     // -- Setup
     raw = 200;
     unit = 1;
@@ -29,9 +25,9 @@ int test_raw_to_microjoule()
     // -- Run
     result = raw_to_microjoule(raw, unit);
     // -- Verification
-    nb_error += TEST_UINT64_T(&result, &expected);
+    TEST_UINT64_T(&result, &expected);
 
-    // nb_error += TEST 3:
+    // TEST 3:
     // -- Setup
     raw = 500;
     unit = 2;
@@ -39,9 +35,9 @@ int test_raw_to_microjoule()
     // -- Run
     result = raw_to_microjoule(raw, unit);
     // -- Verification
-    nb_error += TEST_UINT64_T(&result, &expected);
+    TEST_UINT64_T(&result, &expected);
 
-    // nb_error += TEST 4:
+    // TEST 4:
     // -- Setup
     raw = 1000;
     unit = 3;
@@ -49,9 +45,9 @@ int test_raw_to_microjoule()
     // -- Run
     result = raw_to_microjoule(raw, unit);
     // -- Verification
-    nb_error += TEST_UINT64_T(&result, &expected);
+    TEST_UINT64_T(&result, &expected);
 
-    // nb_error += TEST 5:
+    // TEST 5:
     // -- Setup
     raw = 10000;
     unit = 4;
@@ -59,42 +55,34 @@ int test_raw_to_microjoule()
     // -- Run
     result = raw_to_microjoule(raw, unit);
     // -- Verification
-    nb_error += TEST_UINT64_T(&result, &expected);
+    TEST_UINT64_T(&result, &expected);
+})
 
-    return nb_error;
-}
-
-int test_get_name()
-{
-    INIT_TEST_FUNCTION();
-    int nb_error = 0;
-
+TFUNCTION(test_get_name, {
     size_t cpu_id = 0;
     char *result = NULL;
     char expected[100];
 
-    // nb_error += TEST 1:
+    // TEST 1:
     // -- Setup
     cpu_id = 0;
     strcpy(expected, "core0");
     // -- Run
     result = get_name(cpu_id);
     // -- Verification
-    nb_error += TEST_STR(result, expected);
+    TEST_STR(result, expected);
     free(result);
 
-    // nb_error += TEST 2:
+    // TEST 2:
     // -- Setup
     cpu_id = 10000;
     strcpy(expected, "core10000");
     // -- Run
     result = get_name(cpu_id);
     // -- Verification
-    nb_error += TEST_STR(result, expected);
+    TEST_STR(result, expected);
     free(result);
-
-    return nb_error;
-}
+})
 
 #define NONE 0
 #define DUMB_SENSOR(sensor, cpu_id, name)	\
@@ -118,10 +106,7 @@ int test_get_name()
 		};									\
 	} while(0);
 
-int test_label_amd_rapl()
-{
-    INIT_TEST_FUNCTION();
-    int nb_error = 0;
+TFUNCTION(test_label_amd_rapl, {
     cpu_sensor_t sensors[100];
     _amd_rapl_t rapl;
     char *results[100];
@@ -137,7 +122,7 @@ int test_label_amd_rapl()
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
     // -- Verification
-    TEST_T_ARRAY(TEST_STR, nb_error, nb, results, expecteds);
+    TEST_T_ARRAY(TEST_STR, nb, results, expecteds);
 
     // Test 2:
     // -- Setup
@@ -154,7 +139,7 @@ int test_label_amd_rapl()
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
     // -- Verification
-    TEST_T_ARRAY(TEST_STR, nb_error, nb, results, expecteds);
+    TEST_T_ARRAY(TEST_STR, nb, results, expecteds);
 
     // Test 3:
     // -- Setup
@@ -171,21 +156,14 @@ int test_label_amd_rapl()
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
     // -- Verification
-    TEST_T_ARRAY(TEST_STR, nb_error, nb, results, expecteds);
+    TEST_T_ARRAY(TEST_STR, nb, results, expecteds);
+})
 
-    return nb_error;
-}
-
-int test_amd_rapl()
-{
-    INIT_TEST_FILE();
-
-    int nb_error = 0;
-    nb_error += test_raw_to_microjoule();
-    nb_error += test_get_name();
-    nb_error += test_label_amd_rapl();
-    return nb_error;
-}
+TFILE_ENTRY_POINT(test_amd_rapl, {
+    CALL_TFUNCTION(test_raw_to_microjoule);
+    CALL_TFUNCTION(test_get_name);
+    CALL_TFUNCTION(test_label_amd_rapl);
+})
 
 #ifdef __TESTING__AMD__
 int main()

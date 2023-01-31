@@ -1,71 +1,57 @@
 #include "small_test.h"
 
-int test_replace_first()
-{
-    INIT_TEST_FUNCTION();
-    int nb_error = 0;
-
+TFUNCTION(test_replace_first, {
     char test1[] = "This is my string";
     replace_first(test1, 'i', 'I');
-    nb_error += TEST_STR(test1, "ThIs is my string");
+    TEST_STR(test1, "ThIs is my string");
 
     char test2[] = "This is my string";
     replace_first(test2, 'x', 'X');
-    nb_error += TEST_STR(test2, "This is my string");
+    TEST_STR(test2, "This is my string");
 
 
     char test3[] = "This is my string";
     replace_first(test3, ' ', '_');
-    nb_error += TEST_STR(test3, "This_is my string");
-    return nb_error;
-}
+    TEST_STR(test3, "This_is my string");
+})
 
-int test_split_on_delimiter()
-{
-    INIT_TEST_FUNCTION();
-    int nb_error = 0;
-
+TFUNCTION(test_split_on_delimiter, {
     char test4[] = "key:value";
     char *key;
     char *value;
+
     split_on_delimiter(test4, ":", &key, &value);
-    nb_error += TEST_STR(key, "key");
-    nb_error += TEST_STR(value, "value");
+    TEST_STR(key, "key");
+    TEST_STR(value, "value");
 
     char test5[] = "key: value";
     split_on_delimiter(test5, ":", &key, &value);
-    nb_error += TEST_STR(key, "key");
-    nb_error += TEST_STR(value, " value");
+    TEST_STR(key, "key");
+    TEST_STR(value, " value");
 
     char test6[] = "key:value";
     replace_first(test6, ':', ' ');
     split_on_delimiter(test6, " ", &key, &value);
-    nb_error += TEST_STR(key, "key");
-    nb_error += TEST_STR(value, "value");
+    TEST_STR(key, "key");
+    TEST_STR(value, "value");
 
     char test7[] = "";
     split_on_delimiter(test7, ":", &key, &value);
-    nb_error += TEST_STR(key, NULL);
-    nb_error += TEST_STR(value, NULL);
+    TEST_STR(key, NULL);
+    TEST_STR(value, NULL);
 
     char test9[] = "key:value:extra";
     split_on_delimiter(test9, ":", &key, &value);
-    nb_error += TEST_STR(key, "key");
-    nb_error += TEST_STR(value, "value:extra");
+    TEST_STR(key, "key");
+    TEST_STR(value, "value:extra");
 
     char test10[] = "key: value :extra";
     split_on_delimiter(test10, ":", &key, &value);
-    nb_error += TEST_STR(key, "key");
-    nb_error += TEST_STR(value, " value :extra");
+    TEST_STR(key, "key");
+    TEST_STR(value, " value :extra");
+})
 
-    return nb_error;
-}
-
-int test_start_with()
-{
-    INIT_TEST_FUNCTION();
-    int nb_error = 0;
-
+TFUNCTION(test_start_with, {
     char *prefix = NULL;
     char *string = NULL;
     bool result = false;
@@ -75,30 +61,28 @@ int test_start_with()
     prefix = "Hello";
     string = "Hello World";
     result = start_with(prefix, string);
-    nb_error += TEST_BOOLEAN(&result, &_true);
+    TEST_BOOLEAN(&result, &_true);
 
     prefix = "Goodbye";
     string = "Hello World";
     result = start_with(prefix, string);
-    nb_error += TEST_BOOLEAN(&result, &_false);
+    TEST_BOOLEAN(&result, &_false);
 
     prefix = "Hello World";
     string = "Hello";
     result = start_with(prefix, string);
-    nb_error += TEST_BOOLEAN(&result, &_false);
+    TEST_BOOLEAN(&result, &_false);
 
     prefix = "Hello";
     string = "Hello";
     result = start_with(prefix, string);
-    nb_error += TEST_BOOLEAN(&result, &_true);
+    TEST_BOOLEAN(&result, &_true);
 
     prefix = NULL;
     string = "Hello World";
     result = start_with(prefix, string);
-    nb_error += TEST_BOOLEAN(&result, &_false);
-
-    return nb_error;
-}
+    TEST_BOOLEAN(&result, &_false);
+})
 
 #define DUMB_KEYFINDER(key_finder, key, delimiter)  \
 	do { 											\
@@ -124,10 +108,7 @@ int test_start_with()
 	} while (0);
 
 
-int test_match()
-{
-    INIT_TEST_FUNCTION();
-    int nb_error = 0;
+TFUNCTION(test_match, {
     // usefull variable :
     bool _true = true;
     bool _false = false;
@@ -148,9 +129,9 @@ int test_match()
     // -- Run
     result = match(&parser, line, &found_key_finder, &raw_value);
     // -- Verification
-    nb_error += TEST_BOOLEAN(&result, &_true);
-    nb_error += TEST_PTR(found_key_finder, &keys[0]);
-    nb_error += TEST_STR(raw_value, "value");
+    TEST_BOOLEAN(&result, &_true);
+    TEST_PTR(found_key_finder, &keys[0]);
+    TEST_STR(raw_value, "value");
 
     // Test 2:
     // -- Setup
@@ -162,9 +143,9 @@ int test_match()
     // -- Run
     result = match(&parser, line, &found_key_finder, &raw_value);
     // -- Verification
-    nb_error += TEST_BOOLEAN(&result, &_false);
-    nb_error += TEST_PTR(found_key_finder, NULL);
-    nb_error += TEST_STR(raw_value, NULL);
+    TEST_BOOLEAN(&result, &_false);
+    TEST_PTR(found_key_finder, NULL);
+    TEST_STR(raw_value, NULL);
 
     // Test 3:
     // -- Setup
@@ -176,9 +157,9 @@ int test_match()
     // -- Run
     result = match(&parser, line, &found_key_finder, &raw_value);
     // -- Verification
-    nb_error += TEST_BOOLEAN(&result, &_false);
-    nb_error += TEST_PTR(found_key_finder, NULL);
-    nb_error += TEST_STR(raw_value, NULL);
+    TEST_BOOLEAN(&result, &_false);
+    TEST_PTR(found_key_finder, NULL);
+    TEST_STR(raw_value, NULL);
 
     // Test 4:
     // -- Setup
@@ -191,9 +172,9 @@ int test_match()
     // -- Run
     result = match(&parser, line, &found_key_finder, &raw_value);
     // -- Verification
-    nb_error += TEST_BOOLEAN(&result, &_true);
-    nb_error += TEST_PTR(found_key_finder, &keys[1]);
-    nb_error += TEST_STR(raw_value, "value");
+    TEST_BOOLEAN(&result, &_true);
+    TEST_PTR(found_key_finder, &keys[1]);
+    TEST_STR(raw_value, "value");
 
     // Test 5:
     // -- Setup
@@ -204,25 +185,17 @@ int test_match()
     raw_value = NULL;
     // -- Run
     result = match(&parser, line, &found_key_finder, &raw_value);
-    nb_error += TEST_BOOLEAN(&result, &_false);
-    nb_error += TEST_PTR(found_key_finder, NULL);
-    nb_error += TEST_STR(raw_value, NULL);
+    TEST_BOOLEAN(&result, &_false);
+    TEST_PTR(found_key_finder, NULL);
+    TEST_STR(raw_value, NULL);
+})
 
-    return nb_error;
-}
-
-int test_info_reader()
-{
-    INIT_TEST_FILE();
-    int nb_error = 0;
-
-    nb_error += test_replace_first();
-    nb_error += test_split_on_delimiter();
-    nb_error += test_start_with();
-    nb_error += test_match();
-
-    return nb_error;
-}
+TFILE_ENTRY_POINT(test_info_reader, {
+    CALL_TFUNCTION(test_replace_first);
+    CALL_TFUNCTION(test_split_on_delimiter);
+    CALL_TFUNCTION(test_start_with);
+    CALL_TFUNCTION(test_match);
+})
 
 #ifdef __TESTING_INFO_READER__
 int main()

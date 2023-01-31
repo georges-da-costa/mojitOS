@@ -2,10 +2,7 @@
 #include "small_test.h"
 
 
-int test_modulo_substraction()
-{
-    INIT_TEST_FUNCTION();
-    int nb_error = 0;
+TFUNCTION(test_modulo_substraction, {
     uint64_t previous = 0;
     uint64_t new = 0;
     uint64_t result = 0;
@@ -19,7 +16,7 @@ int test_modulo_substraction()
     // -- Run
     result = modulo_substraction(previous, new);
     // -- Verification
-    nb_error = TEST_UINT64_T(&result, &expected);
+    TEST_UINT64_T(&result, &expected);
 
     // Test 2:
     // -- Setup
@@ -29,7 +26,7 @@ int test_modulo_substraction()
     // -- Run
     result = modulo_substraction(previous, new);
     // -- Verification
-    nb_error = TEST_UINT64_T(&result, &expected);
+    TEST_UINT64_T(&result, &expected);
 
     // Test 3:
     // -- Setup
@@ -39,7 +36,7 @@ int test_modulo_substraction()
     // -- Run
     result = modulo_substraction(previous, new);
     // -- Verification
-    nb_error = TEST_UINT64_T(&result, &expected);
+    TEST_UINT64_T(&result, &expected);
 
     // Test 4:
     // -- Setup
@@ -49,13 +46,9 @@ int test_modulo_substraction()
     // -- Run
     result = modulo_substraction(previous, new);
     // -- Verification
-    nb_error = TEST_UINT64_T(&result, &expected);
+    TEST_UINT64_T(&result, &expected);
+})
 
-    return nb_error;
-}
-int test_util()
-{
-    INIT_TEST_FILE();
-    int nb_error = test_modulo_substraction();
-    return nb_error;
-}
+TFILE_ENTRY_POINT(test_util, {
+    CALL_TFUNCTION(test_modulo_substraction);
+})
