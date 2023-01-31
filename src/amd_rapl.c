@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 #include "info_reader.h"
 #include "util.h"
@@ -108,19 +109,19 @@ uint64_t read_msr(int fd, uint64_t msr)
 
 uint64_t read_unit(int fd)
 {
-    u_int64_t unit = read_msr(fd, msr_rapl_power_unit);
+    uint64_t unit = read_msr(fd, msr_rapl_power_unit);
     return ((unit & amd_energy_unit_mask) >> 8);
 }
 
 uint64_t read_raw_core_energy(int fd)
 {
-    u_int64_t energy = read_msr(fd, energy_core_msr);
+    uint64_t energy = read_msr(fd, energy_core_msr);
     return energy & amd_energy_mask;
 }
 
 uint64_t read_raw_pkg_energy(int fd)
 {
-    u_int64_t energy = read_msr(fd, energy_pkg_msr);
+    uint64_t energy = read_msr(fd, energy_pkg_msr);
     return energy & amd_energy_mask;
 }
 
@@ -128,11 +129,12 @@ uint64_t read_raw_pkg_energy(int fd)
 
 uint64_t raw_to_microjoule(uint64_t raw, uint64_t unit)
 {
-    static const uint64_t to_microjoule = 1000000UL;
+    static const double to_microjoule = 1000000.0;
+    double d_raw = (double) raw;
+    double d_unit = (double) unit;
     // raw * (1 / (unit^2)) -> Joule
     // Joule * 1000000 -> uJoule
-    uint64_t microjoule = (raw * to_microjoule) / (1UL << unit);
-    return microjoule;
+    return  ((d_raw * to_microjoule) / (d_unit * d_unit));
 }
 uint64_t raw_to_joule(uint64_t raw, uint64_t unit)
 {
@@ -222,8 +224,8 @@ void init_cpu_sensor(cpu_sensor_t *sensor, unsigned int cpu_id)
         exit(127);
     }
 
-    u_int64_t raw_core_energy = read_raw_core_energy(fd);
-    u_int64_t raw_pkg_energy = read_raw_pkg_energy(fd);
+    uint64_t raw_core_energy = read_raw_core_energy(fd);
+    uint64_t raw_pkg_energy = read_raw_pkg_energy(fd);
 
     sensor->cpu_id = cpu_id;
     sensor->name = get_name(cpu_id);
@@ -233,22 +235,22 @@ void init_cpu_sensor(cpu_sensor_t *sensor, unsigned int cpu_id)
     sensor->pkg_energy = raw_to_microjoule(raw_pkg_energy, sensor->energy_units);
 }
 
-u_int64_t get_core_energy(cpu_sensor_t *sensor)
+uint64_t get_core_energy(cpu_sensor_t *sensor)
 {
-    u_int64_t raw_core_energy = read_raw_core_energy(sensor->fd);
-    u_int64_t core_energy = raw_to_microjoule(raw_core_energy, sensor->energy_units);
+    uint64_t raw_core_energy = read_raw_core_energy(sensor->fd);
+    uint64_t core_energy = raw_to_microjoule(raw_core_energy, sensor->energy_units);
 
-    u_int64_t energy_consumed = modulo_substraction(sensor->core_energy, core_energy);
+    uint64_t energy_consumed = modulo_substraction(sensor->core_energy, core_energy);
     sensor->core_energy = core_energy;
     return energy_consumed;
 }
 
-u_int64_t get_pkg_energy(cpu_sensor_t *sensor)
+uint64_t get_pkg_energy(cpu_sensor_t *sensor)
 {
-    u_int64_t raw_pkg_energy = read_raw_pkg_energy(sensor->fd);
-    u_int64_t pkg_energy = raw_to_microjoule(raw_pkg_energy, sensor->energy_units);
+    uint64_t raw_pkg_energy = read_raw_pkg_energy(sensor->fd);
+    uint64_t pkg_energy = raw_to_microjoule(raw_pkg_energy, sensor->energy_units);
 
-    u_int64_t energy_consumed = modulo_substraction(sensor->pkg_energy, pkg_energy);
+    uint64_t energy_consumed = modulo_substraction(sensor->pkg_energy, pkg_energy);
     sensor->pkg_energy = pkg_energy;
     return energy_consumed;
 }
@@ -328,6 +330,7 @@ void clean_amd_rapl(void *ptr)
 #ifdef DEBUG
 int main()
 {
+    s_round_to_uint64(1.0);
     static const unsigned int time = 10;
     _amd_rapl_t *rapl = NULL;
     unsigned int nb_cpu = init_amd_rapl(NULL, (void **) &rapl);
