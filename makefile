@@ -8,15 +8,13 @@ TESTS_DIR = tests
 
 BIN = mojitos
 
+CAPTOR_OBJ =
+
+include ./captors.mk
+
 OBJ =  \
-	$(OBJ_DIR)/counters.o \
-	$(OBJ_DIR)/rapl.o \
-	$(OBJ_DIR)/network.o \
-	$(OBJ_DIR)/load.o \
-	$(OBJ_DIR)/infiniband.o \
-	$(OBJ_DIR)/temperature.o \
-	$(OBJ_DIR)/util.o \
-	$(OBJ_DIR)/amd_rapl.o 
+	$(CAPTOR_OBJ) \
+	$(OBJ_DIR)/util.o
 
 CC = gcc
 CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function

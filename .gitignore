@@ -1,6 +1,7 @@
+tests/run
 src/counters_option.h
 src/captors.h
-tests/run
+captors.mk
 bin
 obj
 *.swp
