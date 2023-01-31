@@ -165,20 +165,6 @@ void debug_print_amd_rapl(_amd_rapl_t *rapl)
     }
 }
 
-// typedef struct {
-//     size_t cpu_id;
-//     uint64_t *results;
-//     size_t capacity;
-// } CpuLogger;
-//
-// CpuLogger init_logger(size_t cpu_id, size_t capacity)
-// {
-//
-// }
-//
-// void log_value();
-
-
 #endif
 
 // ---------------------------AMD_RAPL_UTIL
@@ -321,41 +307,3 @@ void clean_amd_rapl(void *ptr)
     free(rapl->sensors);
     free(rapl);
 }
-
-// -----------------------------ENTRY_POINT
-
-#ifdef __TESTING_AMD__
-#ifdef DEBUG
-int main()
-{
-    s_round_to_uint64(1.0);
-    static const unsigned int time = 10;
-    _amd_rapl_t *rapl = NULL;
-    unsigned int nb_cpu = init_amd_rapl(NULL, (void **) &rapl);
-    uint64_t results[nb_cpu];
-    char *labels[nb_cpu];
-
-    label_amd_rapl(labels, (void *) rapl);
-
-    for (unsigned int i = 0; i < rapl->nb; ++i) {
-        printf("%s ", labels[i]);
-    }
-    printf("\n");
-
-    // -- Run
-
-    for (unsigned int i = 0; i < time; ++i) {
-        sleep(1);
-        get_amd_rapl(results, (void *)rapl);
-
-        for (unsigned int j = 0; j < rapl->nb; ++j) {
-            printf("%ld ", results[j]);
-        }
-        printf("\n");
-    }
-
-    clean_amd_rapl(rapl);
-    return 0;
-}
-#endif
-#endif
