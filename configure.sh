@@ -20,7 +20,8 @@ decho() {
 }
 
 debug=0
-target=src/captors.h
+target_hdr=src/captors.h
+target_mk=captors.mk
 
 noncaptor='counters_option|optparse|captors|util|info_reader'
 
@@ -41,8 +42,8 @@ ls_captors() {
 	try cd src
 
 	[ -z "$hdr_whitelist" ] && hdr_whitelist='.*'
-	dprint hdr_blacklist
-	dprint hdr_whitelist
+	dprint hdr_blacklist >&2
+	dprint hdr_whitelist >&2
 
 	ls -1 *.h |
 		grep -xEv "($hdr_blacklist)\.h" |
@@ -50,29 +51,51 @@ ls_captors() {
 		sed 's/\.h$//'
 }
 
+# gen_captors_h(captors, nb_captors)
 gen_captors_h() {
-	captors=$(ls_captors)
-	nb_captors=$(echo "$captors" | sed '/^$/d' | wc -l)
-	printf -- 'Run `make` to build `bin/mojitos`.\n' >&2
-	printf -- 'The resulting binary will have the %d following captors:\n' "$nb_captors" >&2
-	echo "$captors" >&2
+	captors=$1
+	nb_captors=$2
+	nb_captor_opts=$(
+		for captor in $captors; do
+			sed -n 's/.*'"${captor}"'_opt\[\([0-9]\+\)\].*/\1/p' "src/${captor}.h"
+		done |
+			paste -s -d '+' |
+			bc
+	)
 
-	[ -n "$captors" ] || return
+	dprint captors >&2
+	dprint nb_captor_opts >&2
+	isnum "$nb_captor_opts" || die "could not get total number of captors's command-line options"
 
 	# gen includes
 	for captor in $captors; do
 		printf '#include "%s.h"\n' "$captor"
 	done
-	printf '\n#define NB_CAPTORS %d\n\n' "$nb_captors"
+	printf '\n#define NB_CAPTOR %d\n\n' "$nb_captors"
+	printf '\n#define NB_CAPTOR_OPT %d\n\n' "$nb_captor_opts"
 
 	# gen `init_captors()`
-	printf 'void init_captors(struct optparse_long *longopts, struct captor *captors, size_t len, size_t offset, int *nb_defined)\n{\n'
+	printf 'void init_captors(Optparse *longopts, Captor *captors, size_t len, size_t offset, int *nb_defined)\n{\n'
+	printf '    int opt_idx = offset;\n'
 	for captor in $captors; do
-		printf '    longopts[offset + *nb_defined] = %s_opt;\n' "$captor"
-		printf '    captors[(*nb_defined)++] = %s;\n' "$captor"
+		cat <<-!
+		    for (int i = 0; i < ${captor}.nb_opt; i++) {
+		        longopts[opt_idx++] = ${captor}_opt[i];
+		    }
+		    captors[(*nb_defined)++] = ${captor};
+		!
 	done
 	printf '    assert((offset + *nb_defined) <= len);\n'
 	printf '}\n'
+}
+
+gen_captors_mk() {
+	captors=$1
+	printf 'CAPTOR_OBJ = '
+	for captor in $captors; do
+		printf '$(OBJ_DIR)/%s.o ' "$captor"
+	done
+	printf '\n'
 }
 
 detect_caps() {
@@ -92,7 +115,7 @@ detect_caps() {
 		hdr_whitelist="${hdr_whitelist}|rapl"
 		;;
 	*amd*)
-		family=$(awk '/cpu[ \t]*family/ {print $3; exit}' /proc/cpuinfo)
+		family=$(awk '/cpu[ \t]*family/ {print $4; exit}' /proc/cpuinfo)
 		if isnum "$family"; then
 			[ $family -ge 17 ] && hdr_whitelist="${hdr_whitelist}|amd_rapl"
 		fi
@@ -132,4 +155,20 @@ while [ "$1" ]; do
 	shift
 done
 
-gen_captors_h > "$target"
+captors=$(ls_captors)
+nb_captors=$(echo "$captors" | sed '/^$/d' | wc -l)
+
+if [ "$nb_captors" -eq 0 ]; then
+	printf -- '0 captors are selected. cannot build.\n' >&2
+	exit 1
+fi
+
+try gen_captors_h "$captors" "$nb_captors" > "$target_hdr"
+try gen_captors_mk "$captors" > "$target_mk"
+
+printf -- 'Run `make` to build `bin/mojitos`.\n' >&2
+printf -- 'The resulting binary will have the %d following captors:\n' "$nb_captors" >&2
+echo "$captors" >&2
+
+make clean >/dev/null
+

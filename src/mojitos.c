@@ -37,44 +37,75 @@ typedef void (*labeler_t)(char **, void *);
 typedef unsigned int (*getter_t)(uint64_t *, void *);
 typedef void (*cleaner_t)(void *);
 
-struct captor {
-    char *usage_arg;
-    char *usage_msg;
+typedef struct Opt Opt;
+typedef struct Captor Captor;
+/* optparse typedef */
+typedef struct optparse_long Optparse;
+
+struct Captor {
     initializer_t init;
     getter_t get;
     cleaner_t clean;
     labeler_t label;
+    int nb_opt;
 };
 
 int nb_defined_captors = 0;
 
 #include "captors.h"
 
-struct captor captors[NB_CAPTORS];
+Captor captors[NB_CAPTOR];
 
-#define NB_OPTS 6
-struct optparse_long longopts[NB_OPTS + NB_CAPTORS + 1] = {
-    {"overhead-stats", 's', OPTPARSE_NONE},
-    {"list", 'l', OPTPARSE_NONE},
-    {"freq", 'f', OPTPARSE_REQUIRED},
-    {"time", 't', OPTPARSE_REQUIRED},
-    {"exec", 'e', OPTPARSE_REQUIRED},
-    {"logfile", 'o', OPTPARSE_REQUIRED},
+#define NB_OPT 5
+Optparse longopts[NB_OPT + NB_CAPTOR_OPT + 1] = {
+    {
+        .longname = "freq", .shortname = 'f', .argtype = OPTPARSE_REQUIRED,
+        .usage_arg = "<freq>",
+        .usage_msg = "specify frequency",
+    },
+    {
+        .longname = "time", .shortname = 't', .argtype = OPTPARSE_REQUIRED,
+        .usage_arg = "<time>",
+        .usage_msg = "specify time",
+    },
+    {
+        .longname = "exec", .shortname = 'e', .argtype = OPTPARSE_REQUIRED,
+        .usage_arg = "<cmd>",
+        .usage_msg = "specify a command",
+    },
+    {
+        .longname = "logfile", .shortname = 'o', .argtype = OPTPARSE_REQUIRED,
+        .usage_arg = "<file>",
+        .usage_msg = "specify a log file",
+    },
+    {
+        .longname = "overhead-stats", .shortname = 's', .argtype = OPTPARSE_NONE,
+        .usage_arg = NULL,
+        .usage_msg = "enable overhead statistics in nanoseconds",
+    },
 };
 
 
+void printopt(Optparse *opt)
+{
+    printf("-%c", opt->shortname);
+    printf("|--%s", opt->longname);
+    if (opt->usage_arg != NULL) {
+        printf(" %s", opt->usage_arg);
+    }
+    printf("\n\t%s\n", opt->usage_msg);
+}
+
 void usage(char **argv)
 {
-    printf("Usage : %s [OPTIONS] [CAPTOR ...] [-o logfile] [-e cmd ...]\n"
-           "\nOPTIONS:\n"
-           "-t <time>\t\tspecify time\n"
-           "-f <freq>\t\tspecify frequency\n"
-           "-e <cmd>\t\tspecify a command\n"
-           "-l\t\tlist the possible performance counters and quit\n"
-           "-s\t\tenable overhead statistics in nanoseconds\n"
-           "if time==0 then loops infinitively\n"
-           "if -e is present, time and freq are not used\n"
-           , argv[0]);
+    printf("Usage : %s [OPTIONS] [CAPTOR ...]\n", argv[0]);
+
+    printf("\nOPTIONS:\n");
+    for (int i = 0; i < NB_OPT; i++) {
+        printopt(&longopts[i]);
+    }
+    printf("if time==0 then loops infinitively\n"
+           "if -e is present, time and freq are not used\n");
 
     if (nb_defined_captors == 0) {
         // no captor to show
@@ -82,13 +113,8 @@ void usage(char **argv)
     }
 
     printf("\nCAPTORS:\n");
-
-    for (int i = 0; i < nb_defined_captors; i++) {
-        printf("-%c", longopts[NB_OPTS + i].shortname);
-        if (captors[i].usage_arg != NULL) {
-            printf(" %s", captors[i].usage_arg);
-        }
-        printf("\n\t%s\n", captors[i].usage_msg);
+    for (int i = 0; i < NB_CAPTOR_OPT; i++) {
+        printopt(&longopts[NB_OPT + i]);
     }
 
     exit(EXIT_FAILURE);
@@ -123,7 +149,7 @@ unsigned int nb_sensors = 0;
 char **labels = NULL;
 uint64_t *values = NULL;
 
-void add_source(struct captor *cpt, char *arg)
+void add_source(Captor *cpt, char *arg)
 {
     nb_sources++;
     initializer_t init = cpt->init;
@@ -160,7 +186,7 @@ int main(int argc, char **argv)
     char **application = NULL;
     int stat_mode = -1;
 
-    init_captors(longopts, captors, NB_OPTS + NB_CAPTORS, NB_OPTS, &nb_defined_captors);
+    init_captors(longopts, captors, NB_OPT + NB_CAPTOR_OPT, NB_OPT, &nb_defined_captors);
 
     if (argc == 1) {
         usage(argv);
@@ -207,10 +233,15 @@ int main(int argc, char **argv)
             break;
         default: {
             int ismatch = 0;
+            int opt_idx = NB_OPT;
             for (int i = 0; i < nb_defined_captors && !ismatch; i++) {
-                if (opt == longopts[NB_OPTS + i].shortname) {
-                    ismatch = 1;
-                    add_source(&captors[i], options.optarg);
+                for (int j = 0; j < captors[i].nb_opt; j++) {
+                    if (opt == longopts[opt_idx].shortname) {
+                        ismatch = 1;
+                        add_source(&captors[i], options.optarg);
+                        break;
+                    }
+                    opt_idx++;
                 }
             }
             if (!ismatch) {

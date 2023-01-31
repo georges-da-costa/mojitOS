@@ -1,10 +1,11 @@
-src/counters_option.h
-src/captors.h
+doc/test_main_ex
+doc/info_reader_ex
 tests/run
+src/counters_option.h
+src/sensors.h
+captors.mk
 bin
 obj
 *.swp
 *.swo
 .vscode
-doc/test_main_ex
-doc/info_reader_ex
