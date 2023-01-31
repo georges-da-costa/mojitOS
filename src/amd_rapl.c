@@ -49,7 +49,7 @@ struct cpu_sensor_t {
     char *name;
 
     int fd;
-    uint64_t energy_units;
+    unsigned int energy_units;
     uint64_t core_energy;
     uint64_t pkg_energy;
 };
@@ -107,7 +107,7 @@ uint64_t read_msr(int fd, uint64_t msr)
     return data;
 }
 
-uint64_t read_unit(int fd)
+unsigned int read_unit(int fd)
 {
     uint64_t unit = read_msr(fd, msr_rapl_power_unit);
     return ((unit & amd_energy_unit_mask) >> 8);
@@ -127,14 +127,12 @@ uint64_t read_raw_pkg_energy(int fd)
 
 // ---------------------------------ENERGY
 
-uint64_t raw_to_microjoule(uint64_t raw, uint64_t unit)
+uint64_t raw_to_microjoule(uint64_t raw, unsigned int unit)
 {
     static const double to_microjoule = 1000000.0;
-    double d_raw = (double) raw;
-    double d_unit = (double) unit;
     // raw * (1 / (unit^2)) -> Joule
     // Joule * 1000000 -> uJoule
-    return  ((d_raw * to_microjoule) / (d_unit * d_unit));
+    return (uint64_t) (((double) raw * to_microjoule) / (double)(1U << unit));
 }
 uint64_t raw_to_joule(uint64_t raw, uint64_t unit)
 {
@@ -149,7 +147,7 @@ uint64_t raw_to_joule(uint64_t raw, uint64_t unit)
 void debug_print_sensor(cpu_sensor_t *sensor)
 {
     //CASSERT(sizeof(cpu_sensor_t) == 56, amd_rapl_c);
-    printf("cpu_id : %ld, package_id : %ld, name : %s, fd: %d,  energy_units : %ld, core_energy: %ld, pkg_energy: %ld\n",
+    printf("cpu_id : %ld, package_id : %ld, name : %s, fd: %d,  energy_units : %d, core_energy: %ld, pkg_energy: %ld\n",
            sensor->cpu_id,
            sensor->package_id,
            sensor->name,
