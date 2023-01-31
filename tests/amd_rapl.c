@@ -11,7 +11,7 @@ TFUNCTION(test_raw_to_microjoule, {
     // -- Setup
     raw = 100;
     unit = 1000;
-    expected = 100;
+    expected = 390625;
     // -- Run
     result = raw_to_microjoule(raw, unit);
     // -- Verification
@@ -21,7 +21,7 @@ TFUNCTION(test_raw_to_microjoule, {
     // -- Setup
     raw = 200;
     unit = 1;
-    expected = 200000000;
+    expected = 100000000;
     // -- Run
     result = raw_to_microjoule(raw, unit);
     // -- Verification
@@ -41,7 +41,7 @@ TFUNCTION(test_raw_to_microjoule, {
     // -- Setup
     raw = 1000;
     unit = 3;
-    expected = 111111111;
+    expected = 125000000;
     // -- Run
     result = raw_to_microjoule(raw, unit);
     // -- Verification
