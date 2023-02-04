@@ -9,10 +9,23 @@
 
 // ---------------------------API_INTERFACE
 
+
+
+#define TMAIN(code)                                              \
+  int main()                                                     \
+{                                                                \
+  unsigned int __indentation_level = 0;                          \
+  INDENTED_PRINT("%s:%s\n", __FILE__, __func__);                 \
+  unsigned int __error_counter__ = 0;                            \
+  do code while (0);                                             \
+  DEFERRED_FILE_ERROR(__error_counter__);                        \
+  return __error_counter__;                                      \
+}
+
 /**
  * @brief Define the entry point of a test file.
  * This macro is used to define the entry point of a test file.
- * It defines a function with the specified file_name that contains the test code specified in code.
+ * It defines a function with the specified __filename that contains the test code specified in code.
  *
  * When the function is called, it initializes the test file using the INIT_TEST_FILE macro,
  * declares an integer variable __error_counter__ to keep track of any errors encountered during the tests,
@@ -20,17 +33,17 @@
  * The function returns the value of __error_counter__,
  * which indicates the number of errors encountered during the tests.
  *
- * @param file_name The name of the function that serves as the entry point for the test file.
- * @param code The test code to be executed in the function.
+ * @param __filename The name of the function that serves as the entry point for the test file.
+ * @param __code The test code to be executed in the function.
  */
-#define TFILE_ENTRY_POINT(file_name, code) \
-  int file_name() \
-{ \
-  INIT_TEST_FILE();\
-  int __error_counter__ = 0;\
-  do code while(0);\
-  DEFERRED_FILE_ERROR(__error_counter__); \
-  return __error_counter__;\
+#define TFILE_ENTRY_POINT(__filename, __code)       \
+  int __filename (unsigned int __indentation_level) \
+{                                                   \
+  INIT_TEST_FILE();                                 \
+  int __error_counter__ = 0;                        \
+  do __code while(0);                               \
+  DEFERRED_FILE_ERROR(__error_counter__);           \
+  return __error_counter__;                         \
 }
 
 /**
@@ -43,15 +56,15 @@
  * executes the test code in a do-while loop, and then checks for any deferred errors using the DEFERRED_ERROR macro.
  * The function returns the value of __error_counter__, which indicates the number of errors encountered during the tests.
  *
- * @param function_name The name of the test function.
- * @param code The test code to be executed in the function.
+ * @param __function_name The name of the test function.
+ * @param __code The test code to be executed in the function.
  */
-#define TFUNCTION(function_name, code) \
-  int function_name() \
+#define TFUNCTION(__function_name, __code) \
+  int __function_name(unsigned int __indentation_level) \
 { \
   INIT_TEST_FUNCTION(); \
   int __error_counter__ = 0; \
-  do code while(0); \
+  do __code while(0); \
   DEFERRED_FUNCTION_ERROR(__error_counter__); \
   return __error_counter__; \
 }
@@ -65,7 +78,7 @@
  * @param function_name The name of the test function to be called.
  */
 #define CALL_TFUNCTION(function_name) \
-  __error_counter__ += function_name()
+  __error_counter__ += function_name(__indentation_level + 1)
 
 
 /**
@@ -82,7 +95,7 @@
  * @endcode
  */
 #define TEST_STR(result, expected) \
-	__error_counter__ += test_str(__FILE__, __LINE__, result, expected)
+    __error_counter__ += test_str(__FILE__, __LINE__, __indentation_level, result, expected)
 
 /**
  * @def TEST_BOOLEAN(result, expected)
@@ -98,7 +111,7 @@
  * @endcode
  */
 #define TEST_BOOLEAN(result, expected) \
-	__error_counter__ += test_boolean(__FILE__, __LINE__, result, expected)
+	__error_counter__ += test_boolean(__FILE__, __LINE__, __indentation_level, result, expected)
 
 /**
  * @def TEST_PTR(result, expected)
@@ -116,7 +129,7 @@
  * @endcode
  */
 #define TEST_PTR(result, expected) \
-	__error_counter__ += test_ptr(__FILE__, __LINE__, result, expected)
+	__error_counter__ += test_ptr(__FILE__, __LINE__, __indentation_level, result, expected)
 
 
 /**
@@ -133,7 +146,7 @@
  * @endcode
  */
 #define TEST_UINT64_T(result, expected) \
-	__error_counter__ += test_uint64_t(__FILE__, __LINE__, result, expected)
+	__error_counter__ += test_uint64_t(__FILE__, __LINE__, __indentation_level, result, expected)
 
 /**
  * @def TEST_T_ARRAY(function, nb_error, size, results, expecteds)
@@ -161,6 +174,15 @@
 
 // --------------------------------API_CODE
 
+
+#define INDENTED_PRINT(__fmt, ...)                          \
+  do {                                                      \
+    for(unsigned int i = 0; i < __indentation_level; i++) { \
+      printf("|    ");                                       \
+    }                                                       \
+    printf(__fmt, ##__VA_ARGS__);                           \
+  } while(0)
+
 /**
  * @def INIT_TEST_FILE()
  * @brief Initialize the test file
@@ -173,8 +195,8 @@
  * INIT_TEST_FILE();
  * @endcode
  */
-#define INIT_TEST_FILE() \
-	init_test_file(__FILE__, __func__)
+#define INIT_TEST_FILE()     \
+  INDENTED_PRINT("%s:%s\n", __FILE__, __func__)
 
 /**
  * @def INIT_TEST_FUNCTION()
@@ -188,13 +210,14 @@
  * @endcode
  */
 #define INIT_TEST_FUNCTION() \
-	init_test_function(__func__)
+  INDENTED_PRINT("%s()\n", __func__);
 
 #define DEFERRED_FILE_ERROR(nb_error) \
-	  printf("========== Deferred Error : %d\n", nb_error);
+    INDENTED_PRINT("|_Deferred Error : %u\n",nb_error);
+//INDENTED_PRINT("Deferred Error in %s: %d\n",__FILE__, nb_error);
 
 #define DEFERRED_FUNCTION_ERROR(nb_error) \
-	  printf("       | Deferred Error : %d\n", nb_error);
+    INDENTED_PRINT("|_Deferred Error : %d\n",nb_error);
 
 #define FMT_NULL(string) \
 	string = string ? string : "NULL"
@@ -252,65 +275,51 @@ char *uint64_t_format(char *buffer, uint64_t *value)
     return buffer;
 }
 
-void init_test_file(const char *file, const char *function)
+int test(char *file, int line, unsigned int __indentation_level, void *result, void *expected, Comparator *compare, Formatter *format)
 {
-    printf("========== TEST in %s -> %s()\n", file, function);
-}
-
-void init_test_function(const char *function)
-{
-    printf("|=> %s()\n", function);
-}
-
-int test(char *file, int line, void *result, void *expected, Comparator *compare, Formatter *format)
-{
+    __indentation_level++;
     static char buffer_result[1000];
     static char buffer_expected[1000];
     int is_equal = compare(result, expected);
-    char c_result = is_equal ? 'V' : 'X';
-    printf("[%c]    | %s:%d: ", c_result, file, line);
 
+    char *fmt_result = format(buffer_result, expected);
+    char *fmt_expected = format(buffer_expected, result);
     if  (!is_equal) {
-        printf("failed, expected %s, got %s\n",
-               format(buffer_result, expected),
-               format(buffer_expected, result)
-              );
-    } else {
-        printf("passed\n");
+        INDENTED_PRINT("%s:%d: failed, expected %s, got %s\n", file, line, fmt_expected, fmt_result);
     }
     return !is_equal;
 }
 
-int test_str(char *file, int line, char *result, char *expected)
+int test_str(char *file, int line,unsigned int __indentation_level, char *result, char *expected)
 {
     Comparator *compare = (Comparator *) string_compare;
     Formatter *format = (Formatter *) string_format;
 
-    return test(file, line, result, expected, compare, format);
+    return test(file, line, __indentation_level, result, expected, compare, format);
 }
 
-int test_boolean(char *file, int line, bool *result, bool *expected)
+int test_boolean(char *file, int line, unsigned int __indentation_level, bool *result, bool *expected)
 {
     Comparator *compare = (Comparator *) boolean_compare;
     Formatter *format = (Formatter *) boolean_format;
 
-    return test(file, line, (int *) result, (void *) expected, compare, format);
+    return test(file, line, __indentation_level, (int *) result, (void *) expected, compare, format);
 }
 
-int test_ptr(char *file, int line, void *result, void *expected)
+int test_ptr(char *file, int line, unsigned int __indentation_level, void *result, void *expected)
 {
     Comparator *compare = (Comparator *) ptr_compare;
     Formatter *format = (Formatter *) ptr_format;
 
-    return test(file, line, result, expected, compare, format);
+    return test(file, line, __indentation_level, result, expected, compare, format);
 }
 
-int test_uint64_t(char *file, int line, void *result, void *expected)
+int test_uint64_t(char *file, int line, unsigned int __indentation_level, void *result, void *expected)
 {
     Comparator *compare = (Comparator *) uint64_t_compare;
     Formatter *format = (Formatter *) uint64_t_format;
 
-    return test(file, line, (uint64_t *)result, (uint64_t *)expected, compare, format);
+    return test(file, line, __indentation_level, (uint64_t *)result, (uint64_t *)expected, compare, format);
 }
 #endif
 

@@ -85,25 +85,25 @@ TFUNCTION(test_get_name, {
 })
 
 #define NONE 0
-#define DUMB_SENSOR(sensor, cpu_id, name)	\
-	do {									\
-		sensor = (cpu_sensor_t) {			\
-			cpu_id,							\
-			NONE,							\
-			name,							\
-			NONE,							\
-			NONE,							\
-			NONE, 							\
-			NONE							\
-		}; 									\
+#define DUMMY_SENSOR(__sensor, __cpu_id, __name) \
+do {                                             \
+  __sensor = (cpu_sensor_t) {                    \
+    .cpu_id = __cpu_id,                          \
+    .package_id = NONE,                          \
+    .core_id = NONE,                             \
+    .name = __name,                              \
+    .fd = NONE,                                  \
+    .energy_units = NONE,                        \
+    .core_energy = NONE,                         \
+  };                                             \
 	} while(0);
 
-#define DUMB_RAPL(rapl, sensors, nb)		\
-	do {									\
-		rapl = (_amd_rapl_t) {				\
-			sensors,						\
-			nb								\
-		};									\
+#define DUMMY_RAPL(__rapl, __sensors, __sensors_count) \
+	do {                                                 \
+		__rapl = (_amd_rapl_t) {                           \
+			.sensors = __sensors,                            \
+			.sensor_count = __sensors_count                 \
+		};                                                 \
 	} while(0);
 
 TFUNCTION(test_label_amd_rapl, {
@@ -116,8 +116,8 @@ TFUNCTION(test_label_amd_rapl, {
     // Test 1:
     // -- Setup
     nb = 1;
-    DUMB_SENSOR(sensors[0], 0, "core0");
-    DUMB_RAPL(rapl, sensors, nb);
+    DUMMY_SENSOR(sensors[0], 0, "core0");
+    DUMMY_RAPL(rapl, sensors, nb);
     strcpy(expecteds[0], "core0");
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
@@ -127,11 +127,11 @@ TFUNCTION(test_label_amd_rapl, {
     // Test 2:
     // -- Setup
     nb = 4;
-    DUMB_SENSOR(sensors[0], 0, "core0");
-    DUMB_SENSOR(sensors[1], 1, "core1");
-    DUMB_SENSOR(sensors[2], 2, "core2");
-    DUMB_SENSOR(sensors[3], 3, "core3");
-    DUMB_RAPL(rapl, sensors, nb);
+    DUMMY_SENSOR(sensors[0], 0, "core0");
+    DUMMY_SENSOR(sensors[1], 1, "core1");
+    DUMMY_SENSOR(sensors[2], 2, "core2");
+    DUMMY_SENSOR(sensors[3], 3, "core3");
+    DUMMY_RAPL(rapl, sensors, nb);
     strcpy(expecteds[0], "core0");
     strcpy(expecteds[1], "core1");
     strcpy(expecteds[2], "core2");
@@ -144,11 +144,11 @@ TFUNCTION(test_label_amd_rapl, {
     // Test 3:
     // -- Setup
     nb = 4;
-    DUMB_SENSOR(sensors[0], 0, "core0");
-    DUMB_SENSOR(sensors[1], 3, "core3");
-    DUMB_SENSOR(sensors[2], 1, "core1");
-    DUMB_SENSOR(sensors[3], 2, "core2");
-    DUMB_RAPL(rapl, sensors, nb);
+    DUMMY_SENSOR(sensors[0], 0, "core0");
+    DUMMY_SENSOR(sensors[1], 3, "core3");
+    DUMMY_SENSOR(sensors[2], 1, "core1");
+    DUMMY_SENSOR(sensors[3], 2, "core2");
+    DUMMY_RAPL(rapl, sensors, nb);
     strcpy(expecteds[0], "core0");
     strcpy(expecteds[1], "core3");
     strcpy(expecteds[2], "core1");
@@ -159,10 +159,33 @@ TFUNCTION(test_label_amd_rapl, {
     TEST_T_ARRAY(TEST_STR, nb, results, expecteds);
 })
 
+TFUNCTION(test_init_cpu_sensor, {
+    static const unsigned int max_cpus = 10;
+    unsigned char cpus_map[max_cpus * max_cpus];
+    cpu_sensor_t sensor_t1;
+    unsigned int result;
+    unsigned int expected;
+
+    // Test 1:
+    // -- Setup
+    memset(cpus_map, 0, max_cpus *max_cpus * sizeof(unsigned char));
+    result = 0;
+    expected = 1;
+    memset(&sensor_t1, 0, sizeof(cpu_sensor_t));
+    sensor_t1.cpu_id = 1;
+    sensor_t1.core_id = 0;
+    sensor_t1.package_id = 0;
+    // -- Run
+    result = init_cpu_sensor(&sensor_t1, 0, cpus_map, max_cpus);
+    // -- Verification
+    TEST_UINT64_T(&result, &expected);
+})
+
 TFILE_ENTRY_POINT(test_amd_rapl, {
     CALL_TFUNCTION(test_raw_to_microjoule);
     CALL_TFUNCTION(test_get_name);
     CALL_TFUNCTION(test_label_amd_rapl);
+    // CALL_TFUNCTION(test_init_cpu_sensor);
 })
 
 #ifdef __TESTING__AMD__
