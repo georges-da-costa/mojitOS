@@ -285,7 +285,7 @@ int test(char *file, int line, unsigned int __indentation_level, void *result, v
     char *fmt_result = format(buffer_result, expected);
     char *fmt_expected = format(buffer_expected, result);
     if  (!is_equal) {
-        INDENTED_PRINT("%s:%d: failed, expected %s, got %s\n", file, line, fmt_expected, fmt_result);
+        INDENTED_PRINT("%s:%d: failed, expected <%s>, got <%s>\n", file, line, fmt_expected, fmt_result);
     }
     return !is_equal;
 }
