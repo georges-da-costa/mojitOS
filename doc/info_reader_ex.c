@@ -1,8 +1,30 @@
-#include "info_reader.h"
-#include <stdint.h>
+/*******************************************************
+ Copyright (C) 2023-2023 Georges Da Costa <georges.da-costa@irit.fr>
+
+    This file is part of Mojitos.
+
+    Mojitos is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Mojitos is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
+
+*******************************************************/
+
+
+// ~/mojitos/doc/$ gcc -Wall -Wextra -Wpedantic -O3 -o info_reader_ex info_reader_ex.c ./../src/util.c && ./info_reader_ex
+#include "./../src/info_reader.h"
 
 #define MAX_PROCS 2
 #define NB_KEYS 6
+
 typedef struct {
     unsigned int processor;
     char *vendor_id;
@@ -56,7 +78,7 @@ void set_model_name(GenericPointer storage, GenericPointer data)
     cpu->model_name = (char *) data;
 }
 
-int main(int argc, char const *argv[])
+int main()
 {
     Cpu cpus[MAX_PROCS];
     KeyFinder keys[] = {
