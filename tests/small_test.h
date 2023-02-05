@@ -30,6 +30,11 @@
 #include "../src/util.h"
 
 // ---------------------------API_INTERFACE
+/**
+ * @brief Define the entry point of the tests
+ * It initializes each useful variables.
+ */
+
 #define TMAIN(code)                                              \
   int main()                                                     \
 {                                                                \
@@ -169,6 +174,7 @@
 #define TEST_INTERFACE(__result, __expected, __interface) \
 	do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, __interface);} while(0)
 
+
 /**
  * @def TEST_T_ARRAY(function, nb_error, size, results, expecteds)
  * @brief Test arrays of data
@@ -192,6 +198,7 @@
 
 
 // --------------------------------API_CODE
+// These functions should not be used, only use the previous macros.
 
 
 #define INDENTED_PRINT(__fmt, ...)                          \
@@ -202,32 +209,10 @@
     printf(__fmt, ##__VA_ARGS__);                           \
   } while(0)
 
-/**
- * @def INIT_TEST_FILE()
- * @brief Initialize the test file
- * This macro is used to initialize the test file. It takes the `__FILE__` and `__func__` preprocessor macros as arguments, which provide the name of the current file and the current function, respectively.
- *
- * @param __FILE__ preprocessor macro that provides the name of the current file
- * @param __func__ preprocessor macro that provides the name of the current function
- *
- * @code
- * INIT_TEST_FILE();
- * @endcode
- */
+
 #define INIT_TEST_FILE()     \
   INDENTED_PRINT("%s:%s\n", __FILE__, __func__)
 
-/**
- * @def INIT_TEST_FUNCTION()
- * @brief Initialize the test function
- * This macro is used to initialize the test function. It takes the `__func__` preprocessor macro as an argument, which provides the name of the current function.
- *
- * @param __func__ preprocessor macro that provides the name of the current function
- *
- * @code
- * INIT_TEST_FUNCTION();
- * @endcode
- */
 #define INIT_TEST_FUNCTION() \
   INDENTED_PRINT("%s()\n", __func__);
 
