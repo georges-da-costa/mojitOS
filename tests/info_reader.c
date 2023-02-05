@@ -1,54 +1,117 @@
 #include "small_test.h"
 
 TFUNCTION(test_replace_first, {
-    char test1[] = "This is my string";
-    replace_first(test1, 'i', 'I');
-    TEST_STR(test1, "ThIs is my string");
+    // useful variables :
+    char result[100];
+    char expected[100];
 
-    char test2[] = "This is my string";
-    replace_first(test2, 'x', 'X');
-    TEST_STR(test2, "This is my string");
+    // -- Setup
+    strcpy(result, "This is my string");
+    strcpy(expected, "ThIs is my string");
+    // -- Run
+    replace_first(result, 'i', 'I');
+    // -- Verification
+    TEST_STR(result, expected);
 
+    // -- Setup
+    strcpy(result, "This is my string");
+    strcpy(expected, "This is my string");
+    // -- Run
+    replace_first(result, 'x', 'X');
+    // -- Verification
+    TEST_STR(result, expected);
 
-    char test3[] = "This is my string";
-    replace_first(test3, ' ', '_');
-    TEST_STR(test3, "This_is my string");
+    // -- Setup
+    strcpy(result, "This is my string");
+    strcpy(expected, "This_is my string");
+    // -- Run
+    replace_first(result, ' ', '_');
+    // -- Verification
+    TEST_STR(result, expected);
+
+    // -- Setup
+    strcpy(result, "This is my string");
+    strcpy(expected, "This_is my string");
+    // -- Run
+    replace_first(result, ' ', '_');
+    // -- Verification
+    TEST_STR(result, expected);
+
+    // -- Setup
+    strcpy(result, "This is my string");
+    strcpy(expected, "This is my string");
+    // -- Run
+    replace_first(result, 'T', 'T');
+    // -- Verification
+    TEST_STR(result, expected);
 })
 
 TFUNCTION(test_split_on_delimiter, {
-    char test4[] = "key:value";
-    char *key;
-    char *value;
+    // Useful variables
+    char string[100];
+    char *result_key;
+    char *result_value;
+    char expected_key[100];
+    char expected_value[100];
 
-    split_on_delimiter(test4, ":", &key, &value);
-    TEST_STR(key, "key");
-    TEST_STR(value, "value");
+    // Setup
+    strcpy(string, "key:value");
+    strcpy(expected_key, "key");
+    strcpy(expected_value, "value");
+    // Run
+    split_on_delimiter(string, ":", &result_key, &result_value);
+    // Verification
+    TEST_STR(result_key, expected_key);
+    TEST_STR(result_value, expected_value);
 
-    char test5[] = "key: value";
-    split_on_delimiter(test5, ":", &key, &value);
-    TEST_STR(key, "key");
-    TEST_STR(value, " value");
+    // Setup
+    strcpy(string, "key: value");
+    strcpy(expected_key, "key");
+    strcpy(expected_value, " value");
+    // Run
+    split_on_delimiter(string, ":", &result_key, &result_value);
+    // Verification
+    TEST_STR(result_key, expected_key);
+    TEST_STR(result_value, expected_value);
 
-    char test6[] = "key:value";
-    replace_first(test6, ':', ' ');
-    split_on_delimiter(test6, " ", &key, &value);
-    TEST_STR(key, "key");
-    TEST_STR(value, "value");
+    // Setup
+    strcpy(string, "key:value");
+    strcpy(expected_key, "key");
+    strcpy(expected_value, "value");
+    replace_first(string, ':', ' ');
+    // Run
+    split_on_delimiter(string, " ", &result_key, &result_value);
+    // Verification
+    TEST_STR(result_key, expected_key);
+    TEST_STR(result_value, expected_value);
 
-    char test7[] = "";
-    split_on_delimiter(test7, ":", &key, &value);
-    TEST_STR(key, NULL);
-    TEST_STR(value, NULL);
+    // Setup
+    strcpy(string, "");
+    // Run
+    split_on_delimiter(string, ":", &result_key, &result_value);
+    // Verification
+    TEST_STR(result_key, NULL);
+    TEST_STR(result_value, NULL);
 
-    char test9[] = "key:value:extra";
-    split_on_delimiter(test9, ":", &key, &value);
-    TEST_STR(key, "key");
-    TEST_STR(value, "value:extra");
+    // Setup
+    strcpy(string, "key:value:extra");
+    strcpy(expected_key, "key");
+    strcpy(expected_value, "value:extra");
+    // Run
+    split_on_delimiter(string, ":", &result_key, &result_value);
+    // Verification
+    TEST_STR(result_key, expected_key);
+    TEST_STR(result_value, expected_value);
 
-    char test10[] = "key: value :extra";
-    split_on_delimiter(test10, ":", &key, &value);
-    TEST_STR(key, "key");
-    TEST_STR(value, " value :extra");
+    // Setup
+    strcpy(string, "key: value :extra");
+    strcpy(expected_key, "key");
+    strcpy(expected_value, " value :extra");
+    // Run
+    split_on_delimiter(string, ":", &result_key, &result_value);
+    // Verification
+    TEST_STR(result_key, expected_key);
+    TEST_STR(result_value, expected_value);
 })
 
 TFUNCTION(test_start_with, {
@@ -110,7 +173,7 @@ TFUNCTION(test_start_with, {
 
 
 TFUNCTION(test_match, {
-    // usefull variable :
+    // useful variables :
     bool _true = true;
     bool _false = false;
     KeyFinder keys[10];
@@ -197,12 +260,4 @@ TFILE_ENTRY_POINT(test_info_reader, {
     CALL_TFUNCTION(test_start_with);
     CALL_TFUNCTION(test_match);
 })
-
-#ifdef __TESTING_INFO_READER__
-int main()
-{
-    test_info_reader();
-    return 0;
-}
-#endif
 
