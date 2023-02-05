@@ -1,23 +1,20 @@
 #include "info_reader.h"
 #include <stdint.h>
 
-#ifdef DEBUG
-#warning "PTR_TO_TPTR hide a cast warning"
-#endif
-
 #define MAX_PROCS 2
+#define NB_KEYS 6
 typedef struct {
-    size_t processor;
+    unsigned int processor;
     char *vendor_id;
-    size_t family;
-    size_t core_id;
-    size_t physical_id;
+    unsigned int family;
+    unsigned int core_id;
+    unsigned int physical_id;
     char *model_name;
 } Cpu;
 
 GenericPointer int_allocator(char *s)
 {
-    size_t value = atoi(s);
+    unsigned int value = atoi(s);
     return (GenericPointer) value;
 }
 
@@ -59,19 +56,6 @@ void set_model_name(GenericPointer storage, GenericPointer data)
     cpu->model_name = (char *) data;
 }
 
-struct cpu_sensor_t {
-    //TODO: check the reset of the msr registers
-#warning "Check the reset of the msr registers"
-    size_t cpu_id;
-    size_t package_id;
-    char *name;
-
-    int *fd;
-    uint64_t energy_units;
-    uint64_t core_energy;
-    uint64_t pkg_energy;
-};
-
 int main(int argc, char const *argv[])
 {
     Cpu cpus[MAX_PROCS];
@@ -91,7 +75,7 @@ int main(int argc, char const *argv[])
                      .capacity = MAX_PROCS,
                      .storage_struct_size = sizeof(Cpu),
                      .keys = keys,
-                     .nb_keys = 6,
+                     .nb_keys = NB_KEYS,
                      .file = fopen("/proc/cpuinfo", "r")
                     };
 
@@ -99,19 +83,16 @@ int main(int argc, char const *argv[])
 
     for (unsigned int i = 0; i < parser.nb_stored; ++i) {
         printf("========== PROC[%d] ==========\n", i);
-        printf("Processor: %ld\n", cpus[i].processor);
+        printf("Processor: %u\n", cpus[i].processor);
         printf("Vendor ID: %s\n", cpus[i].vendor_id);
-        printf("Family: %ld\n", cpus[i].family);
-        printf("Core ID: %ld\n", cpus[i].core_id);
-        printf("Physical ID: %ld\n", cpus[i].physical_id);
+        printf("Family: %u\n", cpus[i].family);
+        printf("Core ID: %u\n", cpus[i].core_id);
+        printf("Physical ID: %u\n", cpus[i].physical_id);
         printf("Model Name: %s\n", cpus[i].model_name);
-        printf("==============================\n");
         free(cpus[i].vendor_id);
         free(cpus[i].model_name);
     }
-
-    printf("size = %ld\n", sizeof (struct cpu_sensor_t));
-
+        printf("==============================\n");
     return 0;
 }
 
