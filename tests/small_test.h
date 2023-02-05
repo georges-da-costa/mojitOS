@@ -237,8 +237,8 @@ int string_compare(char *string1, char *string2)
 
 char *string_format(char *buffer, char *string)
 {
-  UNUSED(buffer); 
-  return FMT_NULL(string);
+    UNUSED(buffer);
+    return FMT_NULL(string);
 }
 
 
