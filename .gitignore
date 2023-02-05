@@ -6,3 +6,5 @@ obj
 *.swp
 *.swo
 .vscode
+doc/test_main_ex
+doc/info_reader_ex
