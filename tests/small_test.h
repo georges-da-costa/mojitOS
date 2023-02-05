@@ -1,3 +1,23 @@
+/*******************************************************
+ Copyright (C) 2023-2023 Georges Da Costa <georges.da-costa@irit.fr>
+
+    This file is part of Mojitos.
+
+    Mojitos is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Mojitos is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
+
+*******************************************************/
+
 #ifndef __SMALL_TEST_H
 #define __SMALL_TEST_H
 
@@ -77,49 +97,48 @@
  * @param function_name The name of the test function to be called.
  */
 #define CALL_TFUNCTION(function_name) \
-  __error_counter__ += function_name(__indentation_level + 1)
-
+  do {__error_counter__ += function_name(__indentation_level + 1);} while(0)
 
 /**
  * @def TEST_STR(result, expected)
  * @brief Test strings
- * This macro is used to test strings. It takes two arguments: `result`, which is the string to be tested, and `expected`, which is the expected value of the string.
+ * This macro is used to test strings. It takes two arguments: `__result`, which is the string to be tested, and `__expected`, which is the expected value of the string.
  * The macro uses the `test_str()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
  *
- * @param result the string to be tested
- * @param expected the expected value of the string
+ * @param __result the string to be tested
+ * @param __expected the expected value of the string
  *
  * @code
  * TEST_STR("Hello", "Hello");
  * @endcode
  */
-#define TEST_STR(result, expected) \
-    __error_counter__ += test_str(__FILE__, __LINE__, __indentation_level, result, expected)
+#define TEST_STR(__result, __expected) \
+    do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, &str_interface);} while(0)
 
 /**
- * @def TEST_BOOLEAN(result, expected)
- * @brief Test booleans
- * This macro is used to test booleans. It takes two arguments: `result`, which is the boolean to be tested, and `expected`, which is the expected value of the boolean.
- * The macro uses the `test_boolean()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
+ * @def TEST_BOOL(__result, __expected)
+ * @brief Test bools
+ * This macro is used to test bools. It takes two arguments: `__result`, which is the bool to be tested, and `__expected`, which is the expected value of the bool.
+ * The macro uses the `test_bool()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
  *
- * @param result the boolean to be tested
- * @param expected the expected value of the boolean
+ * @param __result the bool to be tested
+ * @param __expected the expected value of the bool
  *
  * @code
- * TEST_BOOLEAN(1 == 1, true);
+ * TEST_BOOL(1 == 1, true);
  * @endcode
  */
-#define TEST_BOOLEAN(result, expected) \
-	__error_counter__ += test_boolean(__FILE__, __LINE__, __indentation_level, result, expected)
+#define TEST_BOOL(__result, __expected) \
+    do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, &bool_interface);} while (0)
 
 /**
- * @def TEST_PTR(result, expected)
+ * @def TEST_PTR(__result, __expected)
  * @brief Test pointers
- * This macro is used to test pointers. It takes two arguments: `result`, which is the pointer to be tested, and `expected`, which is the expected value of the pointer.
+ * This macro is used to test pointers. It takes two arguments: `__result`, which is the pointer to be tested, and `__expected`, which is the expected value of the pointer.
  * The macro uses the `test_ptr()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
  *
- * @param result the pointer to be tested
- * @param expected the expected value of the pointer
+ * @param __result the pointer to be tested
+ * @param __expected the expected value of the pointer
  *
  * @code
  * int x = 5;
@@ -127,47 +146,48 @@
  * TEST_PTR(ptr, &x);
  * @endcode
  */
-#define TEST_PTR(result, expected) \
-	__error_counter__ += test_ptr(__FILE__, __LINE__, __indentation_level, result, expected)
+#define TEST_PTR(__result, __expected) \
+	do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, &ptr_interface);} while(0)
 
 
 /**
- * @def TEST_UINT64_T(result, expected)
+ * @def TEST_UINT64_T(__result, __expected)
  * @brief Test 64-bit unsigned integers
- * This macro is used to test 64-bit unsigned integers. It takes two arguments: `result`, which is the integer to be tested, and `expected`, which is the expected value of the integer.
+ * This macro is used to test 64-bit unsigned integers. It takes two arguments: `__result`, which is the integer to be tested, and `__expected`, which is the expected value of the integer.
  * The macro uses the `test_uint64_t()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
  *
- * @param result the integer to be tested
- * @param expected the expected value of the integer
+ * @param __result the integer to be tested
+ * @param __expected the expected value of the integer
  *
  * @code
  * TEST_UINT64_T(5, 5);
  * @endcode
  */
-#define TEST_UINT64_T(result, expected) \
-	__error_counter__ += test_uint64_t(__FILE__, __LINE__, __indentation_level, result, expected)
+#define TEST_UINT64_T(__result, __expected) \
+	do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, &u64_interface);} while(0)
+
+#define TEST_INTERFACE(__result, __expected, __interface) \
+	do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, __interface);} while(0)
 
 /**
  * @def TEST_T_ARRAY(function, nb_error, size, results, expecteds)
  * @brief Test arrays of data
- * The macro uses a for loop to iterate through the array and apply the test function to each element,
- * adding any errors to the nb_error variable.
+ * The macro uses a for loop to iterate through the array and apply the test function to each element.
  *
- * @param function the test function to be used on each element of the array
- * @param nb_error the number of errors encountered during the test
- * @param size the number of elements in the array
- * @param results the array of elements to be tested
- * @param expecteds the array of expected values
+ * @param __test_macro the test function to be used on each element of the array
+ * @param __array_size the number of elements in the array
+ * @param __results the array of elements to be tested
+ * @param __expecteds the array of expected values
 
  * @code
  * int results[3] = {1, 2, 3};
  * int expecteds[3] = {1, 2, 3};
- * TEST_T_ARRAY(TEST_INT, errors, 3, results, expecteds);
+ * TEST_T_ARRAY(TEST_INT, 3, results, expecteds);
  * @endcode
 */
-#define TEST_T_ARRAY(function, size, results, expecteds)	\
-	for (unsigned int i = 0; i < size; i++) {						\
-		function(results[i], expecteds[i]);				\
+#define TEST_T_ARRAY(__test_macro, __array_size, __results, __expecteds)  \
+	for (unsigned int i = 0; i < __array_size; i++) {                       \
+      __test_macro(__results[i], __expecteds[i]);                         \
 	}
 
 
@@ -213,45 +233,70 @@
 
 #define DEFERRED_FILE_ERROR(nb_error) \
     INDENTED_PRINT("|_Deferred Error : %u\n",nb_error);
-//INDENTED_PRINT("Deferred Error in %s: %d\n",__FILE__, nb_error);
 
 #define DEFERRED_FUNCTION_ERROR(nb_error) \
     INDENTED_PRINT("|_Deferred Error : %d\n",nb_error);
 
-#define FMT_NULL(string) \
-	string = string ? string : "NULL"
-
 typedef int (Comparator) (void *, void *);
 typedef char *(Formatter) (char *, void *);
 
-int string_compare(char *string1, char *string2)
+typedef struct {
+    Comparator *compare;
+    Formatter *format;
+} TestInterface;
+
+//  ---------------------------str_interface
+
+int str_compare(void *ptr1, void *ptr2)
 {
-    if (string1 == NULL && string2 == NULL) {
+    char *str1 = (char *) ptr1;
+    char *str2 = (char *) ptr2;
+
+    if (str1 == NULL && str2 == NULL) {
         return 1;
-    } else if (string1 == NULL || string2 == NULL) {
+    } else if (str1 == NULL || str2 == NULL) {
         return 0;
     } else {
-        return (strcmp(string1, string2) == 0);
+        return (strcmp(str1, str2) == 0);
     }
 }
 
-char *string_format(char *buffer, char *string)
+char *str_format(char *buffer, void *ptr)
 {
     UNUSED(buffer);
-    return FMT_NULL(string);
+    static char *str_null = "NULL";
+    char *str = (char *) ptr;
+    return str ? str : str_null;
 }
 
+static const TestInterface str_interface = {
+    .compare = str_compare,
+    .format = str_format
+};
 
-int boolean_compare(bool *boolean1, bool *boolean2)
+//  --------------------------bool_interface
+
+
+int bool_compare(void *ptr1, void *ptr2)
 {
-    return *boolean1 == *boolean2;
+    bool *bool1 = (bool *) ptr1;
+    bool *bool2 = (bool *) ptr2;
+    return *bool1 == *bool2;
 }
 
-char *boolean_format(char *buffer, bool *boolean)
+char *bool_format(char *buffer, void *ptr)
 {
     UNUSED(buffer);
-    return *boolean ? "True" : "False";
+    bool *_bool = (bool *) ptr;
+    return *_bool ? "True" : "False";
 }
+
+static const TestInterface bool_interface = {
+    .compare = bool_compare,
+    .format = bool_format
+};
+
+// ---------------------------ptr_interface
 
 int ptr_compare(void *ptr1, void *ptr2)
 {
@@ -264,63 +309,48 @@ char *ptr_format(char *buffer, void *ptr)
     return buffer;
 }
 
+static const TestInterface ptr_interface = {
+    .compare = ptr_compare,
+    .format = ptr_format
+};
 
-int uint64_t_compare(uint64_t *value1, uint64_t *value2)
+// ---------------------------u64_interface
+
+int u64_compare(void *ptr1, void *ptr2)
 {
-    return *value1 == *value2;
+    uint64_t *v1 = (uint64_t *) ptr1;
+    uint64_t *v2 = (uint64_t *) ptr2;
+    return *v1 == *v2;
 }
 
-char *uint64_t_format(char *buffer, uint64_t *value)
+char *u64_format(char *buffer, void *ptr)
 {
-    sprintf(buffer, "%"PRIu64"", *value);
+    uint64_t *v = (uint64_t *) ptr;
+    sprintf(buffer, "%"PRIu64"", *v);
     return buffer;
 }
 
-int test(char *file, int line, unsigned int __indentation_level, void *result, void *expected, Comparator *compare, Formatter *format)
+static const TestInterface u64_interface = {
+    .compare = u64_compare,
+    .format = u64_format
+};
+
+// ---------------------------test_function
+
+int test(char *file, int line, unsigned int __indentation_level, void *result, void *expected, const TestInterface *interface)
 {
-    __indentation_level++;
+    __indentation_level += 1;
     static char buffer_result[1000];
     static char buffer_expected[1000];
-    int is_equal = compare(result, expected);
+    int is_equal = interface->compare(result, expected);
 
-    char *fmt_result = format(buffer_result, expected);
-    char *fmt_expected = format(buffer_expected, result);
+    char *fmt_result = interface->format(buffer_expected, expected);
+    char *fmt_expected = interface->format(buffer_result, result);
     if  (!is_equal) {
         INDENTED_PRINT("%s:%d: failed, expected <%s>, got <%s>\n", file, line, fmt_expected, fmt_result);
     }
     return !is_equal;
 }
 
-int test_str(char *file, int line,unsigned int __indentation_level, char *result, char *expected)
-{
-    Comparator *compare = (Comparator *) string_compare;
-    Formatter *format = (Formatter *) string_format;
-
-    return test(file, line, __indentation_level, result, expected, compare, format);
-}
-
-int test_boolean(char *file, int line, unsigned int __indentation_level, bool *result, bool *expected)
-{
-    Comparator *compare = (Comparator *) boolean_compare;
-    Formatter *format = (Formatter *) boolean_format;
-
-    return test(file, line, __indentation_level, (int *) result, (void *) expected, compare, format);
-}
-
-int test_ptr(char *file, int line, unsigned int __indentation_level, void *result, void *expected)
-{
-    Comparator *compare = (Comparator *) ptr_compare;
-    Formatter *format = (Formatter *) ptr_format;
-
-    return test(file, line, __indentation_level, result, expected, compare, format);
-}
-
-int test_uint64_t(char *file, int line, unsigned int __indentation_level, void *result, void *expected)
-{
-    Comparator *compare = (Comparator *) uint64_t_compare;
-    Formatter *format = (Formatter *) uint64_t_format;
-
-    return test(file, line, __indentation_level, (uint64_t *)result, (uint64_t *)expected, compare, format);
-}
 #endif
 
