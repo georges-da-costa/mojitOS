@@ -7,10 +7,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "../src/util.h"
+
 // ---------------------------API_INTERFACE
-
-
-
 #define TMAIN(code)                                              \
   int main()                                                     \
 {                                                                \
@@ -236,9 +235,10 @@ int string_compare(char *string1, char *string2)
     }
 }
 
-char *string_format(__attribute__((unused)) char *buffer, char *string)
+char *string_format(char *buffer, char *string)
 {
-    return FMT_NULL(string);
+  UNUSED(buffer); 
+  return FMT_NULL(string);
 }
 
 
@@ -247,8 +247,9 @@ int boolean_compare(bool *boolean1, bool *boolean2)
     return *boolean1 == *boolean2;
 }
 
-char *boolean_format(__attribute__((unused)) char *buffer, bool *boolean)
+char *boolean_format(char *buffer, bool *boolean)
 {
+    UNUSED(buffer);
     return *boolean ? "True" : "False";
 }
 
