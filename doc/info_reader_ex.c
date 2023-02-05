@@ -92,7 +92,7 @@ int main(int argc, char const *argv[])
         free(cpus[i].vendor_id);
         free(cpus[i].model_name);
     }
-        printf("==============================\n");
+    printf("==============================\n");
     return 0;
 }
 
