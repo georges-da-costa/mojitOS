@@ -116,15 +116,15 @@ do {                                             \
     .energy_units = NONE,                        \
     .core_energy = NONE,                         \
   };                                             \
-	} while(0);
+} while(0);
 
 #define DUMMY_RAPL(__rapl, __sensors, __sensors_count) \
-	do {                                                 \
-		__rapl = (_amd_rapl_t) {                           \
-			.sensors = __sensors,                            \
-			.sensor_count = __sensors_count                 \
-		};                                                 \
-	} while(0);
+do {                                                   \
+    __rapl = (_amd_rapl_t) {                           \
+        .sensors = __sensors,                          \
+        .sensor_count = __sensors_count                \
+    };                                                 \
+} while(0);
 
 TFUNCTION(test_label_amd_rapl, {
     cpu_sensor_t sensors[100];
@@ -142,7 +142,7 @@ TFUNCTION(test_label_amd_rapl, {
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
     // -- Verification
-    TEST_T_ARRAY(TEST_STR, nb, results, expecteds);
+    TEST_PTR_ARRAY(TEST_STR, nb, results, expecteds);
 
     // Test 2:
     // -- Setup
@@ -159,7 +159,7 @@ TFUNCTION(test_label_amd_rapl, {
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
     // -- Verification
-    TEST_T_ARRAY(TEST_STR, nb, results, expecteds);
+    TEST_PTR_ARRAY(TEST_STR, nb, results, expecteds);
 
     // Test 3:
     // -- Setup
@@ -176,13 +176,109 @@ TFUNCTION(test_label_amd_rapl, {
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
     // -- Verification
-    TEST_T_ARRAY(TEST_STR, nb, results, expecteds);
+    TEST_PTR_ARRAY(TEST_STR, nb, results, expecteds);
 })
+
+
+#define DUMMY_CPUINFO(__sensor, __cpu_id, __package_id, __core_id) \
+do {                                                               \
+    __sensor = (cpu_sensor_t) {                                    \
+        .cpu_id = __cpu_id,                                        \
+        .package_id = __package_id,                                \
+        .core_id = __core_id,                                      \
+        .name = NULL,                                              \
+        .fd = NONE,                                                \
+        .energy_units = NONE,                                      \
+        .core_energy = NONE                                        \
+    };                                                             \
+} while (0);
+
+TFUNCTION(test_is_duplicate, {
+    static const unsigned int nb_core = 4;
+    static const unsigned int nb_package = 2;
+    static const unsigned int max_cpu = 10;
+
+    unsigned char map[nb_core * nb_package];
+    cpu_sensor_t cpu_information[max_cpu];
+    unsigned int results[2];
+    unsigned int expecteds[2];
+
+    // -- Setup
+    memset(map, NONE, sizeof(unsigned char) * nb_package * nb_core);
+    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
+    expecteds[0] = 1;
+    expecteds[1] = 0;
+    // -- Run
+    results[0] = is_duplicate(&cpu_information[0], map, nb_core);
+    results[1] = is_duplicate(&cpu_information[0], map, nb_core);
+    // -- Verification
+    TEST_BOOL(&results[0], &expecteds[0]);
+    TEST_BOOL(&results[1], &expecteds[1]);
+
+    // -- Setup
+    memset(map, NONE, sizeof(unsigned char) * nb_package * nb_core);
+    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
+    DUMMY_CPUINFO(cpu_information[1], 0, 1, 1);
+    expecteds[0] = 1;
+    expecteds[1] = 0;
+    // -- Run
+    results[0] = is_duplicate(&cpu_information[0], map, nb_core);
+    results[1] = is_duplicate(&cpu_information[1], map, nb_core);
+    // -- Verification
+    TEST_BOOL(&results[0], &expecteds[0]);
+    TEST_BOOL(&results[1], &expecteds[1]);
+
+    // -- Setup
+    memset(map, NONE, sizeof(unsigned char) * nb_package * nb_core);
+    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
+    DUMMY_CPUINFO(cpu_information[1], 0, 0, 0);
+    expecteds[0] = 1;
+    expecteds[1] = 1;
+    // -- Run
+    results[0] = is_duplicate(&cpu_information[0], map, nb_core);
+    results[1] = is_duplicate(&cpu_information[1], map, nb_core);
+    // -- Verification
+    TEST_BOOL(&results[0], &expecteds[0]);
+    TEST_BOOL(&results[1], &expecteds[1]);
+
+    // -- Setup
+    memset(map, NONE, sizeof(unsigned char) * nb_package * nb_core);
+    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
+    DUMMY_CPUINFO(cpu_information[1], 0, 1, 0);
+    expecteds[0] = 1;
+    expecteds[1] = 1;
+    // -- Run
+    results[0] = is_duplicate(&cpu_information[0], map, nb_core);
+    results[1] = is_duplicate(&cpu_information[1], map, nb_core);
+    // -- Verification
+    TEST_BOOL(&results[0], &expecteds[0]);
+    TEST_BOOL(&results[1], &expecteds[1]);
+
+    // -- Setup
+    memset(map, NONE, sizeof(unsigned char) * nb_package * nb_core);
+    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
+    DUMMY_CPUINFO(cpu_information[1], 0, 0, 1);
+    expecteds[0] = 1;
+    expecteds[1] = 1;
+    // -- Run
+    results[0] = is_duplicate(&cpu_information[0], map, nb_core);
+    results[1] = is_duplicate(&cpu_information[1], map, nb_core);
+    // -- Verification
+    TEST_BOOL(&results[0], &expecteds[0]);
+    TEST_BOOL(&results[1], &expecteds[1]);
+})
+
 
 TFILE_ENTRY_POINT(test_amd_rapl, {
     CALL_TFUNCTION(test_raw_to_microjoule);
     CALL_TFUNCTION(test_get_name);
     CALL_TFUNCTION(test_label_amd_rapl);
+    CALL_TFUNCTION(test_is_duplicate);
 })
 
 #ifdef __TESTING__AMD__

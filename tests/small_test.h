@@ -33,15 +33,17 @@
 /**
  * @brief Define the entry point of the tests
  * It initializes each useful variables.
+ *
+ * @param __code The code that contains the calls to the test functions
  */
 
-#define TMAIN(code)                                              \
+#define TMAIN(__code)                                              \
   int main()                                                     \
 {                                                                \
   unsigned int __indentation_level = 0;                          \
   INDENTED_PRINT("%s:%s\n", __FILE__, __func__);                 \
   unsigned int __error_counter__ = 0;                            \
-  do code while (0);                                             \
+  do __code while (0);                                             \
   DEFERRED_FILE_ERROR(__error_counter__);                        \
   return __error_counter__;                                      \
 }
@@ -108,7 +110,6 @@
  * @def TEST_STR(result, expected)
  * @brief Test strings
  * This macro is used to test strings. It takes two arguments: `__result`, which is the string to be tested, and `__expected`, which is the expected value of the string.
- * The macro uses the `test_str()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
  *
  * @param __result the string to be tested
  * @param __expected the expected value of the string
@@ -124,23 +125,43 @@
  * @def TEST_BOOL(__result, __expected)
  * @brief Test bools
  * This macro is used to test bools. It takes two arguments: `__result`, which is the bool to be tested, and `__expected`, which is the expected value of the bool.
- * The macro uses the `test_bool()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
  *
- * @param __result the bool to be tested
- * @param __expected the expected value of the bool
+ * @param __result the pointer to bool to be tested
+ * @param __expected the pointer to the expected value of the bool
  *
  * @code
- * TEST_BOOL(1 == 1, true);
+ * bool x = true;
+ * bool y = false;
+ * TEST_BOOL(&x, &y);
  * @endcode
  */
 #define TEST_BOOL(__result, __expected) \
     do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, &bool_interface);} while (0)
 
 /**
+ * @def TEST_INT(__result, __expected)
+ * @brief Test ints
+ * This macro is used to test ints. It takes two arguments: `__result`, which is the int to be tested, and `__expected`, which is the expected value of the int.
+ *
+ * @param __result the pointer to int to be tested
+ * @param __expected the pointer to expected value of the int
+ *
+ * @code
+ * int x = 1;
+ * int y = 1;
+ * TEST_INT(&x, &y)
+ * @endcode
+ */
+#define TEST_INT(__result, __expected) \
+    do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, &int_interface);} while (0)
+
+
+
+
+/**
  * @def TEST_PTR(__result, __expected)
  * @brief Test pointers
  * This macro is used to test pointers. It takes two arguments: `__result`, which is the pointer to be tested, and `__expected`, which is the expected value of the pointer.
- * The macro uses the `test_ptr()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
  *
  * @param __result the pointer to be tested
  * @param __expected the expected value of the pointer
@@ -159,24 +180,38 @@
  * @def TEST_UINT64_T(__result, __expected)
  * @brief Test 64-bit unsigned integers
  * This macro is used to test 64-bit unsigned integers. It takes two arguments: `__result`, which is the integer to be tested, and `__expected`, which is the expected value of the integer.
- * The macro uses the `test_uint64_t()` function to perform the test, and provides the `__FILE__`, `__LINE__` preprocessor macros to indicate the location of the test in the source code.
  *
- * @param __result the integer to be tested
- * @param __expected the expected value of the integer
+ * @param __result the pointer to integer to be tested
+ * @param __expected the pointer to expected value of the integer
  *
  * @code
- * TEST_UINT64_T(5, 5);
+ * uint64_t x = 5;
+ * uint64_t y = 5;
+ * TEST_UINT64_T(&x, &y);
  * @endcode
  */
 #define TEST_UINT64_T(__result, __expected) \
-	do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, &u64_interface);} while(0)
-
-#define TEST_INTERFACE(__result, __expected, __interface) \
-	do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, __interface);} while(0)
-
+    do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, &u64_interface);} while(0)
 
 /**
- * @def TEST_T_ARRAY(function, nb_error, size, results, expecteds)
+ * @def TEST_INTERFACE(__result, __expected, __interface)
+ * @brief Define a macro on a usertype with the given __interface
+ * This macro is used by the user to define a new test macro on a usertype.
+ *
+ * @param __result
+ * @param __expected
+ * @param __interface the usertype interface
+ *
+ * @code
+ * #define TEST_USERTYPE(__result, __expected)
+ * TEST_INTERFACE(__result, __expected, usertype_interface)
+ * @endcode
+ */
+#define TEST_INTERFACE(__result, __expected, __interface) \
+    do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, __interface);} while(0)
+
+/**
+ * @def TEST_T_ARRAY(__test_macro, __size, __results, __expecteds)
  * @brief Test arrays of data
  * The macro uses a for loop to iterate through the array and apply the test function to each element.
  *
@@ -188,15 +223,33 @@
  * @code
  * int results[3] = {1, 2, 3};
  * int expecteds[3] = {1, 2, 3};
- * TEST_T_ARRAY(TEST_INT, 3, results, expecteds);
+ * TEST_ARRAY(TEST_INT, 3, results, expecteds);
  * @endcode
 */
-#define TEST_T_ARRAY(__test_macro, __array_size, __results, __expecteds)  \
-	for (unsigned int i = 0; i < __array_size; i++) {                       \
+#define TEST_ARRAY(__test_macro, __array_size, __results, __expecteds) \
+    for (unsigned i = 0; i < __array_size; i++) {                      \
+        __test_macro(&__results[i], &__expecteds[i]);                   \
+    }
+
+/**
+ * @def TEST_T_PTR_ARRAY(__test_macro, __array_size, __results, __expecteds)
+ * @brief Test arrays of pointer
+ * The macro uses a for loop to iterate through the array and apply the test function to each element.
+ *
+ * @param __test_macro the test function to be used on each element of the array
+ * @param __array_size the number of elements in the array
+ * @param __results the array of elements to be tested
+ * @param __expecteds the array of expected values
+
+ * @code
+ * void* array[3];
+ * TEST_PTR_ARRAY(TEST_PTR, 3, array, array);
+ * @endcode
+*/
+#define TEST_PTR_ARRAY(__test_macro, __array_size, __results, __expecteds)  \
+    for (unsigned int i = 0; i < __array_size; i++) {                     \
       __test_macro(__results[i], __expecteds[i]);                         \
-	}
-
-
+    }
 // --------------------------------API_CODE
 // These functions should not be used, only use the previous macros.
 
@@ -261,7 +314,6 @@ static const TestInterface str_interface = {
 
 //  --------------------------bool_interface
 
-
 int bool_compare(void *ptr1, void *ptr2)
 {
     bool *bool1 = (bool *) ptr1;
@@ -279,6 +331,27 @@ char *bool_format(char *buffer, void *ptr)
 static const TestInterface bool_interface = {
     .compare = bool_compare,
     .format = bool_format
+};
+
+// ---------------------------int_interface
+
+int int_compare(void *ptr1, void *ptr2)
+{
+    int *int1 = (int *) ptr1;
+    int *int2 = (int *) ptr2;
+    return *int1 == *int2;
+}
+
+char *int_format(char buffer[1000], void *ptr)
+{
+    int *_int = (int *) ptr;
+    snprintf(buffer, 1000, "%d", *_int);
+    return buffer;
+}
+
+static const TestInterface int_interface = {
+    .compare = int_compare,
+    .format = int_format
 };
 
 // ---------------------------ptr_interface

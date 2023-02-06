@@ -35,6 +35,20 @@ TFUNCTION(test_should_fail, {
     TEST_STR(result, expected);
 })
 
+// -- A simple test of array
+TFUNCTION(test_array, {
+    static unsigned int size = 10;
+    int array[10];
+    TEST_ARRAY(TEST_INT, size, array, array);
+})
+
+// -- A simple test of array of pointer
+TFUNCTION(test_ptr_array, {
+    static unsigned int size = 10;
+    void *array[10];
+    TEST_PTR_ARRAY(TEST_PTR, size, array, array);
+})
+
 // -- Add a new type in the test framework
 
 typedef struct {
@@ -89,24 +103,21 @@ TFUNCTION(test_user_type, {
 
 // -- Compare an array of usetype
 TFUNCTION(test_array_user_type, {
-    UserType *results[1];
-    UserType *expecteds[1];
+    UserType results[1];
+    UserType expecteds[1];
 
-    UserType x1;
-    UserType x2;
-    DUMMY_USER_TYPE(x1, 1, "John Doe");
-    DUMMY_USER_TYPE(x2, 1, "John Doe");
+    DUMMY_USER_TYPE(results[0], 1, "John Doe");
+    DUMMY_USER_TYPE(expecteds[0], 1, "John Doe");
 
-    results[0] = &x1;
-    expecteds[0] = &x2;
-
-    TEST_T_ARRAY(TEST_USER_TYPE, 1, (void **)results, (void **)expecteds);
+    TEST_ARRAY(TEST_USER_TYPE, 1, results, expecteds);
 })
 
 // Define the entry point of a test file
 TFILE_ENTRY_POINT(test_file_ex, {
     CALL_TFUNCTION(test_should_pass);
     CALL_TFUNCTION(test_should_fail);
+    CALL_TFUNCTION(test_array);
+    CALL_TFUNCTION(test_ptr_array);
     CALL_TFUNCTION(test_user_type);
     CALL_TFUNCTION(test_array_user_type);
 })

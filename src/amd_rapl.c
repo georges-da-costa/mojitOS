@@ -98,7 +98,8 @@ static KeyFinder keys[NB_KEYS] = {
 };
 
 
-static unsigned int parse_cpuinfo(cpu_sensor_t* storage, unsigned int capacity) {
+static unsigned int parse_cpuinfo(cpu_sensor_t *storage, unsigned int capacity)
+{
     Parser parser = {
         .storage = (GenericPointer) storage,
         .nb_stored = 0,
@@ -247,12 +248,13 @@ void update_cpu_sensor(cpu_sensor_t *sensor, uint64_t *energy_consumed)
     sensor->core_energy = core_energy;
 }
 
-unsigned int is_duplicate(cpu_sensor_t *sensor, unsigned char map[], unsigned int nb_core) {
+unsigned int is_duplicate(cpu_sensor_t *sensor, unsigned char map[], unsigned int nb_core)
+{
     if (map[sensor->core_id * nb_core + sensor->package_id]) {
-        return 1;
+        return 0;
     }
     map[sensor->core_id * nb_core + sensor->package_id] += 1;
-    return 0;
+    return 1;
 }
 
 void init_cpu_sensor(cpu_sensor_t *sensor, cpu_sensor_t *cpu_info)
@@ -307,8 +309,8 @@ unsigned int init_amd_rapl(char *none, void **ptr)
     unsigned int nb_core;
     get_arch(&nb_package, &nb_core, cpu_information, max_cpus);
 
-    unsigned char *cpu_map = (unsigned char*) calloc(nb_core * nb_package, sizeof(unsigned char));
-    cpu_sensor_t *sensors = (cpu_sensor_t*) calloc(max_cpus, sizeof(cpu_sensor_t));
+    unsigned char *cpu_map = (unsigned char *) calloc(nb_core * nb_package, sizeof(unsigned char));
+    cpu_sensor_t *sensors = (cpu_sensor_t *) calloc(max_cpus, sizeof(cpu_sensor_t));
 
     unsigned int sensor_count = 0;
     for (unsigned int i = 0; i < max_cpus; i++) {
