@@ -55,14 +55,14 @@ tests:
 	$(TESTS_DIR)/run
 
 format:
-	$(ASTYLE) $(SRC_DIR)/*.[ch]
-	$(ASTYLE) $(DOC_DIR)/*.[ch]
-	$(ASTYLE) $(TESTS_DIR)/*.[ch]
+	$(ASTYLE) $(SRC_DIR)/*.[ch] \
+		$(DOC_DIR)/*.[ch] \
+		$(TESTS_DIR)/*.[ch]
 
 clean:
-	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/*
-	\rm -f $(SRC_DIR)/counters_option.h
-	\rm -f $(TESTS_DIR)/run
+	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/* \
+		$(SRC_DIR)/counters_option.h \
+		$(TESTS_DIR)/run
 
 readme: $(BIN)
 	sh ./tools/update-readme-usage.sh
