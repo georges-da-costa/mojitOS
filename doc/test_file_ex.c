@@ -63,10 +63,10 @@ int usertype_compare(void *ptr1, void *ptr2)
     return memcmp(ptr1, ptr2, sizeof(UserType)) == 0;
 }
 
-char *usertype_format(char buffer[1000], void *ptr)
+char *usertype_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
 {
     UserType *x = (UserType *) ptr;
-    sprintf(buffer, "UserType {simple_int: %d, simple_str: %s}", x->simple_int, x->simple_str);
+    snprintf(buffer, FMT_BUFFER_SIZE, "UserType {simple_int: %d, simple_str: %s}", x->simple_int, x->simple_str);
     return buffer;
 }
 

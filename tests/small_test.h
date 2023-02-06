@@ -29,6 +29,8 @@
 
 #include "../src/util.h"
 
+#define FMT_BUFFER_SIZE 1000
+
 // ---------------------------API_INTERFACE
 /**
  * @brief Define the entry point of the tests
@@ -276,7 +278,7 @@
     INDENTED_PRINT("|_Deferred Error : %d\n",nb_error);
 
 typedef int (Comparator) (void *, void *);
-typedef char *(Formatter) (char *, void *);
+typedef char *(Formatter) (char[FMT_BUFFER_SIZE], void *);
 
 typedef struct {
     Comparator *compare;
@@ -299,7 +301,7 @@ int str_compare(void *ptr1, void *ptr2)
     }
 }
 
-char *str_format(char *buffer, void *ptr)
+char *str_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
 {
     UNUSED(buffer);
     static char *str_null = "NULL";
@@ -321,7 +323,7 @@ int bool_compare(void *ptr1, void *ptr2)
     return *bool1 == *bool2;
 }
 
-char *bool_format(char *buffer, void *ptr)
+char *bool_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
 {
     UNUSED(buffer);
     bool *_bool = (bool *) ptr;
@@ -342,10 +344,10 @@ int int_compare(void *ptr1, void *ptr2)
     return *int1 == *int2;
 }
 
-char *int_format(char buffer[1000], void *ptr)
+char *int_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
 {
     int *_int = (int *) ptr;
-    snprintf(buffer, 1000, "%d", *_int);
+    snprintf(buffer, FMT_BUFFER_SIZE, "%d", *_int);
     return buffer;
 }
 
@@ -361,9 +363,9 @@ int ptr_compare(void *ptr1, void *ptr2)
     return ptr1 == ptr2;
 }
 
-char *ptr_format(char *buffer, void *ptr)
+char *ptr_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
 {
-    sprintf(buffer, "%p", ptr);
+    snprintf(buffer, FMT_BUFFER_SIZE, "%p", ptr);
     return buffer;
 }
 
@@ -381,10 +383,10 @@ int u64_compare(void *ptr1, void *ptr2)
     return *v1 == *v2;
 }
 
-char *u64_format(char *buffer, void *ptr)
+char *u64_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
 {
     uint64_t *v = (uint64_t *) ptr;
-    sprintf(buffer, "%"PRIu64"", *v);
+    snprintf(buffer, FMT_BUFFER_SIZE, "%"PRIu64"", *v);
     return buffer;
 }
 
@@ -398,8 +400,8 @@ static const TestInterface u64_interface = {
 int test(char *file, int line, unsigned int __indentation_level, void *result, void *expected, const TestInterface *interface)
 {
     __indentation_level += 1;
-    static char buffer_result[1000];
-    static char buffer_expected[1000];
+    static char buffer_result[FMT_BUFFER_SIZE];
+    static char buffer_expected[FMT_BUFFER_SIZE];
     int is_equal = interface->compare(result, expected);
 
     char *fmt_result = interface->format(buffer_expected, expected);
