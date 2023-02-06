@@ -314,7 +314,7 @@ unsigned int init_amd_rapl(char *none, void **ptr)
 
     unsigned int sensor_count = 0;
     for (unsigned int i = 0; i < max_cpus; i++) {
-        if (!is_duplicate(cpu_information, cpu_map, nb_core)) {
+        if (is_duplicate(cpu_information, cpu_map, nb_core) == 1) {
             init_cpu_sensor(&sensors[sensor_count],&cpu_information[i]);
             sensor_count += 1;
         }

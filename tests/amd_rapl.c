@@ -200,8 +200,8 @@ TFUNCTION(test_is_duplicate, {
 
     unsigned char map[nb_core * nb_package];
     cpu_sensor_t cpu_information[max_cpu];
-    unsigned int results[2];
-    unsigned int expecteds[2];
+    unsigned int results[max_cpu];
+    unsigned int expecteds[max_cpu];
 
     // -- Setup
     memset(map, NONE, sizeof(unsigned char) * nb_package * nb_core);
@@ -271,6 +271,26 @@ TFUNCTION(test_is_duplicate, {
     // -- Verification
     TEST_BOOL(&results[0], &expecteds[0]);
     TEST_BOOL(&results[1], &expecteds[1]);
+    
+    // -- Setup
+    memset(map, NONE, sizeof(unsigned char) * nb_package * nb_core);
+    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    DUMMY_CPUINFO(cpu_information[0], 0, 0, 0);
+    DUMMY_CPUINFO(cpu_information[1], 0, 0, 1);
+    DUMMY_CPUINFO(cpu_information[2], 0, 1, 0);
+    DUMMY_CPUINFO(cpu_information[3], 0, 1, 1);
+    DUMMY_CPUINFO(cpu_information[4], 0, 0, 0);
+    DUMMY_CPUINFO(cpu_information[5], 0, 0, 1);
+    DUMMY_CPUINFO(cpu_information[6], 0, 1, 0);
+    DUMMY_CPUINFO(cpu_information[7], 0, 1, 1);
+    memset(expecteds, 1, sizeof(unsigned int) * 4);
+    memset(&expecteds[4], 0, sizeof(unsigned int) * 4);
+    // -- Run
+    for (unsigned int i = 0; i < 8; i++) {
+        results[i] = is_duplicate(&cpu_information[i], map, nb_core);
+    }
+    // -- Verification
+    TEST_ARRAY(TEST_BOOL, 8, results, expecteds);
 })
 
 
