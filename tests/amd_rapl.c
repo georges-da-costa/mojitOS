@@ -179,48 +179,24 @@ TFUNCTION(test_label_amd_rapl, {
     TEST_T_ARRAY(TEST_STR, nb, results, expecteds);
 })
 
-TFUNCTION(test_init_cpu_sensor, {
-    static const unsigned int max_cpus = 10;
-    unsigned char cpus_map[max_cpus * max_cpus];
-    cpu_sensor_t sensor_t1;
-    unsigned int result;
-    unsigned int expected;
-
-    // Test 1:
-    // -- Setup
-    memset(cpus_map, 0, max_cpus *max_cpus * sizeof(unsigned char));
-    result = 0;
-    expected = 1;
-    memset(&sensor_t1, 0, sizeof(cpu_sensor_t));
-    sensor_t1.cpu_id = 1;
-    sensor_t1.core_id = 0;
-    sensor_t1.package_id = 0;
-    // -- Run
-    result = init_cpu_sensor(&sensor_t1, 0, cpus_map, max_cpus);
-    // -- Verification
-    TEST_UINT64_T(&result, &expected);
-})
-
 TFILE_ENTRY_POINT(test_amd_rapl, {
     CALL_TFUNCTION(test_raw_to_microjoule);
     CALL_TFUNCTION(test_get_name);
     CALL_TFUNCTION(test_label_amd_rapl);
-    // CALL_TFUNCTION(test_init_cpu_sensor);
 })
 
 #ifdef __TESTING__AMD__
 int main()
 {
-    test_amd_rapl();
     static const unsigned int time = 10;
     _amd_rapl_t *rapl = NULL;
-    unsigned int nb_cpu = init_amd_rapl(NULL, (void **) &rapl);
-    uint64_t results[nb_cpu];
-    char *labels[nb_cpu];
+    unsigned int count_cpu = init_amd_rapl(NULL, (void **) &rapl);
+    uint64_t results[count_cpu];
+    char *labels[count_cpu];
 
     label_amd_rapl(labels, (void *) rapl);
 
-    for (unsigned int i = 0; i < rapl->nb; ++i) {
+    for (unsigned int i = 0; i < rapl->sensor_count; ++i) {
         printf("%s ", labels[i]);
     }
     printf("\n");
@@ -231,7 +207,7 @@ int main()
         sleep(1);
         get_amd_rapl(results, (void *)rapl);
 
-        for (unsigned int j = 0; j < rapl->nb; ++j) {
+        for (unsigned int j = 0; j < rapl->sensor_count; ++j) {
             printf("%ld ", results[j]);
         }
         printf("\n");

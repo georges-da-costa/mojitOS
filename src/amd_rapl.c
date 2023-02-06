@@ -30,6 +30,7 @@
 #include "util.h"
 
 #define BUFFER_SIZE 64
+#define __READ_CPUINFO__
 
 // ---------------------------MSR_REGISTERS
 static const uint64_t amd_energy_mask = 0xFFFFFFFF;
@@ -62,11 +63,9 @@ typedef struct _amd_rapl_t _amd_rapl_t;
 // -----------------------------INFO_READER
 
 #ifdef __READ_CPUINFO__
-#warning "Must be modified before release"
-#define MAX_CPUS 64
 #define NB_KEYS 3
 
-static const char *cpuinfo = "/proc/cpuinfo";
+static char *cpuinfo = "/proc/cpuinfo";
 
 static GenericPointer uint_allocator(char *s)
 {
@@ -97,6 +96,21 @@ static KeyFinder keys[NB_KEYS] = {
     {"physical id", ": ", uint_allocator, _set_package_id},
     {"core id", ": ", uint_allocator, _set_core_id}
 };
+
+
+static unsigned int parse_cpuinfo(cpu_sensor_t* storage, unsigned int capacity) {
+    Parser parser = {
+        .storage = (GenericPointer) storage,
+        .nb_stored = 0,
+        .capacity = capacity,
+        .storage_struct_size = sizeof(cpu_sensor_t),
+        .keys = keys,
+        .nb_keys = NB_KEYS,
+        .file = fopen(cpuinfo, "r")
+    };
+    return parse(&parser);
+}
+
 #endif
 
 // --------------------------------READ_MSR
@@ -159,13 +173,14 @@ uint64_t raw_to_joule(uint64_t raw, uint64_t unit)
 void debug_print_sensor(cpu_sensor_t *sensor)
 {
     //CASSERT(sizeof(cpu_sensor_t) == 56, amd_rapl_c);
-    printf("cpu_id : %d, package_id : %d, name : %s, fd: %d,  energy_units : %d, core_energy: %ld\n",
+    printf("cpu_id : %d, package_id : %d, core_id : %d, name : %s, fd: %d,  energy_units : %d, core_energy: %ld\n",
            sensor->cpu_id,
            sensor->package_id,
+           sensor->core_id,
            sensor->name,
            sensor->fd,
            sensor->energy_units,
-           sensor->core_energy,
+           sensor->core_energy
           );
 }
 
@@ -197,6 +212,22 @@ unsigned int get_nb_cpu()
     return n_cpu;
 }
 
+void get_arch(unsigned int *ret_nb_package, unsigned int *ret_nb_core, cpu_sensor_t *sensors, unsigned int nb_sensor)
+{
+    unsigned int nb_package = 0;
+    unsigned int nb_core = 0;
+    for (unsigned int i = 0; i < nb_sensor; i++) {
+        if (sensors[i].package_id > nb_package) {
+            nb_package = sensors[i].package_id;
+        }
+        if (sensors[i].core_id > nb_core) {
+            nb_core = sensors[i].core_id;
+        }
+    }
+    *ret_nb_package = nb_package + 1;
+    *ret_nb_core = nb_core + 1;
+}
+
 char *get_name(unsigned int cpu_id)
 {
     static const char *base_name = "core%d";
@@ -216,27 +247,29 @@ void update_cpu_sensor(cpu_sensor_t *sensor, uint64_t *energy_consumed)
     sensor->core_energy = core_energy;
 }
 
-unsigned int init_cpu_sensor(cpu_sensor_t *sensor, unsigned int cpu_id, unsigned char *cpus_map, unsigned int max_cpus)
-{
-    if (cpus_map[sensor->core_id * max_cpus + sensor->package_id] > 0) {
-        return 0;
+unsigned int is_duplicate(cpu_sensor_t *sensor, unsigned char map[], unsigned int nb_core) {
+    if (map[sensor->core_id * nb_core + sensor->package_id]) {
+        return 1;
     }
-    cpus_map[sensor->core_id * max_cpus + sensor->package_id] += 1;
+    map[sensor->core_id * nb_core + sensor->package_id] += 1;
+    return 0;
+}
 
+void init_cpu_sensor(cpu_sensor_t *sensor, cpu_sensor_t *cpu_info)
+{
     static char filename[BUFFER_SIZE];
-    sprintf(filename, base_str, cpu_id);
+    snprintf(filename,BUFFER_SIZE, base_str, cpu_info->cpu_id);
 
     int fd = open(filename, O_RDONLY);
     if (fd < 0) {
-        fprintf(stderr, base_str, cpu_id);
+        fprintf(stderr, base_str, cpu_info->cpu_id);
         perror(":open()");
         exit(127);
     }
 
-    sensor->cpu_id = cpu_id;
-    sensor->name = get_name(cpu_id);
+    memcpy(sensor, cpu_info, sizeof(cpu_sensor_t));
+    sensor->name = get_name(sensor->cpu_id);
     sensor->fd = fd;
-    return 1;
 }
 
 void clean_cpu_sensor(cpu_sensor_t *sensor)
@@ -256,7 +289,6 @@ void free_amd_rapl(_amd_rapl_t *rapl)
 unsigned int init_amd_rapl(char *none, void **ptr)
 {
     UNUSED(none);
-    _amd_rapl_t *rapl = (_amd_rapl_t *) calloc(1, sizeof(_amd_rapl_t));
 
     unsigned int max_cpus = get_nb_cpu();
     if (max_cpus == 0) {
@@ -265,18 +297,32 @@ unsigned int init_amd_rapl(char *none, void **ptr)
         exit(127);
     }
 
-    unsigned char *cpus_map = calloc(max_cpus * max_cpus, sizeof(unsigned char));
-    cpu_sensor_t *cpus = (cpu_sensor_t *) calloc(max_cpus, sizeof(cpu_sensor_t));
-    rapl->sensors = cpus;
-
-    unsigned int nb_cpu = 0;
-    for (unsigned int i = 0; i < max_cpus; i++) {
-        nb_cpu += init_cpu_sensor(&rapl->sensors[nb_cpu], i, cpus_map, max_cpus);
+    cpu_sensor_t *cpu_information = (cpu_sensor_t *) calloc(max_cpus, sizeof(cpu_sensor_t));
+    if (parse_cpuinfo(cpu_information, max_cpus)) {
+        free(cpu_information);
+        PANIC(1, "cpuinfo");
     }
-    rapl->sensor_count = nb_cpu;
 
+    unsigned int nb_package;
+    unsigned int nb_core;
+    get_arch(&nb_package, &nb_core, cpu_information, max_cpus);
+
+    unsigned char *cpu_map = (unsigned char*) calloc(nb_core * nb_package, sizeof(unsigned char));
+    cpu_sensor_t *sensors = (cpu_sensor_t*) calloc(max_cpus, sizeof(cpu_sensor_t));
+
+    unsigned int sensor_count = 0;
+    for (unsigned int i = 0; i < max_cpus; i++) {
+        if (!is_duplicate(cpu_information, cpu_map, nb_core)) {
+            init_cpu_sensor(&sensors[sensor_count],&cpu_information[i]);
+            sensor_count += 1;
+        }
+    }
+    free(cpu_information);
+
+    _amd_rapl_t *rapl = (_amd_rapl_t *) calloc(1, sizeof(_amd_rapl_t));
+    rapl->sensors = sensors;
+    rapl->sensor_count = sensor_count;
     *ptr = (void *) rapl;
-    free(cpus_map);
     return rapl->sensor_count;
 }
 
