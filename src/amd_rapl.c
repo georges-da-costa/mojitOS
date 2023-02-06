@@ -248,12 +248,12 @@ void update_cpu_sensor(cpu_sensor_t *sensor, uint64_t *energy_consumed)
     sensor->core_energy = core_energy;
 }
 
-unsigned int is_duplicate(cpu_sensor_t *sensor, unsigned char map[], unsigned int nb_core)
+unsigned int is_duplicate(cpu_sensor_t *sensor,unsigned int nb_core, unsigned int nb_package, unsigned char map[nb_core][nb_package])
 {
-    if (map[sensor->core_id * nb_core + sensor->package_id]) {
+    if (map[sensor->core_id][sensor->package_id] == 1) {
         return 0;
     }
-    map[sensor->core_id * nb_core + sensor->package_id] += 1;
+    map[sensor->core_id][sensor->package_id] += 1;
     return 1;
 }
 
@@ -309,12 +309,13 @@ unsigned int init_amd_rapl(char *none, void **ptr)
     unsigned int nb_core;
     get_arch(&nb_package, &nb_core, cpu_information, max_cpus);
 
-    unsigned char *cpu_map = (unsigned char *) calloc(nb_core * nb_package, sizeof(unsigned char));
+    unsigned char cpu_map[nb_core][nb_package];
+    memset(cpu_map, 0, sizeof(cpu_map));
     cpu_sensor_t *sensors = (cpu_sensor_t *) calloc(max_cpus, sizeof(cpu_sensor_t));
 
     unsigned int sensor_count = 0;
     for (unsigned int i = 0; i < max_cpus; i++) {
-        if (is_duplicate(&cpu_information[i], cpu_map, nb_core) == 1) {
+        if (is_duplicate(&cpu_information[i], nb_core, nb_package, cpu_map) == 1) {
             init_cpu_sensor(&sensors[sensor_count],&cpu_information[i]);
             sensor_count += 1;
         }
