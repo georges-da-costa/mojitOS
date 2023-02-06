@@ -28,10 +28,17 @@
 #define NB_SENSOR 4
 
 static char *route = "/proc/net/route";
+char *_labels_network[NB_SENSOR] = {
+    "%s:rxp",
+    "%s:rxb",
+    "%s:txp",
+    "%s:txb",
+};
 struct network_t {
     uint64_t values[NB_SENSOR];
     uint64_t tmp_values[NB_SENSOR];
     int sources[NB_SENSOR];
+    char labels[NB_SENSOR][128];
 };
 
 unsigned int _get_network(uint64_t *results, int *sources)
@@ -53,8 +60,6 @@ unsigned int _get_network(uint64_t *results, int *sources)
 
     return NB_SENSOR;
 }
-
-
 
 unsigned int init_network(char *dev, void **ptr)
 {
@@ -79,25 +84,27 @@ unsigned int init_network(char *dev, void **ptr)
             exit(1);
         }
 
-        char *start_of_dev = index(buffer, '\n') + 1;
-        char *end_of_dev = index(start_of_dev, '\t');
+        char *start_of_dev = strchr(buffer, '\n') + 1;
+        char *end_of_dev = strchr(start_of_dev, '\t');
         *end_of_dev = '\0';
         dev = start_of_dev;
         close(fd);
     }
 
-    char *filenames[] = {"/sys/class/net/%s/statistics/rx_packets",
-                         "/sys/class/net/%s/statistics/rx_bytes",
-                         "/sys/class/net/%s/statistics/tx_packets",
-                         "/sys/class/net/%s/statistics/tx_bytes"
-                        };
+    char *filenames[] = {
+        "/sys/class/net/%s/statistics/rx_packets",
+        "/sys/class/net/%s/statistics/rx_bytes",
+        "/sys/class/net/%s/statistics/tx_packets",
+        "/sys/class/net/%s/statistics/tx_bytes",
+    };
 
     struct network_t *state = malloc(sizeof(struct network_t));
 
     char buffer2[256];
     for (int i = 0; i < NB_SENSOR; i++) {
-        sprintf(buffer2, filenames[i], dev);
+        snprintf(buffer2, sizeof(buffer2), filenames[i], dev);
         state->sources[i] = open(buffer2, O_RDONLY);
+        snprintf(state->labels[i], sizeof(state->labels[i]), _labels_network[i], dev);
     }
 
     *ptr = (void *) state;
@@ -134,12 +141,11 @@ void clean_network(void *ptr)
     free(state);
 }
 
-char *_labels_network[NB_SENSOR] = {"rxp", "rxb", "txp", "txb"};
-void label_network(char **labels, void *none)
+void label_network(char **labels, void *ptr)
 {
-    UNUSED(none);
+    struct network_t *state = (struct network_t *) ptr;
 
     for (int i = 0; i < NB_SENSOR; i++) {
-        labels[i] = _labels_network[i];
+        labels[i] = state->labels[i];
     }
 }
