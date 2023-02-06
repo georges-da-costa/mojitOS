@@ -73,7 +73,7 @@ struct optparse_long {
     enum optparse_argtype argtype;
     char *usage_arg;
     char *usage_msg;
-    void *(*fn)(void *, size_t);
+    void *(*fn)(void *, size_t);	/* SUBJECT TO CHANGE */
 };
 
 /**
