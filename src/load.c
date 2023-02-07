@@ -26,11 +26,12 @@
 #include "util.h"
 
 #define LOAD_BUFFER_SIZE 1024
+#define LOAD_VALUES_SIZE 10
 char buffer[LOAD_BUFFER_SIZE];
 
 static int load_fid = -1;
-static uint64_t load_values[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static uint64_t tmp_load_values[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static uint64_t load_values[LOAD_VALUES_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static uint64_t tmp_load_values[LOAD_VALUES_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static char *stat = "/proc/stat";
 
 void _get_load(uint64_t *results)
@@ -46,8 +47,8 @@ void _get_load(uint64_t *results)
         pos++;
     }
 
-    for (int i = 0; i < 10; i++) {
-        results[i] = strtoull(buffer + pos, NULL, 10);
+    for (int i = 0; i < LOAD_VALUES_SIZE; i++) {
+        results[i] = strtoull(buffer + pos, NULL, LOAD_VALUES_SIZE);
 
         while (buffer[pos] <= '9' && buffer[pos] >= '0') {
             pos++;
@@ -71,7 +72,7 @@ unsigned int init_load(char *argument, void **state)
     }
 
     _get_load(load_values);
-    return 10;
+    return LOAD_VALUES_SIZE;
 }
 
 unsigned int get_load(uint64_t *results, void *state)
@@ -79,12 +80,12 @@ unsigned int get_load(uint64_t *results, void *state)
     UNUSED(state);
     _get_load(tmp_load_values);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < LOAD_VALUES_SIZE; i++) {
         results[i] = tmp_load_values[i] - load_values[i];
     }
 
     memcpy(load_values, tmp_load_values, sizeof(load_values));
-    return 10;
+    return LOAD_VALUES_SIZE;
 }
 
 void clean_load(void *state)
@@ -93,14 +94,15 @@ void clean_load(void *state)
     close(load_fid);
 }
 
-char *_labels[10] = {"user", "nice", "system", "idle", "iowait", "irq",
-                     "softirq", "steal", "guest", "guest_nice"
-                    };
+char *_labels[LOAD_VALUES_SIZE] = {
+    "user", "nice", "system", "idle", "iowait", "irq",
+    "softirq", "steal", "guest", "guest_nice"
+};
 void label_load(char **labels, void *none)
 {
     UNUSED(none);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < LOAD_VALUES_SIZE; i++) {
         labels[i] = _labels[i];
     }
 }
