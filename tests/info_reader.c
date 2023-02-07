@@ -19,6 +19,7 @@
 *******************************************************/
 
 #include "small_test.h"
+#include "./../src/info_reader.h"
 
 TFUNCTION(test_replace_first, {
     // useful variables :

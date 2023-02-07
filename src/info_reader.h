@@ -19,7 +19,7 @@
 *******************************************************/
 
 #ifndef _INFO_READER_H
-#define _INFO_READER_
+#define _INFO_READER_H
 
 #include <string.h>
 #include <stdbool.h>
