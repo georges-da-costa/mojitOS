@@ -5,7 +5,7 @@
 # normally, this part is done with `configure.sh`, but here we need to
 # do this manually
 cat <<EOF > src/sensors.h
-#include "counter_ex.h"
+#include "sensor_ex.h"
 
 #define NB_SENSOR 1
 #define NB_SENSOR_OPT 1
@@ -13,22 +13,22 @@ cat <<EOF > src/sensors.h
 void init_sensors(Optparse *opts, Sensor *sensors, size_t len, size_t offset, int *nb_defined)
 {
     int opt_idx = offset;
-    for (int i = 0; i < counter_ex.nb_opt; i++) {
-        opts[opt_idx++] = counter_ex_opt[i];
+    for (int i = 0; i < sensor_ex.nb_opt; i++) {
+        opts[opt_idx++] = sensor_ex_opt[i];
     }
-    sensors[(*nb_defined)++] = counter_ex;
+    sensors[(*nb_defined)++] = sensor_ex;
     assert((offset + *nb_defined) <= len);
 }
 EOF
 
 # idem
-echo 'CAPTOR_OBJ = doc/counters_ex.o' > sensors.mk
+echo 'CAPTOR_OBJ = doc/sensor_ex.o' > sensors.mk
 
 # actual compilation here
-gcc -std=gnu99 -Wall -Wpedantic -I./lib -I./doc -I./src -g -Og -c doc/counter_ex.c -o obj/counter_ex.o
+gcc -std=gnu99 -Wall -Wpedantic -I./lib -I./doc -I./src -g -Og -c doc/sensor_ex.c -o obj/sensor_ex.o
 gcc -std=gnu99 -Wall -Wpedantic -I./lib -I./doc -I./src -g -Og -c doc/util.c -o obj/util.o
 gcc -std=gnu99 -Wall -Wpedantic -I./lib -I./doc -I./src -g -Og -c doc/mojitos.c -o obj/mojitos.o
-gcc -std=gnu99 -Wall -Wpedantic -I./lib -I./doc -I./src -g -Og obj/util.o obj/mojitos.o obj/counter_ex.o -o bin/mojitos
+gcc -std=gnu99 -Wall -Wpedantic -I./lib -I./doc -I./src -g -Og obj/util.o obj/mojitos.o obj/sensor_ex.o -o bin/mojitos
 
  *
 **/
