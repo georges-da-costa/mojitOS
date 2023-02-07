@@ -33,6 +33,8 @@
 
 // ---------------------------API_INTERFACE
 /**
+ * @def TMAIN(__code)
+ *
  * @brief Define the entry point for the tests.
  * It initialises any useful variables and acts as the main one.
  *
