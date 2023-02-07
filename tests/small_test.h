@@ -39,15 +39,15 @@
  * @param __code The code that contains the calls to the test functions.
  */
 
-#define TMAIN(__code)                                              \
-  int main()                                                     \
-{                                                                \
-  unsigned int __indentation_level = 0;                          \
-  INDENTED_PRINT("%s:%s\n", __FILE__, __func__);                 \
-  unsigned int __error_counter__ = 0;                            \
-  do __code while (0);                                             \
-  DEFERRED_ERROR(__error_counter__);                        \
-  return __error_counter__;                                      \
+#define TMAIN(__code)                            \
+  int main()                                     \
+{                                                \
+  unsigned int __indentation_level = 0;          \
+  INDENTED_PRINT("%s:%s\n", __FILE__, __func__); \
+  unsigned int __error_counter__ = 0;            \
+  do __code while (0);                           \
+  DEFERRED_ERROR(__error_counter__);             \
+  return __error_counter__;                      \
 }
 
 /**
@@ -72,7 +72,7 @@
   INIT_TEST_FILE();                                 \
   int __error_counter__ = 0;                        \
   do __code while(0);                               \
-  DEFERRED_ERROR(__error_counter__);           \
+  DEFERRED_ERROR(__error_counter__);                \
   return __error_counter__;                         \
 }
 
@@ -91,14 +91,14 @@
  * @param __function_name The name of the test function.
  * @param __code The test code to be executed in the function.
  */
-#define TFUNCTION(__function_name, __code) \
+#define TFUNCTION(__function_name, __code)              \
   int __function_name(unsigned int __indentation_level) \
-{ \
-  INIT_TEST_FUNCTION(); \
-  int __error_counter__ = 0; \
-  do __code while(0); \
-  DEFERRED_ERROR(__error_counter__); \
-  return __error_counter__; \
+{                                                       \
+  INIT_TEST_FUNCTION();                                 \
+  int __error_counter__ = 0;                            \
+  do __code while(0);                                   \
+  DEFERRED_ERROR(__error_counter__);                    \
+  return __error_counter__;                             \
 }
 
 /**
@@ -236,13 +236,13 @@
 #define INDENTED_PRINT(__fmt, ...)                          \
   do {                                                      \
     for(unsigned int i = 0; i < __indentation_level; i++) { \
-      printf("|    ");                                       \
+      printf("|    ");                                      \
     }                                                       \
     printf(__fmt, ##__VA_ARGS__);                           \
   } while(0)
 
 
-#define INIT_TEST_FILE()     \
+#define INIT_TEST_FILE() \
   INDENTED_PRINT("%s:%s\n", __FILE__, __func__)
 
 #define INIT_TEST_FUNCTION() \
