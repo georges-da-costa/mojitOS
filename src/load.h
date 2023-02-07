@@ -23,12 +23,20 @@ unsigned int get_load(uint64_t *results, void *);
 void clean_load(void *);
 void label_load(char **labels, void *);
 
-struct optparse_long load_opt = {"sysload", 'u', OPTPARSE_NONE};
-struct captor load = {
-    .usage_arg = NULL,
-    .usage_msg = "system load",
+Sensor load = {
     .init = init_load,
     .get = get_load,
     .clean = clean_load,
     .label = label_load,
+    .nb_opt = 1,
+};
+
+Optparse load_opt[1] = {
+    {
+        .longname = "sysload",
+        .shortname = 'u',
+        .argtype = OPTPARSE_NONE,
+        .usage_arg = NULL,
+        .usage_msg = "system load",
+    },
 };

@@ -22,17 +22,33 @@ unsigned int init_counters(char *, void **);
 unsigned int get_counters(uint64_t *results, void *);
 void clean_counters(void *);
 void label_counters(char **labels, void *);
+void *show_all_counters(void *, size_t);
 
-struct optparse_long counters_opt = {"perf-list", 'p', OPTPARSE_REQUIRED};
-struct captor counters = {
-    .usage_arg = "<perf_list>",
-    .usage_msg = "performance counters\n"
-    "\tperf_list is a coma separated list of performance counters.\n"
-    "\tEx: instructions,cache_misses",
+Sensor counters = {
     .init = init_counters,
     .get = get_counters,
     .clean = clean_counters,
     .label = label_counters,
+    .nb_opt = 2,
 };
 
-void show_all_counters();
+Optparse counters_opt[2] = {
+    {
+        .longname = "perf-list",
+        .shortname = 'p',
+        .argtype = OPTPARSE_REQUIRED,
+        .usage_arg = "<perf_list>",
+        .usage_msg = "performance counters\n"
+        "\tperf_list is a coma separated list of performance counters.\n"
+        "\tEx: instructions,cache_misses",
+    },
+    {
+        .longname = "list",
+        .shortname = 'l',
+        .argtype = OPTPARSE_NONE,
+        .usage_arg = NULL,
+        .usage_msg = "list the available performance counters and quit",
+        .fn = show_all_counters,
+    },
+};
+

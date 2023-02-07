@@ -8,25 +8,23 @@ TESTS_DIR = tests
 
 BIN = mojitos
 
+CAPTOR_OBJ =
+
+include ./sensors.mk
+
 OBJ =  \
-	$(OBJ_DIR)/counters.o \
-	$(OBJ_DIR)/rapl.o \
-	$(OBJ_DIR)/network.o \
-	$(OBJ_DIR)/load.o \
-	$(OBJ_DIR)/infiniband.o \
-	$(OBJ_DIR)/temperature.o \
-	$(OBJ_DIR)/util.o \
-	$(OBJ_DIR)/amd_rapl.o 
+	$(CAPTOR_OBJ) \
+	$(OBJ_DIR)/util.o
 
 CC = gcc
-CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib
 CFLAGS = $(CPPFLAGS) -O3 -Werror
 LDFLAGS =
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
 
-all: $(BIN)
+all: $(BIN) readme man
 
 $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
 	$(CC) $(LDFLAGS) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o
@@ -50,20 +48,28 @@ $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
 debug: CFLAGS = $(CPPFLAGS) -DDEBUG -g -Og
-debug: all
+debug: $(BIN)
 
 tests:
 	gcc $(CPPFLAGS) $(TESTS_DIR)/main.c $(SRC_DIR)/util.c -o $(TESTS_DIR)/run
 	$(TESTS_DIR)/run
 
 format:
-	$(ASTYLE) $(SRC_DIR)/*.[ch]
-	$(ASTYLE) $(DOC_DIR)/*.[ch]
-	$(ASTYLE) $(TESTS_DIR)/*.[ch]
+	$(ASTYLE) $(SRC_DIR)/*.[ch] \
+		$(DOC_DIR)/*.[ch] \
+		$(TESTS_DIR)/*.[ch]
 
 clean:
-	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/*
-	\rm -f $(SRC_DIR)/counters_option.h
-	\rm -f $(TESTS_DIR)/run
+	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/* \
+		$(SRC_DIR)/counters_option.h \
+		$(TESTS_DIR)/run
 
-.PHONY: all clean mojitos debug format tests
+readme: $(BIN)
+	sh ./tools/update-readme-usage.sh
+
+man: $(BIN)
+	awk -v "usage=$$($(BIN_DIR)/$(BIN) -1)" \
+		'/^USAGE/ { $$0=usage } 1' \
+		doc/mojitos.pre.1 > doc/mojitos.1 2>/dev/null
+
+.PHONY: all clean mojitos debug format tests readme man
