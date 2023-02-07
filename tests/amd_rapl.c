@@ -142,7 +142,10 @@ TFUNCTION(test_label_amd_rapl, {
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
     // -- Verification
-    TEST_PTR_ARRAY(TEST_STR, nb, results, expecteds);
+    for(unsigned int i = 0; i < nb; i++)
+    {
+        TEST_STR(results[i], expecteds[i]);
+    }
 
     // Test 2:
     // -- Setup
@@ -159,8 +162,10 @@ TFUNCTION(test_label_amd_rapl, {
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
     // -- Verification
-    TEST_PTR_ARRAY(TEST_STR, nb, results, expecteds);
-
+    for(unsigned int i = 0; i < nb; i++)
+    {
+        TEST_STR(results[i], expecteds[i]);
+    }
     // Test 3:
     // -- Setup
     nb = 4;
@@ -176,7 +181,10 @@ TFUNCTION(test_label_amd_rapl, {
     // -- Run
     label_amd_rapl(results, (void *) &rapl);
     // -- Verification
-    TEST_PTR_ARRAY(TEST_STR, nb, results, expecteds);
+    for(unsigned int i = 0; i < nb; i++)
+    {
+        TEST_STR(results[i], expecteds[i]);
+    }
 })
 
 
@@ -271,7 +279,7 @@ TFUNCTION(test_is_duplicate, {
     // -- Verification
     TEST_BOOL(&results[0], &expecteds[0]);
     TEST_BOOL(&results[1], &expecteds[1]);
-    
+
     // -- Setup
     memset(map, NONE, sizeof(map));
     memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
@@ -286,11 +294,15 @@ TFUNCTION(test_is_duplicate, {
     memset(expecteds, 1, sizeof(unsigned int) * 4);
     memset(&expecteds[4], 0, sizeof(unsigned int) * 4);
     // -- Run
-    for (unsigned int i = 0; i < 8; i++) {
+    for (unsigned int i = 0; i < 8; i++)
+    {
         results[i] = is_duplicate(&cpu_information[i], nb_core, nb_package, map );
     }
     // -- Verification
-    TEST_ARRAY(TEST_BOOL, 8, results, expecteds);
+    for(unsigned int i = 0; i < 8; i++)
+    {
+        TEST_BOOL(&results[i], &expecteds[i]);
+    }
 })
 
 

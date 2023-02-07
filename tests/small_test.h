@@ -33,10 +33,10 @@
 
 // ---------------------------API_INTERFACE
 /**
- * @brief Define the entry point of the tests
- * It initializes each useful variables.
+ * @brief Define the entry point for the tests.
+ * It initialises any useful variables and acts as the main one.
  *
- * @param __code The code that contains the calls to the test functions
+ * @param __code The code that contains the calls to the test functions.
  */
 
 #define TMAIN(__code)                                              \
@@ -46,22 +46,24 @@
   INDENTED_PRINT("%s:%s\n", __FILE__, __func__);                 \
   unsigned int __error_counter__ = 0;                            \
   do __code while (0);                                             \
-  DEFERRED_FILE_ERROR(__error_counter__);                        \
+  DEFERRED_ERROR(__error_counter__);                        \
   return __error_counter__;                                      \
 }
 
 /**
+ * @def TFILE_ENTRY_POINT(__filename, __code)
+ *
  * @brief Define the entry point of a test file.
  * This macro is used to define the entry point of a test file.
  * It defines a function with the specified __filename that contains the test code specified in code.
  *
- * When the function is called, it initializes the test file using the INIT_TEST_FILE macro,
+ * When the function is called, it initialises the test file using the INIT_TEST_FILE macro,
  * declares an integer variable __error_counter__ to keep track of any errors encountered during the tests,
  * executes the test code in a do-while loop, and then checks for any deferred errors using the DEFERRED_ERROR macro.
  * The function returns the value of __error_counter__,
  * which indicates the number of errors encountered during the tests.
  *
- * @param __filename The name of the function that serves as the entry point for the test file.
+ * @param __filename The name of the function to be used as an entry point for the test file.
  * @param __code The test code to be executed in the function.
  */
 #define TFILE_ENTRY_POINT(__filename, __code)       \
@@ -70,16 +72,18 @@
   INIT_TEST_FILE();                                 \
   int __error_counter__ = 0;                        \
   do __code while(0);                               \
-  DEFERRED_FILE_ERROR(__error_counter__);           \
+  DEFERRED_ERROR(__error_counter__);           \
   return __error_counter__;                         \
 }
 
 /**
+ * @def TFUNCTION(__function_name, __code)
+ *
  * @brief Define a test function within a test file.
  * This macro is used to define a test function within a test file.
- * It defines a function with the specified function_name that contains the test code specified in code.
+ * It defines a function with the given __function_name containing the test code specified in __code.
  *
- * When the function is called, it initializes the test function using the INIT_TEST_FUNCTION macro,
+ * When the function is called, it initialises the test function using the INIT_TEST_FUNCTION macro,
  * declares an integer variable __error_counter__ to keep track of any errors encountered during the tests,
  * executes the test code in a do-while loop, and then checks for any deferred errors using the DEFERRED_ERROR macro.
  * The function returns the value of __error_counter__, which indicates the number of errors encountered during the tests.
@@ -93,28 +97,32 @@
   INIT_TEST_FUNCTION(); \
   int __error_counter__ = 0; \
   do __code while(0); \
-  DEFERRED_FUNCTION_ERROR(__error_counter__); \
+  DEFERRED_ERROR(__error_counter__); \
   return __error_counter__; \
 }
 
 /**
+ * @def CALL_TFUNCTION(__function_name)
+ *
  * @brief Call a test function within a test file.
  * This macro is used to call a test function within a test file.
- * It calls the function specified by function_name and adds the return value to the __error_counter__ variable.
+ * It calls the function specified by __function_name and adds the return value to the __error_counter__ variable.
  * This allows multiple test functions to be executed and their error count to be accumulated.
  *
- * @param function_name The name of the test function to be called.
+ * @param __function_name The name of the test function to be called.
  */
-#define CALL_TFUNCTION(function_name) \
-  do {__error_counter__ += function_name(__indentation_level + 1);} while(0)
+#define CALL_TFUNCTION(__function_name) \
+  do {__error_counter__ += __function_name(__indentation_level + 1);} while(0)
 
 /**
- * @def TEST_STR(result, expected)
- * @brief Test strings
- * This macro is used to test strings. It takes two arguments: `__result`, which is the string to be tested, and `__expected`, which is the expected value of the string.
+ * @def TEST_STR(__result, __expected)
  *
- * @param __result the string to be tested
- * @param __expected the expected value of the string
+ * @brief Test strings
+ * This macro is used to test strings. It takes two arguments: `__result`, which is the string to test, and `__expected`,
+ * which is the expected value of the string.
+ *
+ * @param __result the string to test.
+ * @param __expected the expected value of the string.
  *
  * @code
  * TEST_STR("Hello", "Hello");
@@ -125,15 +133,17 @@
 
 /**
  * @def TEST_BOOL(__result, __expected)
- * @brief Test bools
- * This macro is used to test bools. It takes two arguments: `__result`, which is the bool to be tested, and `__expected`, which is the expected value of the bool.
  *
- * @param __result the pointer to bool to be tested
- * @param __expected the pointer to the expected value of the bool
+ * @brief Test bools
+ * This macro is used to test bools. It takes two arguments: `__result`, which is the bool to test, and `__expected`,
+ * which is the expected value of the bool.
+ *
+ * @param __result the pointer to bool to test.
+ * @param __expected the pointer to the expected value of the bool.
  *
  * @code
  * bool x = true;
- * bool y = false;
+ * bool y = true;
  * TEST_BOOL(&x, &y);
  * @endcode
  */
@@ -142,11 +152,13 @@
 
 /**
  * @def TEST_INT(__result, __expected)
- * @brief Test ints
- * This macro is used to test ints. It takes two arguments: `__result`, which is the int to be tested, and `__expected`, which is the expected value of the int.
  *
- * @param __result the pointer to int to be tested
- * @param __expected the pointer to expected value of the int
+ * @brief Test ints
+ * This macro is used to test ints. It takes two arguments: `__result`, which is the int to be test, and `__expected`,
+ * which is the expected value of the int.
+ *
+ * @param __result the pointer to int to test.
+ * @param __expected the pointer to expected value of the int.
  *
  * @code
  * int x = 1;
@@ -157,16 +169,15 @@
 #define TEST_INT(__result, __expected) \
     do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, &int_interface);} while (0)
 
-
-
-
 /**
  * @def TEST_PTR(__result, __expected)
- * @brief Test pointers
- * This macro is used to test pointers. It takes two arguments: `__result`, which is the pointer to be tested, and `__expected`, which is the expected value of the pointer.
  *
- * @param __result the pointer to be tested
- * @param __expected the expected value of the pointer
+ * @brief Test pointers
+ * This macro is used to test pointers. It takes two arguments: `__result`, which is the pointer to test, and `__expected`,
+ * which is the expected value of the pointer.
+ *
+ * @param __result the pointer to test.
+ * @param __expected the expected value of the pointer.
  *
  * @code
  * int x = 5;
@@ -180,11 +191,13 @@
 
 /**
  * @def TEST_UINT64_T(__result, __expected)
- * @brief Test 64-bit unsigned integers
- * This macro is used to test 64-bit unsigned integers. It takes two arguments: `__result`, which is the integer to be tested, and `__expected`, which is the expected value of the integer.
  *
- * @param __result the pointer to integer to be tested
- * @param __expected the pointer to expected value of the integer
+ * @brief Test 64-bit unsigned integers
+ * This macro is used to test 64-bit unsigned integers. It takes two arguments: `__result`,
+ * which is the integer to test, and `__expected`, which is the expected value of the integer.
+ *
+ * @param __result the pointer to integer to test.
+ * @param __expected the pointer to expected value of the integer.
  *
  * @code
  * uint64_t x = 5;
@@ -197,64 +210,28 @@
 
 /**
  * @def TEST_INTERFACE(__result, __expected, __interface)
- * @brief Define a macro on a usertype with the given __interface
+ *
+ * @brief Define a macro on a usertype with the given __interface.
  * This macro is used by the user to define a new test macro on a usertype.
  *
  * @param __result
  * @param __expected
- * @param __interface the usertype interface
+ * @param __interface the interface of the usertype.
  *
  * @code
- * #define TEST_USERTYPE(__result, __expected)
- * TEST_INTERFACE(__result, __expected, usertype_interface)
+ * TestInterface usertype_interface = {.compare = ..., .format = ...};
+ * #define TEST_USERTYPE(__result, __expected) \
+ * TEST_INTERFACE(__result, __expected, &usertype_interface)
  * @endcode
  */
 #define TEST_INTERFACE(__result, __expected, __interface) \
     do {__error_counter__ += test(__FILE__, __LINE__, __indentation_level, __result, __expected, __interface);} while(0)
 
-/**
- * @def TEST_T_ARRAY(__test_macro, __size, __results, __expecteds)
- * @brief Test arrays of data
- * The macro uses a for loop to iterate through the array and apply the test function to each element.
- *
- * @param __test_macro the test function to be used on each element of the array
- * @param __array_size the number of elements in the array
- * @param __results the array of elements to be tested
- * @param __expecteds the array of expected values
 
- * @code
- * int results[3] = {1, 2, 3};
- * int expecteds[3] = {1, 2, 3};
- * TEST_ARRAY(TEST_INT, 3, results, expecteds);
- * @endcode
-*/
-#define TEST_ARRAY(__test_macro, __array_size, __results, __expecteds) \
-    for (unsigned i = 0; i < __array_size; i++) {                      \
-        __test_macro(&__results[i], &__expecteds[i]);                   \
-    }
 
-/**
- * @def TEST_T_PTR_ARRAY(__test_macro, __array_size, __results, __expecteds)
- * @brief Test arrays of pointer
- * The macro uses a for loop to iterate through the array and apply the test function to each element.
- *
- * @param __test_macro the test function to be used on each element of the array
- * @param __array_size the number of elements in the array
- * @param __results the array of elements to be tested
- * @param __expecteds the array of expected values
 
- * @code
- * void* array[3];
- * TEST_PTR_ARRAY(TEST_PTR, 3, array, array);
- * @endcode
-*/
-#define TEST_PTR_ARRAY(__test_macro, __array_size, __results, __expecteds)  \
-    for (unsigned int i = 0; i < __array_size; i++) {                     \
-      __test_macro(__results[i], __expecteds[i]);                         \
-    }
-// --------------------------------API_CODE
-// These functions should not be used, only use the previous macros.
-
+// ------------------------------------CODE
+// These functions should not be in use, only the previous macros should be in use.
 
 #define INDENTED_PRINT(__fmt, ...)                          \
   do {                                                      \
@@ -271,10 +248,7 @@
 #define INIT_TEST_FUNCTION() \
   INDENTED_PRINT("%s()\n", __func__);
 
-#define DEFERRED_FILE_ERROR(nb_error) \
-    INDENTED_PRINT("|_Deferred Error : %u\n",nb_error);
-
-#define DEFERRED_FUNCTION_ERROR(nb_error) \
+#define DEFERRED_ERROR(nb_error) \
     INDENTED_PRINT("|_Deferred Error : %d\n",nb_error);
 
 typedef int (Comparator) (void *, void *);
@@ -285,8 +259,26 @@ typedef struct {
     Formatter *format;
 } TestInterface;
 
-//  ---------------------------str_interface
+// ---------------------------TEST FUNCTION
 
+int test(char *file, int line, unsigned int __indentation_level, void *result, void *expected, const TestInterface *interface)
+{
+    __indentation_level += 1;
+    static char buffer_result[FMT_BUFFER_SIZE];
+    static char buffer_expected[FMT_BUFFER_SIZE];
+    int is_equal = interface->compare(result, expected);
+
+    char *fmt_result = interface->format(buffer_expected, expected);
+    char *fmt_expected = interface->format(buffer_result, result);
+    if  (!is_equal) {
+        INDENTED_PRINT("%s:%d: failed, expected <%s>, got <%s>\n", file, line, fmt_expected, fmt_result);
+    }
+    return !is_equal;
+}
+
+// ------------------------------INTERFACES
+
+// -- str_interface
 int str_compare(void *ptr1, void *ptr2)
 {
     char *str1 = (char *) ptr1;
@@ -314,7 +306,7 @@ static const TestInterface str_interface = {
     .format = str_format
 };
 
-//  --------------------------bool_interface
+// -- bool_interface
 
 int bool_compare(void *ptr1, void *ptr2)
 {
@@ -335,7 +327,7 @@ static const TestInterface bool_interface = {
     .format = bool_format
 };
 
-// ---------------------------int_interface
+// -- int_interface
 
 int int_compare(void *ptr1, void *ptr2)
 {
@@ -356,7 +348,7 @@ static const TestInterface int_interface = {
     .format = int_format
 };
 
-// ---------------------------ptr_interface
+// -- ptr_interface
 
 int ptr_compare(void *ptr1, void *ptr2)
 {
@@ -374,7 +366,7 @@ static const TestInterface ptr_interface = {
     .format = ptr_format
 };
 
-// ---------------------------u64_interface
+// -- u64_interface
 
 int u64_compare(void *ptr1, void *ptr2)
 {
@@ -394,23 +386,6 @@ static const TestInterface u64_interface = {
     .compare = u64_compare,
     .format = u64_format
 };
-
-// ---------------------------test_function
-
-int test(char *file, int line, unsigned int __indentation_level, void *result, void *expected, const TestInterface *interface)
-{
-    __indentation_level += 1;
-    static char buffer_result[FMT_BUFFER_SIZE];
-    static char buffer_expected[FMT_BUFFER_SIZE];
-    int is_equal = interface->compare(result, expected);
-
-    char *fmt_result = interface->format(buffer_expected, expected);
-    char *fmt_expected = interface->format(buffer_result, result);
-    if  (!is_equal) {
-        INDENTED_PRINT("%s:%d: failed, expected <%s>, got <%s>\n", file, line, fmt_expected, fmt_result);
-    }
-    return !is_equal;
-}
 
 #endif
 
