@@ -20,7 +20,7 @@
 
 // Include of the test library
 #include "./../tests/small_test.h"
-// Include the file that contains the function you want to test 
+// Include the file that contains the function you want to test
 // #include "a_file.c"
 
 // This example is divided into three parts:
@@ -58,7 +58,8 @@ TFUNCTION(test_array, {
     static unsigned int size = 10;
     int results[10] = {0};
     int expecteds[10] = {0};
-    for (unsigned int i = 0; i < size; i++) {
+    for (unsigned int i = 0; i < size; i++)
+    {
         TEST_INT(&results[i], &expecteds[i]);
     }
 })
@@ -134,7 +135,8 @@ TFUNCTION(test_array_user_type, {
     DUMMY_USER_TYPE(results[0], 1, "John Doe");
     DUMMY_USER_TYPE(expecteds[0], 1, "John Doe");
 
-    for (unsigned int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++)
+    {
         TEST_USER_TYPE(&results[i], &expecteds[i]);
     }
 })
