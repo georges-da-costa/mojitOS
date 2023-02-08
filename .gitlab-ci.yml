@@ -1,0 +1,14 @@
+job-build
+  stage: build
+  script:
+    - ./configure.sh
+    - make
+
+job-build-test
+  stage: build
+  script:
+    - ./configure.sh
+    - make tests
+
+workflow:
+  name: 'Pipeline for branch: $CI_COMMIT_BRANCH'
