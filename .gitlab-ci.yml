@@ -1,12 +1,12 @@
-job-build
+job-build:
   stage: build
   script:
     - ./configure.sh
     - make
 
-job-build-test
+job-build-test:
   stage: build
-  script:
+  script: 
     - ./configure.sh
     - make tests
 
