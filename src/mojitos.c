@@ -23,6 +23,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include "util.h"
@@ -218,7 +219,7 @@ int main(int argc, char **argv)
         usage(argv);
     }
 
-    if (argc == 2 && argv[1][0] == '-' && argv[1][1] == '1' && argv[1][2] == '\0') {
+    if (argc == 2 && strcmp(argv[1], "--dump-opts") == 0) {
         dumpopts(opts, NB_OPT, NB_SENSOR_OPT);
         exit(EXIT_SUCCESS);
     }

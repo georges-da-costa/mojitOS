@@ -70,7 +70,7 @@ readme: $(BIN)
 	sh ./tools/update-readme-usage.sh
 
 man: $(BIN)
-	awk -v "usage=$$($(BIN_DIR)/$(BIN) -1)" \
+	awk -v "usage=$$($(BIN_DIR)/$(BIN) --dump-opts)" \
 		'/^USAGE/ { $$0=usage } 1' \
 		doc/$(BIN).pre.1 > doc/$(BIN).1 2>/dev/null
 
