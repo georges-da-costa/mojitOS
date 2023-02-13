@@ -66,7 +66,7 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
 
     char buffer[1024];
     for (int i = 0; i < NB_SENSOR; i++) {
-        sprintf(buffer, filenames[i], infi_path);
+        snprintf(buffer, 1024, filenames[i], infi_path);
         state->sources[i] = open(buffer, O_RDONLY);
     }
 

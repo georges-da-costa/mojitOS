@@ -161,6 +161,7 @@ uint64_t raw_to_microjoule(uint64_t raw, unsigned int unit)
     // Joule * 1000000 -> uJoule
     return (uint64_t) (((double) raw * to_microjoule) / (double)(1U << unit));
 }
+
 uint64_t raw_to_joule(uint64_t raw, uint64_t unit)
 {
     // raw * (1 / (unit^2)) -> Joule
@@ -202,7 +203,7 @@ unsigned int get_nb_cpu()
 
     unsigned int n_cpu = 0;
     for (;; n_cpu++) {
-        sprintf(filename, base_str, n_cpu);
+        snprintf(filename, BUFFER_SIZE, base_str, n_cpu);
 
         int fd = open(filename, O_RDONLY);
         if (fd < 0) {
