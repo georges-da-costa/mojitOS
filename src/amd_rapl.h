@@ -34,7 +34,7 @@ Sensor amd_rapl = {
 Optparse amd_rapl_opt[1] = {
     {
         .longname = "amd-rapl",
-        .shortname = 'a',
+        .shortname = 'r',
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
         .usage_msg = "AMD RAPL",
