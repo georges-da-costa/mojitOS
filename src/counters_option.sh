@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2018-2021 Georges Da Costa <georges.da-costa@irit.fr>
+# Copyright (C) 2018-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
 linux_include=/usr/include/linux/perf_event.h
 

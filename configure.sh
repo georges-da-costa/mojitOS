@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2023-2023 Georges Da Costa <georges.da-costa@irit.fr>
+
 try() { "$@" || die "cannot $*"; }
 die() { yell "$*"; exit 111; }
 yell() { echo "$0: $*" >&2; }

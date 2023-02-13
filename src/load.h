@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2018-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
