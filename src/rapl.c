@@ -47,7 +47,7 @@ char *get_rapl_string(const char *filename)
 void append(char *name, int i, size_t buffer_size)
 {
     size_t name_len = strlen(name);
-    char* ptr = name + name_len;
+    char *ptr = name + name_len;
 
     size_t remaining_space = buffer_size - name_len;
     snprintf(ptr, remaining_space, "%d", i);

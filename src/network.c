@@ -97,7 +97,7 @@ unsigned int init_network(char *dev, void **ptr)
 
     char buffer2[256];
     for (int i = 0; i < NB_SENSOR; i++) {
-        sprintf(buffer2, 256, filenames[i], dev);
+        snprintf(buffer2, 256, filenames[i], dev);
         state->sources[i] = open(buffer2, O_RDONLY);
     }
 
