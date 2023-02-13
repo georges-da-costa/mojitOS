@@ -33,11 +33,11 @@ Sensor rapl = {
 
 Optparse rapl_opt[1] = {
     {
-        .longname = "rapl",
+        .longname = "intel-rapl",
         .shortname = 'r',
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
-        .usage_msg = "RAPL",
+        .usage_msg = "INTEL RAPL",
     },
 };
 

@@ -32,7 +32,7 @@ SENSORS:
 	system load
 -d|--net-dev <net_dev>
 	network monitoring (if network_device is X, tries to detect it automatically)
--r|--rapl
+-r|--intel-rapl
 	RAPL
 -c|--cpu-temp
 	processor temperature
