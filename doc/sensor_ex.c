@@ -60,9 +60,10 @@ gcc -std=gnu99 -Wall -Wpedantic -I./lib -I./doc -I./src -g -Og obj/util.o obj/mo
 
 #define NB_SENSOR 3
 
-struct accumulator_t {
+struct Accumulator {
     int v[NB_SENSOR];
 };
+typedef struct Accumulator Accumulator;
 
 void _get_acc(int v[NB_SENSOR])
 {
@@ -77,7 +78,7 @@ unsigned int init_acc(char *none, void **ptr)
     /* there is none in this case, so this parameter is not used */
     UNUSED(none);
 
-    struct accumulator_t *state = malloc(sizeof(struct accumulator_t));
+    Accumulator *state = malloc(sizeof(Accumulator));
 
     for (int i = 0; i < NB_SENSOR; i++) {
         state->v[i] = -1;
@@ -91,7 +92,7 @@ unsigned int init_acc(char *none, void **ptr)
 
 unsigned int get_acc(uint64_t *results, void *ptr)
 {
-    struct accumulator_t *state = (struct accumulator_t *)ptr;
+    Accumulator *state = (Accumulator *)ptr;
 
     _get_acc(state->v);
 
@@ -113,7 +114,7 @@ void label_acc(char **labels, void *none)
 
 void clean_acc(void *ptr)
 {
-    struct accumulator_t *state = (struct accumulator_t *)ptr;
+    Accumulator *state = (Accumulator *)ptr;
 
     if (state == NULL) {
         return;

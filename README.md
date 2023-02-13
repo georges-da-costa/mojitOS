@@ -42,7 +42,7 @@ SENSORS:
 -d|--net-dev <net_dev>
 	network monitoring (if network_device is X, tries to detect it automatically)
 -r|--intel-rapl
-	RAPL
+	INTEL RAPL
 -c|--cpu-temp
 	processor temperature
 ```
