@@ -21,13 +21,22 @@ OPTIONS:
 -s|--overhead-stats
 	enable overhead statistics (nanoseconds).
 
+```
+
+The following is an exhaustive list of all the sensors (it is very likely
+that one will not have all the sensors activated in his build):
+```bash
 SENSORS:
+-a|--amd-rapl
+	AMD RAPL
 -p|--perf-list <perf_list>
 	performance counters
 	perf_list is a coma separated list of performance counters.
 	Ex: instructions,cache_misses
 -l|--list
 	list the available performance counters and quit
+-i|--monitor-infiniband <infiniband_path>
+	infiniband monitoring (if infiniband_path is X, tries to detect it automatically)
 -u|--sysload
 	system load
 -d|--net-dev <net_dev>
