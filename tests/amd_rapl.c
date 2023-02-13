@@ -107,7 +107,7 @@ TFUNCTION(test_get_name, {
 #define NONE 0
 #define DUMMY_SENSOR(__sensor, __cpu_id, __name) \
 do {                                             \
-  __sensor = (cpu_sensor_t) {                    \
+  __sensor = (CpuSensor) {                    \
     .cpu_id = __cpu_id,                          \
     .package_id = NONE,                          \
     .core_id = NONE,                             \
@@ -120,15 +120,15 @@ do {                                             \
 
 #define DUMMY_RAPL(__rapl, __sensors, __sensors_count) \
 do {                                                   \
-    __rapl = (_amd_rapl_t) {                           \
+    __rapl = (AmdRapl) {                           \
         .sensors = __sensors,                          \
         .sensor_count = __sensors_count                \
     };                                                 \
 } while(0);
 
 TFUNCTION(test_label_amd_rapl, {
-    cpu_sensor_t sensors[100];
-    _amd_rapl_t rapl;
+    CpuSensor sensors[100];
+    AmdRapl rapl;
     char *results[100];
     char expecteds[10][100];
     uint64_t nb = 0;
@@ -190,7 +190,7 @@ TFUNCTION(test_label_amd_rapl, {
 
 #define DUMMY_CPUINFO(__sensor, __cpu_id, __package_id, __core_id) \
 do {                                                               \
-    __sensor = (cpu_sensor_t) {                                    \
+    __sensor = (CpuSensor) {                                    \
         .cpu_id = __cpu_id,                                        \
         .package_id = __package_id,                                \
         .core_id = __core_id,                                      \
@@ -207,13 +207,13 @@ TFUNCTION(test_is_duplicate, {
     static const unsigned int max_cpu = 10;
 
     unsigned char map[nb_core][nb_package];
-    cpu_sensor_t cpu_information[max_cpu];
+    CpuSensor cpu_information[max_cpu];
     unsigned int results[max_cpu];
     unsigned int expecteds[max_cpu];
 
     // -- Setup
     memset(map, NONE, sizeof(map));
-    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    memset(cpu_information,NONE, sizeof(CpuSensor) * max_cpu);
     DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
     expecteds[0] = 1;
     expecteds[1] = 0;
@@ -226,7 +226,7 @@ TFUNCTION(test_is_duplicate, {
 
     // -- Setup
     memset(map, NONE, sizeof(map));
-    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    memset(cpu_information,NONE, sizeof(CpuSensor) * max_cpu);
     DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
     DUMMY_CPUINFO(cpu_information[1], 0, 1, 1);
     expecteds[0] = 1;
@@ -240,7 +240,7 @@ TFUNCTION(test_is_duplicate, {
 
     // -- Setup
     memset(map, NONE, sizeof(map));
-    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    memset(cpu_information,NONE, sizeof(CpuSensor) * max_cpu);
     DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
     DUMMY_CPUINFO(cpu_information[1], 0, 0, 0);
     expecteds[0] = 1;
@@ -254,7 +254,7 @@ TFUNCTION(test_is_duplicate, {
 
     // -- Setup
     memset(map, NONE, sizeof(map));
-    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    memset(cpu_information,NONE, sizeof(CpuSensor) * max_cpu);
     DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
     DUMMY_CPUINFO(cpu_information[1], 0, 1, 0);
     expecteds[0] = 1;
@@ -268,7 +268,7 @@ TFUNCTION(test_is_duplicate, {
 
     // -- Setup
     memset(map, NONE, sizeof(map));
-    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    memset(cpu_information,NONE, sizeof(CpuSensor) * max_cpu);
     DUMMY_CPUINFO(cpu_information[0], 0, 1, 1);
     DUMMY_CPUINFO(cpu_information[1], 0, 0, 1);
     expecteds[0] = 1;
@@ -282,7 +282,7 @@ TFUNCTION(test_is_duplicate, {
 
     // -- Setup
     memset(map, NONE, sizeof(map));
-    memset(cpu_information,NONE, sizeof(cpu_sensor_t) * max_cpu);
+    memset(cpu_information,NONE, sizeof(CpuSensor) * max_cpu);
     DUMMY_CPUINFO(cpu_information[0], 0, 0, 0);
     DUMMY_CPUINFO(cpu_information[1], 0, 0, 1);
     DUMMY_CPUINFO(cpu_information[2], 0, 1, 0);
@@ -317,7 +317,7 @@ TFILE_ENTRY_POINT(test_amd_rapl, {
 int main()
 {
     static const unsigned int time = 10;
-    _amd_rapl_t *rapl = NULL;
+    AmdRapl *rapl = NULL;
     unsigned int count_cpu = init_amd_rapl(NULL, (void **) &rapl);
     uint64_t results[count_cpu];
     char *labels[count_cpu];

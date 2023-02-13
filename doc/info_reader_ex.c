@@ -20,7 +20,7 @@
 
 
 // ~/mojitos/doc/$ gcc -Wall -Wextra -Wpedantic -O3 -o info_reader_ex info_reader_ex.c ./../src/util.c && ./info_reader_ex
-#include "./../src/info_reader.h"
+#include "./../lib/info_reader.h"
 
 #define MAX_PROCS 64
 

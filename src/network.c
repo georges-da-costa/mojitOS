@@ -28,11 +28,12 @@
 #define NB_SENSOR 4
 
 static char *route = "/proc/net/route";
-struct network_t {
+struct Network {
     uint64_t values[NB_SENSOR];
     uint64_t tmp_values[NB_SENSOR];
     int sources[NB_SENSOR];
 };
+typedef struct Network Network;
 
 unsigned int _get_network(uint64_t *results, int *sources)
 {
@@ -92,7 +93,7 @@ unsigned int init_network(char *dev, void **ptr)
                          "/sys/class/net/%s/statistics/tx_bytes"
                         };
 
-    struct network_t *state = malloc(sizeof(struct network_t));
+    Network *state = malloc(sizeof(Network));
 
     char buffer2[256];
     for (int i = 0; i < NB_SENSOR; i++) {
@@ -108,7 +109,7 @@ unsigned int init_network(char *dev, void **ptr)
 
 unsigned int get_network(uint64_t *results, void *ptr)
 {
-    struct network_t *state = (struct network_t *) ptr;
+    Network *state = (Network *) ptr;
     _get_network(state->tmp_values, state->sources);
 
     for (int i = 0; i < NB_SENSOR; i++) {
@@ -121,7 +122,7 @@ unsigned int get_network(uint64_t *results, void *ptr)
 
 void clean_network(void *ptr)
 {
-    struct network_t *state = (struct network_t *) ptr;
+    Network *state = (Network *) ptr;
 
     if (state == NULL) {
         return;
