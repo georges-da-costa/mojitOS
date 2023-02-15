@@ -63,9 +63,9 @@ gen_sensors_h() {
 		for sensor in $sensors; do
 			sed -n 's/.*'"${sensor}"'_opt\[\([0-9]\+\)\].*/\1/p' "src/${sensor}.h"
 		done |
-			paste -s -d '+' |
-			bc
+			paste -s -d '+'
 	)
+	nb_sensor_opts=$(eval "echo \$(($nb_sensor_opts))")
 
 	dprint sensors >&2
 	dprint nb_sensor_opts >&2
