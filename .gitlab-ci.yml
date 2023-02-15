@@ -1,3 +1,31 @@
+stages:
+  - build-option
+  - build
+
+job-build-counters:
+  stage: build-option
+  script:
+    - ./configure.sh -u counters
+    - make
+
+job-build-load:
+  stage: build-option
+  script:
+    - ./configure.sh -u load
+    - make
+
+job-build-network:
+  stage: build-option
+  script:
+    - ./configure.sh -u network
+    - make
+
+job-build-rapl:
+  stage: build-option
+  script:
+    - ./configure.sh -u rapl
+    - make
+
 job-build:
   stage: build
   script:

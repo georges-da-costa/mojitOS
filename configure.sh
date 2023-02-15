@@ -33,7 +33,7 @@ usage() {
 	printf -- '-i | --include      :   include captor, can be called multiple times\n' >&2
 	printf -- '-l | --list-captors :   list all captors and exit\n' >&2
 	printf -- '-u | --unique       :   only include the specified captor\n' >&2
-	printf -- '                        if this option is used, any usage of `-e` or `-i` will be ignored\n' >&2
+	printf -- '                        if this option is used, any use of `-e` or `-i` will be ignored\n' >&2
 	exit 1
 }
 
