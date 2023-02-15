@@ -18,37 +18,29 @@
 
  *******************************************************/
 
-unsigned int init_counters(char *, void **);
-unsigned int get_counters(uint64_t *results, void *);
-void clean_counters(void *);
-void label_counters(char **labels, void *);
-void *show_all_counters(void *, size_t);
+/*
+ * Example of a basic sensor: an accumulator
+**/
 
-Sensor counters = {
-    .init = init_counters,
-    .get = get_counters,
-    .clean = clean_counters,
-    .label = label_counters,
-    .nb_opt = 2,
+unsigned int init_acc(char *, void **);
+unsigned int get_acc(uint64_t *results, void *);
+void clean_acc(void *);
+void label_acc(char **labels, void *);
+
+Sensor sensor_ex = {
+    .init = init_acc,
+    .get = get_acc,
+    .clean = clean_acc,
+    .label = label_acc,
+    .nb_opt = 1,
 };
 
-Optparse counters_opt[2] = {
+Optparse sensor_ex_opt[1] = {
     {
-        .longname = "perf-list",
-        .shortname = 'p',
-        .argtype = OPTPARSE_REQUIRED,
-        .usage_arg = "<perf_list>",
-        .usage_msg = "performance counters\n"
-        "\tperf_list is a coma separated list of performance counters.\n"
-        "\tEx: instructions,cache_misses",
-    },
-    {
-        .longname = "list",
-        .shortname = 'l',
-        .argtype = OPTPARSE_NONE,
+        .longname = "accumulator",
+        .shortname = 'a',
+        .argtype = OPTPARSE_NONE,		/* OPTPARSE_NONE / OPTPARSE_OPTIONAL / OPTPARSE_REQUIRED */
         .usage_arg = NULL,
-        .usage_msg = "list the available performance counters and quit",
-        .fn = show_all_counters,
+        .usage_msg = "dumb accumulator",
     },
 };
-

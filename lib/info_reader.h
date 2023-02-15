@@ -19,7 +19,7 @@
 *******************************************************/
 
 #ifndef _INFO_READER_H
-#define _INFO_READER_
+#define _INFO_READER_H
 
 #include <string.h>
 #include <stdbool.h>
@@ -96,10 +96,10 @@ static bool start_with(const char *prefix, const char *string);
 /**
  * @brief Matches a line of text to a key in the parser's list of keys.
  *
- * @param parser Pointer to the Parser struct.
- * @param line Line of text to match.
- * @param key_finder Pointer to a KeyFinder pointer where the matched key will be stored.
- * @param raw_value Pointer to a char pointer where the value associated with the matched key will be stored.
+ * @param[in] parser Pointer to the Parser struct.
+ * @param[in] line Line of text to match.
+ * @param[out] key_finder Pointer to a KeyFinder pointer where the matched key will be stored.
+ * @param[out] raw_value Pointer to a char pointer where the value associated with the matched key will be stored.
  *
  * @return Returns 1 if a key is matched, 0 otherwise.
  */

@@ -28,6 +28,7 @@
 #include "util.h"
 
 #define MAX_HEADER 128
+#define BUFFER_SIZE 1024
 
 char *get_rapl_string(const char *filename)
 {
@@ -40,19 +41,20 @@ char *get_rapl_string(const char *filename)
     int nb = read(fd, result, MAX_HEADER);
     close(fd);
     result[nb - 1] = 0;
-    return (result);
+    return result;
 }
 
-void test_append(char *name, int i)
+void append(char *name, int i, size_t buffer_size)
 {
-    //char last = name[strlen(name)-1];
-    //if (last>='0' && last <= '9')
-    //  return;
-    sprintf(name + strlen(name), "%d", i);
+    size_t name_len = strlen(name);
+    char *ptr = name + name_len;
+
+    size_t remaining_space = buffer_size - name_len;
+    snprintf(ptr, remaining_space, "%d", i);
 }
 
 
-struct _rapl_t {
+struct IntelRapl {
     unsigned int nb;
     char **names;
     int *fids;
@@ -60,10 +62,10 @@ struct _rapl_t {
     uint64_t *tmp_values;
 
 };
-typedef struct _rapl_t _rapl_t;
+typedef struct IntelRapl IntelRapl;
 
 
-void add_rapl_source(_rapl_t *rapl, char *name, char *energy_uj)
+void add_rapl_source(IntelRapl *rapl, char *name, char *energy_uj)
 {
     rapl->nb += 1;
     rapl->names = realloc(rapl->names, sizeof(char **)*rapl->nb);
@@ -85,7 +87,7 @@ void add_rapl_source(_rapl_t *rapl, char *name, char *energy_uj)
 }
 
 
-void _get_rapl(uint64_t *values, _rapl_t *rapl)
+void _get_rapl(uint64_t *values, IntelRapl *rapl)
 {
     static char buffer[512];
 
@@ -104,45 +106,38 @@ void _get_rapl(uint64_t *values, _rapl_t *rapl)
 unsigned int init_rapl(char *none, void **ptr)
 {
     UNUSED(none);
-    _rapl_t *rapl = malloc(sizeof(_rapl_t));
+    IntelRapl *rapl = malloc(sizeof(IntelRapl));
     rapl->nb = 0;
     rapl->names = NULL;
     rapl->fids = NULL;
 
-    char buffer[1024];
+    char buffer[BUFFER_SIZE];
     char *name_base = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/%s";
     char *name_sub = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/intel-rapl:%d:%d/%s";
 
     for (unsigned int i = 0;; i++) {
-        sprintf(buffer, name_base, i, "name");
+        snprintf(buffer, BUFFER_SIZE, name_base, i, "name");
         char *tmp = get_rapl_string(buffer);
 
         if (tmp == NULL) {
             break;
         }
 
-        //printf("%s\n", tmp);
-        test_append(tmp, i);
-        //printf("%s -> %s\n", buffer, tmp);
-
-        sprintf(buffer, name_base, i, "energy_uj");
+        append(tmp, i, MAX_HEADER);
+        snprintf(buffer, BUFFER_SIZE, name_base, i, "energy_uj");
         add_rapl_source(rapl, tmp, buffer);
         free(tmp);
 
         for (unsigned int j = 0;; j++) {
-            sprintf(buffer, name_sub, i, i, j, "name");
+            snprintf(buffer, BUFFER_SIZE, name_sub, i, i, j, "name");
             char *tmp_sub = get_rapl_string(buffer);
 
             if (tmp_sub == NULL) {
                 break;
             }
 
-            //printf("%s\n", tmp_sub);
-            test_append(tmp_sub, i);
-            //printf("%s -> %s\n", buffer, tmp_sub);
-
-
-            sprintf(buffer, name_sub, i, i, j, "energy_uj");
+            append(tmp_sub, i, MAX_HEADER);
+            snprintf(buffer, BUFFER_SIZE, name_sub, i, i, j, "energy_uj");
             add_rapl_source(rapl, tmp_sub, buffer);
 
             free(tmp_sub);
@@ -161,7 +156,7 @@ unsigned int init_rapl(char *none, void **ptr)
 
 unsigned int get_rapl(uint64_t *results, void *ptr)
 {
-    _rapl_t *state = (_rapl_t *) ptr;
+    IntelRapl *state = (IntelRapl *) ptr;
     _get_rapl(state->tmp_values, state);
 
     for (unsigned int i = 0; i < state->nb; i++) {
@@ -174,7 +169,7 @@ unsigned int get_rapl(uint64_t *results, void *ptr)
 
 void clean_rapl(void *ptr)
 {
-    _rapl_t *rapl = (_rapl_t *) ptr;
+    IntelRapl *rapl = (IntelRapl *) ptr;
 
     for (unsigned int i = 0; i < rapl->nb; i++) {
         free(rapl->names[i]);
@@ -191,7 +186,7 @@ void clean_rapl(void *ptr)
 
 void label_rapl(char **labels, void *ptr)
 {
-    _rapl_t *rapl = (_rapl_t *) ptr;
+    IntelRapl *rapl = (IntelRapl *) ptr;
 
     for (unsigned int i = 0; i < rapl->nb; i++) {
         labels[i] = rapl->names[i];

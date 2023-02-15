@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2021 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2018-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -26,11 +26,14 @@
 #include <stdint.h>
 #include "util.h"
 
-struct temperature_t {
+#define BUFFER_SIZE 512
+
+struct Temperature {
     char **label_list;
     int *fid_list;
     int nb_elem;
 };
+typedef struct Temperature Temperature;
 
 int get_string(char *filename, char *buffer, int max_size)
 {
@@ -61,16 +64,16 @@ void add_to_list(char ***list_name, char *source, int nb_elem)
 
 }
 
-void add_temperature_sensor(int id_rep, struct temperature_t *state)
+void add_temperature_sensor(int id_rep, Temperature *state)
 {
     static int key = 0;
-    static char buffer_filename[512];
-    static char buffer_label[512];
+    static char buffer_filename[BUFFER_SIZE];
+    static char buffer_label[BUFFER_SIZE];
 
-    int delta = sprintf(buffer_label, "Temp_%d_", key);
+    int delta = snprintf(buffer_label, BUFFER_SIZE, "Temp_%d_", key);
 
     for (int i = 1;; i++) {
-        sprintf(buffer_filename, "/sys/class/hwmon/hwmon%d/temp%d_label", id_rep, i);
+        snprintf(buffer_filename, BUFFER_SIZE, "/sys/class/hwmon/hwmon%d/temp%d_label", id_rep, i);
 
         if (get_string(buffer_filename, buffer_label + delta, 100) == -1) {
             break;
@@ -88,7 +91,7 @@ void add_temperature_sensor(int id_rep, struct temperature_t *state)
 
         add_to_list(&state->label_list, buffer_label, state->nb_elem);
 
-        sprintf(buffer_filename, "/sys/class/hwmon/hwmon%d/temp%d_input", id_rep, i);
+        snprintf(buffer_filename, BUFFER_SIZE, "/sys/class/hwmon/hwmon%d/temp%d_input", id_rep, i);
         state->fid_list = realloc(state->fid_list, (state->nb_elem + 1) * sizeof(int));
         int fd = open(buffer_filename, O_RDONLY);
 
@@ -109,17 +112,17 @@ void add_temperature_sensor(int id_rep, struct temperature_t *state)
 unsigned int init_temperature(char *args, void **ptr)
 {
     UNUSED(args);
-    struct temperature_t *state = malloc(sizeof(struct temperature_t));
+    Temperature *state = malloc(sizeof(Temperature));
     state->nb_elem = 0;
     state->label_list = NULL;
     state->fid_list = NULL;
 
     char base_name[] = "/sys/class/hwmon/hwmon%d/name";
-    static char name[512];
-    static char buffer[512];
+    static char name[BUFFER_SIZE];
+    static char buffer[BUFFER_SIZE];
 
     int i = 0;
-    sprintf(name, base_name, i);
+    snprintf(name, BUFFER_SIZE, base_name, i);
 
     while (get_string(name, buffer, 8) != -1) {
         if (strcmp(buffer, "coretemp") == 0) {
@@ -127,7 +130,7 @@ unsigned int init_temperature(char *args, void **ptr)
         }
 
         i++;
-        sprintf(name, base_name, i);
+        snprintf(name, BUFFER_SIZE, base_name, i);
     }
 
     *ptr = (void *) state;
@@ -136,8 +139,8 @@ unsigned int init_temperature(char *args, void **ptr)
 
 unsigned int get_temperature(uint64_t *results, void *ptr)
 {
-    struct temperature_t *state = (struct temperature_t *)ptr;
-    static char buffer[512];
+    Temperature *state = (Temperature *)ptr;
+    static char buffer[BUFFER_SIZE];
 
     for (int i = 0; i < state->nb_elem; i++) {
         if (pread(state->fid_list[i], buffer, 100, 0) < 0) {
@@ -152,7 +155,7 @@ unsigned int get_temperature(uint64_t *results, void *ptr)
 
 void clean_temperature(void *ptr)
 {
-    struct temperature_t *state = (struct temperature_t *)ptr;
+    Temperature *state = (Temperature *)ptr;
 
     for (int i = 0; i < state->nb_elem; i++) {
         free(state->label_list[i]);
@@ -166,7 +169,7 @@ void clean_temperature(void *ptr)
 
 void label_temperature(char **labels, void *ptr)
 {
-    struct temperature_t *state = (struct temperature_t *)ptr;
+    Temperature *state = (Temperature *)ptr;
 
     for (int i = 0; i < state->nb_elem; i++) {
         labels[i] = state->label_list[i];

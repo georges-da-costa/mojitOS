@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2023-2023 Georges Da Costa <georges.da-costa@irit.fr>
+
 try() { "$@" || die "cannot $*"; }
 die() { yell "$*"; exit 111; }
 yell() { echo "$0: $*" >&2; }
@@ -20,11 +23,12 @@ decho() {
 }
 
 debug=0
-target=src/captors.h
+target_hdr=src/sensors.h
+target_mk=sensors.mk
 
-noncaptor='counters_option|optparse|captors|util|info_reader'
+nonsensor='counters_option|optparse|sensors|util|info_reader'
 
-hdr_blacklist=$noncaptor
+hdr_blacklist=$nonsensor
 hdr_whitelist=''
 
 usage() {
@@ -37,12 +41,12 @@ usage() {
 	exit 1
 }
 
-ls_captors() {
+ls_sensors() {
 	try cd src
 
 	[ -z "$hdr_whitelist" ] && hdr_whitelist='.*'
-	dprint hdr_blacklist
-	dprint hdr_whitelist
+	dprint hdr_blacklist >&2
+	dprint hdr_whitelist >&2
 
 	ls -1 *.h |
 		grep -xEv "($hdr_blacklist)\.h" |
@@ -50,29 +54,54 @@ ls_captors() {
 		sed 's/\.h$//'
 }
 
-gen_captors_h() {
-	captors=$(ls_captors)
-	nb_captors=$(echo "$captors" | sed '/^$/d' | wc -l)
-	printf -- 'Run `make` to build `bin/mojitos`.\n' >&2
-	printf -- 'The resulting binary will have the %d following captors:\n' "$nb_captors" >&2
-	echo "$captors" >&2
+# gen_sensors_h(sensor, nb_sensors)
+gen_sensors_h() {
+	sensors=$1
+	nb_sensors=$2
+	nb_sensor_opts=$(
+		for sensor in $sensors; do
+			sed -n 's/.*'"${sensor}"'_opt\[\([0-9]\+\)\].*/\1/p' "src/${sensor}.h"
+		done |
+			paste -s -d '+' |
+			bc
+	)
 
-	[ -n "$captors" ] || return
+	dprint sensors >&2
+	dprint nb_sensor_opts >&2
+	isnum "$nb_sensor_opts" || die "could not get total number of sensors's command-line options"
 
 	# gen includes
-	for captor in $captors; do
-		printf '#include "%s.h"\n' "$captor"
+	for sensor in $sensors; do
+		printf '#include "%s.h"\n' "$sensor"
 	done
-	printf '\n#define NB_CAPTORS %d\n\n' "$nb_captors"
+	printf '\n'
 
-	# gen `init_captors()`
-	printf 'void init_captors(struct optparse_long *longopts, struct captor *captors, size_t len, size_t offset, int *nb_defined)\n{\n'
-	for captor in $captors; do
-		printf '    longopts[offset + *nb_defined] = %s_opt;\n' "$captor"
-		printf '    captors[(*nb_defined)++] = %s;\n' "$captor"
+	printf '#define NB_SENSOR %d\n' "$nb_sensors"
+	printf '#define NB_SENSOR_OPT %d\n' "$nb_sensor_opts"
+	printf '\n'
+
+	# gen `init_sensors()`
+	printf 'void init_sensors(Optparse *opts, Sensor *sensors, size_t len, size_t offset, int *nb_defined)\n{\n'
+	printf '    int opt_idx = offset;\n'
+	for sensor in $sensors; do
+		cat <<-!
+		    for (int i = 0; i < ${sensor}.nb_opt; i++) {
+		        opts[opt_idx++] = ${sensor}_opt[i];
+		    }
+		    sensors[(*nb_defined)++] = ${sensor};
+		!
 	done
 	printf '    assert((offset + *nb_defined) <= len);\n'
 	printf '}\n'
+}
+
+gen_sensors_mk() {
+	sensors=$1
+	printf 'CAPTOR_OBJ = '
+	for sensor in $sensors; do
+		printf '$(OBJ_DIR)/%s.o ' "$sensor"
+	done
+	printf '\n'
 }
 
 detect_caps() {
@@ -92,7 +121,7 @@ detect_caps() {
 		hdr_whitelist="${hdr_whitelist}|rapl"
 		;;
 	*amd*)
-		family=$(awk '/cpu[ \t]*family/ {print $3; exit}' /proc/cpuinfo)
+		family=$(awk '/cpu[ \t]*family/ {print $4; exit}' /proc/cpuinfo)
 		if isnum "$family"; then
 			[ $family -ge 17 ] && hdr_whitelist="${hdr_whitelist}|amd_rapl"
 		fi
@@ -117,8 +146,8 @@ while [ "$1" ]; do
 		shift; [ "$1" ] || usage
 		hdr_blacklist="${hdr_blacklist}|${1}"
 		;;
-	--list-captors|-l)
-		ls_captors
+	--list-sensors|-l)
+		ls_sensors
 		exit 0
 		;;
 	--unique|-u)
@@ -132,4 +161,20 @@ while [ "$1" ]; do
 	shift
 done
 
-gen_captors_h > "$target"
+sensors=$(ls_sensors)
+nb_sensors=$(echo "$sensors" | sed '/^$/d' | wc -l)
+
+if [ "$nb_sensors" -eq 0 ]; then
+	printf -- '0 sensors are selected. cannot build.\n' >&2
+	exit 1
+fi
+
+try gen_sensors_h "$sensors" "$nb_sensors" > "$target_hdr"
+try gen_sensors_mk "$sensors" > "$target_mk"
+
+printf -- 'Run `make` to build `bin/mojitos`.\n' >&2
+printf -- 'The resulting binary will have the %d following sensors:\n' "$nb_sensors" >&2
+echo "$sensors" >&2
+
+make clean >/dev/null
+

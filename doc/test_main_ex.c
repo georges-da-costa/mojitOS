@@ -22,7 +22,7 @@
 // Include of the test library
 #include "./../tests/small_test.h"
 
-// Include the *.c files that contain the tests
+// Include the *.c files containing the tests
 #include "./test_file_ex.c"
 // #include "./test_another_test_file.c"
 
@@ -33,3 +33,4 @@ TMAIN({
     CALL_TFUNCTION(test_file_ex);
     // CALL_TFUNCTION(another_file_entry_point_function);
 })
+

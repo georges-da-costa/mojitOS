@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2021 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2018-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -27,11 +27,13 @@
 
 #define NB_SENSOR 4
 
-struct network_t {
+struct Network {
     uint64_t values[NB_SENSOR];
     uint64_t tmp_values[NB_SENSOR];
     int sources[NB_SENSOR];
 };
+typedef struct Network Network;
+
 unsigned int _get_network(uint64_t *results, int *sources);
 
 
@@ -60,11 +62,11 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
                          "%s/port_xmit_data"
                         };
 
-    struct network_t *state = malloc(sizeof(struct network_t));
+    Network *state = malloc(sizeof(Network));
 
     char buffer[1024];
     for (int i = 0; i < NB_SENSOR; i++) {
-        sprintf(buffer, filenames[i], infi_path);
+        snprintf(buffer, 1024, filenames[i], infi_path);
         state->sources[i] = open(buffer, O_RDONLY);
     }
 

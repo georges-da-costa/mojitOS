@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2021 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2018-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -30,7 +30,7 @@
 #include "util.h"
 
 
-struct _counter_t {
+struct Counter {
     int nbcores;
     int nbperf;
     int **counters;
@@ -40,15 +40,19 @@ struct _counter_t {
     int *perf_indexes;
 
 };
-typedef struct _counter_t *counter_t;
+typedef struct Counter Counter;
 
 #include "counters_option.h"
 
-void show_all_counters()
+void *show_all_counters(void *none1, size_t none2)
 {
     for (unsigned int i = 0; i < nb_counter_option; i++) {
         printf("%s\n", perf_static_info[i].name);
     }
+    UNUSED(none1);
+    UNUSED(none2);
+    exit(EXIT_SUCCESS);
+    return NULL; /* not reached */
 }
 
 void perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb)
@@ -101,7 +105,7 @@ static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
     return res;
 }
 
-counter_t _init_counters(const int nb_perf, const __u32 *types, const __u64 *names)
+Counter *_init_counters(const int nb_perf, const __u32 *types, const __u64 *names)
 {
     struct perf_event_attr pe;
     unsigned int nbcores = sysconf(_SC_NPROCESSORS_ONLN);
@@ -109,7 +113,7 @@ counter_t _init_counters(const int nb_perf, const __u32 *types, const __u64 *nam
     pe.size = sizeof(struct perf_event_attr);
     pe.disabled = 1;
 
-    counter_t counters = malloc(sizeof(struct _counter_t));
+    Counter *counters = malloc(sizeof(struct Counter));
     counters->nbperf = nb_perf;
     counters->nbcores = nbcores;
     counters->counters = malloc(nb_perf * sizeof(int *));
@@ -129,7 +133,7 @@ counter_t _init_counters(const int nb_perf, const __u32 *types, const __u64 *nam
 
 void clean_counters(void *ptr)
 {
-    counter_t counters = (counter_t) ptr;
+    Counter *counters = (Counter *) ptr;
 
     for (int counter = 0; counter < counters->nbperf; counter++) {
         for (int core = 0; core < counters->nbcores; core++) {
@@ -147,7 +151,7 @@ void clean_counters(void *ptr)
     free(counters);
 }
 
-void start_counters(counter_t counters)
+void start_counters(Counter *counters)
 {
     for (int counter = 0; counter < counters->nbperf; counter++) {
         for (int core = 0; core < counters->nbcores; core++) {
@@ -156,7 +160,7 @@ void start_counters(counter_t counters)
     }
 }
 
-void reset_counters(counter_t counters)
+void reset_counters(Counter *counters)
 {
     for (int counter = 0; counter < counters->nbperf; counter++) {
         for (int core = 0; core < counters->nbcores; core++) {
@@ -165,7 +169,7 @@ void reset_counters(counter_t counters)
     }
 }
 
-void _get_counters(counter_t counters, uint64_t *values)
+void _get_counters(Counter *counters, uint64_t *values)
 {
     for (int i = 0; i < counters->nbperf; i++) {
         uint64_t accu = 0;
@@ -198,7 +202,7 @@ unsigned int init_counters(char *args, void **state)
     __u32 *perf_type;
     __u64 *perf_key;
     perf_type_key(&perf_type, &perf_key, perf_indexes, nb_perf);
-    counter_t fd = _init_counters(nb_perf, perf_type, perf_key);
+    Counter *fd = _init_counters(nb_perf, perf_type, perf_key);
     free(perf_type);
     free(perf_key);
 
@@ -214,7 +218,7 @@ unsigned int init_counters(char *args, void **state)
 
 unsigned int get_counters(uint64_t *results, void *ptr)
 {
-    counter_t state = (counter_t) ptr;
+    Counter *state = (Counter *) ptr;
 
     _get_counters(state, state->tmp_counters_values);
 
@@ -228,7 +232,7 @@ unsigned int get_counters(uint64_t *results, void *ptr)
 
 void label_counters(char **labels, void *ptr)
 {
-    counter_t state = (counter_t) ptr;
+    Counter *state = (Counter *) ptr;
 
     for (int i = 0; i < state->nbperf; i++) {
         labels[i] = perf_static_info[state->perf_indexes[i]].name;

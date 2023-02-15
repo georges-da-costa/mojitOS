@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2018-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -21,12 +21,21 @@
 unsigned int init_infiniband(char *infi_path, void **ptr);
 void label_infiniband(char **labels, void *);
 
-struct optparse_long infiniband_opt = {"monitor-infiniband", 'i', OPTPARSE_REQUIRED};
-struct captor infiniband = {
-    .usage_arg = "<infiniband_path>",
-    .usage_msg = "infiniband monitoring (if infiniband_path is X, tries to detect it automatically)",
+Sensor infiniband = {
     .init = init_infiniband,
     .get = NULL,
     .clean = NULL,
     .label = label_infiniband,
+    .nb_opt = 1,
 };
+
+Optparse infiniband_opt[1] = {
+    {
+        .longname = "monitor-infiniband",
+        .shortname = 'i',
+        .argtype = OPTPARSE_REQUIRED,
+        .usage_arg = "<infiniband_path>",
+        .usage_msg = "infiniband monitoring (if infiniband_path is X, tries to detect it automatically)",
+    },
+};
+
