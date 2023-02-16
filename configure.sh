@@ -107,7 +107,7 @@ gen_sensors_mk() {
 
 detect_caps() {
 	[ -r /usr/include/linux/perf_event.h ] && hdr_whitelist=counters
-	[ -d /sys/class/infiniband ] && hdr_whitelist=${hdr_whitelist}|infiniband
+	[ -d /sys/class/infiniband ] && hdr_whitelist="${hdr_whitelist}|infiniband"
 	[ -r /proc/stat ] && hdr_whitelist="${hdr_whitelist}|load"
 
 	if [ -r /proc/net/route ]; then
