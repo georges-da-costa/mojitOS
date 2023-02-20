@@ -38,18 +38,18 @@ char *_labels_network[NB_SENSOR] = {
     "%s:txb",
 };
 struct network_t {
-    uint64_t values[NB_SENSOR];
-    uint64_t tmp_values[NB_SENSOR];
-    int sources[NB_SENSOR];
-    char labels[NB_SENSOR][128];
-    char dev[NB_MAX_DEV][128];
+    uint64_t values[NB_MAX_DEV][NB_SENSOR];
+    uint64_t tmp_values[NB_MAX_DEV][NB_SENSOR];
+    int sources[NB_MAX_DEV][NB_SENSOR];
+    char labels[NB_MAX_DEV][NB_SENSOR][128];
+    char devs[NB_MAX_DEV][128];
     int ndev;
 };
 
-unsigned int _get_network(uint64_t *results, int *sources)
+static void _get_network(uint64_t *results, int *sources)
 {
     if (sources == NULL) {
-        return 0;
+        return;
     }
 
     char buffer[128];
@@ -62,15 +62,46 @@ unsigned int _get_network(uint64_t *results, int *sources)
 
         results[i] = strtoull(buffer, NULL, 10);
     }
+}
 
-    return NB_SENSOR;
+static int strchr_refill(int fd, char *buf, int len, char **s, char c)
+{
+    *s = strchr(*s, c);
+
+    if (*s == NULL) {
+        int nbytes = read(fd, buf, len - 1);
+        if (nbytes < 0) {
+            perror("read");
+            return -1;
+        }
+        buf[len - 1] = '\0';
+
+        /* whole file read */
+        if (nbytes == 0) {
+            return 0;
+        }
+
+        *s = strchr(buf, c);
+    }
+
+    return 1;
 }
 
 unsigned int init_network(char *dev, void **ptr)
 {
     if (dev == NULL) {
-        return 0;
+        exit(1);
     }
+
+    char *filenames[] = {
+        "/sys/class/net/%s/statistics/rx_packets",
+        "/sys/class/net/%s/statistics/rx_bytes",
+        "/sys/class/net/%s/statistics/tx_packets",
+        "/sys/class/net/%s/statistics/tx_bytes",
+    };
+
+    struct network_t *state = malloc(sizeof(struct network_t));
+    memset(state, '\0', sizeof(*state));
 
     if (strcmp(dev, "X") == 0) {
         int fd = open(route, O_RDONLY);
@@ -83,59 +114,104 @@ unsigned int init_network(char *dev, void **ptr)
 
         char buffer[1000];
 
-        if (read(fd, buffer, 999) < 0 ) {
-            perror("read");
+        /* skip first line */
+        char *s = buffer;
+        int ret = strchr_refill(fd, buffer, sizeof(buffer), &s, '\n');
+        if (ret != 1) {
             close(fd);
+            free(state);
+            exit(1);
+        }
+        s++;
+
+        char *start_of_dev = s;
+        /* jump to the end of the device name */
+        ret = strchr_refill(fd, buffer, sizeof(buffer), &s, '\t');
+        if (ret != 1) {
+            close(fd);
+            free(state);
             exit(1);
         }
 
-        char *start_of_dev = strchr(buffer, '\n') + 1;
-        char *end_of_dev = strchr(start_of_dev, '\t');
-        *end_of_dev = '\0';
-        dev = start_of_dev;
+        state->ndev++;	// ndev should be equal to 1 at this point
+        memcpy(&(state->devs[state->ndev - 1]), start_of_dev,
+               MIN((size_t)(sizeof(state->devs[0]) - 1), (size_t)(s - start_of_dev)));
+
+        for (;;) {
+            /* jump to the next line */
+            ret = strchr_refill(fd, buffer, sizeof(buffer), &s, '\n');
+            if (ret != 1) {
+                break;
+            }
+            s++;
+
+            start_of_dev = s;
+            ret = strchr_refill(fd, buffer, sizeof(buffer), &s, '\t');
+            if (ret != 1) {
+                break;
+            }
+
+            /* compare dev name to the previously saved one */
+            if (strncmp(start_of_dev, state->devs[state->ndev - 1], s - start_of_dev) != 0) {
+                if (state->ndev >= NB_MAX_DEV) {
+                    fprintf(stderr, "Maximum amount of network devices exceeded (%d).\n", NB_MAX_DEV);
+                    break;
+                }
+                state->ndev++;
+                memcpy(&(state->devs[state->ndev - 1]), start_of_dev,
+                       MIN((size_t)(sizeof(state->devs[0]) - 1), (size_t)(s - start_of_dev)));
+            }
+        }
+
         close(fd);
+    } else {
+        state->ndev = 1;
+        memcpy(&(state->devs[0]), dev, strlen(dev) + 1);
     }
 
-    char *filenames[] = {
-        "/sys/class/net/%s/statistics/rx_packets",
-        "/sys/class/net/%s/statistics/rx_bytes",
-        "/sys/class/net/%s/statistics/tx_packets",
-        "/sys/class/net/%s/statistics/tx_bytes",
-    };
-
-    struct network_t *state = malloc(sizeof(struct network_t));
-
     char buffer2[256];
-    for (int i = 0; i < NB_SENSOR; i++) {
-        snprintf(buffer2, sizeof(buffer2), filenames[i], dev);
-        errno = 0;
-        int fd = open(buffer2, O_RDONLY);
-        if (fd < 0) {
-            perror("init_network: open");
-            free(state);
-            return 0;
+    for (int i = 0; i < state->ndev; i++) {
+        for (int j = 0; j < NB_SENSOR; j++) {
+            snprintf(buffer2, sizeof(buffer2), filenames[j], state->devs[i]);
+            errno = 0;
+            int fd = open(buffer2, O_RDONLY);
+            if (fd < 0) {
+                fprintf(stderr, "init_network: open: %s: %.*s\n", strerror(errno),
+                        (int)sizeof(buffer2), buffer2);
+                free(state);
+                exit(1);
+            }
+            state->sources[i][j] = fd;
+            snprintf(state->labels[i][j], sizeof(state->labels[i][j]), _labels_network[j],
+                     state->devs[i]);
         }
-        state->sources[i] = fd;
-        snprintf(state->labels[i], sizeof(state->labels[i]), _labels_network[i], dev);
     }
 
     *ptr = (void *) state;
-    _get_network(state->values, state->sources);
 
-    return NB_SENSOR;
+    for (int i = 0; i < state->ndev; i++) {
+        _get_network(state->values[i], state->sources[i]);
+    }
+
+    return state->ndev * NB_SENSOR;
 }
 
 unsigned int get_network(uint64_t *results, void *ptr)
 {
     struct network_t *state = (struct network_t *) ptr;
-    _get_network(state->tmp_values, state->sources);
 
-    for (int i = 0; i < NB_SENSOR; i++) {
-        results[i] = modulo_substraction(state->tmp_values[i], state->values[i]);
+    for (int i = 0; i < state->ndev; i++) {
+        _get_network(state->tmp_values[i], state->sources[i]);
+
+        for (int j = 0; j < NB_SENSOR; j++) {
+            results[i*NB_SENSOR + j] = modulo_substraction(state->tmp_values[i][j], state->values[i][j]);
+        }
+
+        memcpy(&(state->values[i]), &(state->tmp_values[i]),
+               NB_SENSOR * sizeof(state->values[i][0]));
     }
 
-    memcpy(state->values, state->tmp_values, NB_SENSOR * sizeof(uint64_t));
-    return NB_SENSOR;
+    return state->ndev * NB_SENSOR;
 }
 
 void clean_network(void *ptr)
@@ -146,8 +222,10 @@ void clean_network(void *ptr)
         return;
     }
 
-    for (int i = 0; i < NB_SENSOR; i++) {
-        close(state->sources[i]);
+    for (int i = 0; i < state->ndev; i++) {
+        for (int j = 0; j < NB_SENSOR; j++) {
+            close(state->sources[i][j]);
+        }
     }
 
     free(state);
@@ -157,7 +235,9 @@ void label_network(char **labels, void *ptr)
 {
     struct network_t *state = (struct network_t *) ptr;
 
-    for (int i = 0; i < NB_SENSOR; i++) {
-        labels[i] = state->labels[i];
+    for (int i = 0; i < state->ndev; i++) {
+        for (int j = 0; j < NB_SENSOR; j++) {
+            labels[i*NB_SENSOR + j] = state->labels[i][j];
+        }
     }
 }
