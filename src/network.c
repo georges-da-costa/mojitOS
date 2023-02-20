@@ -17,14 +17,17 @@
     along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
 
  *******************************************************/
-#include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "util.h"
 
+#define NB_MAX_DEV 8
 #define NB_SENSOR 4
 
 static char *route = "/proc/net/route";
@@ -39,6 +42,8 @@ struct network_t {
     uint64_t tmp_values[NB_SENSOR];
     int sources[NB_SENSOR];
     char labels[NB_SENSOR][128];
+    char dev[NB_MAX_DEV][128];
+    int ndev;
 };
 
 unsigned int _get_network(uint64_t *results, int *sources)
@@ -103,7 +108,14 @@ unsigned int init_network(char *dev, void **ptr)
     char buffer2[256];
     for (int i = 0; i < NB_SENSOR; i++) {
         snprintf(buffer2, sizeof(buffer2), filenames[i], dev);
-        state->sources[i] = open(buffer2, O_RDONLY);
+        errno = 0;
+        int fd = open(buffer2, O_RDONLY);
+        if (fd < 0) {
+            perror("init_network: open");
+            free(state);
+            return 0;
+        }
+        state->sources[i] = fd;
         snprintf(state->labels[i], sizeof(state->labels[i]), _labels_network[i], dev);
     }
 
