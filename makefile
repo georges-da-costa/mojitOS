@@ -9,6 +9,15 @@ TESTS_DIR = tests
 BIN = mojitos
 PREFIX = /usr/local
 
+CC = gcc
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib
+CFLAGS = $(CPPFLAGS) -O3 -Werror
+LDFLAGS =
+
+ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
+
+all: $(BIN) man
+
 CAPTOR_OBJ =
 
 include ./sensors.mk
@@ -17,15 +26,12 @@ OBJ =  \
 	$(CAPTOR_OBJ) \
 	$(OBJ_DIR)/util.o
 
-CC = gcc
-CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib
-CFLAGS = $(CPPFLAGS) -O3 -Werror
-LDFLAGS =
-
-ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
-
-
-all: $(BIN) man
+options:
+	@echo BIN: $(BIN)
+	@echo CC: $(CC)
+	@echo CFLAGS: $(CFLAGS)
+	@echo LDFLAGS: $(LDFLAGS)
+	@echo OBJ: $(OBJ)
 
 $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
 	$(CC) $(LDFLAGS) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o
@@ -36,7 +42,7 @@ $(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
 $(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c $(SRC_DIR)/counters_option.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/%.h
+$(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.sh

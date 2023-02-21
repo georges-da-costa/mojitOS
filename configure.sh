@@ -103,6 +103,11 @@ gen_sensors_mk() {
 		printf '$(OBJ_DIR)/%s.o ' "$sensor"
 	done
 	printf '\n'
+	for sensor in $sensors; do
+		printf '$(OBJ_DIR)/%s.o: $(SRC_DIR)/%s.c $(SRC_DIR)/%s.h $(SRC_DIR)/util.h\n' \
+			"$sensor" "$sensor" "$sensor"
+		printf '\t$(CC) $(CFLAGS) -c $< -o $@\n'
+	done
 }
 
 detect_caps() {
