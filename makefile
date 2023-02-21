@@ -7,6 +7,7 @@ BIN_DIR = bin
 TESTS_DIR = tests
 
 BIN = mojitos
+PREFIX = /usr/local
 
 CAPTOR_OBJ =
 
@@ -74,4 +75,16 @@ man: $(BIN)
 		'/^USAGE/ { $$0=usage } 1' \
 		doc/$(BIN).pre.1 > doc/$(BIN).1 2>/dev/null
 
-.PHONY: all clean mojitos debug format tests readme man
+install: $(BIN) man
+	mkdir -p $(PREFIX)/bin
+	cp $(BIN_DIR)/$(BIN) $(PREFIX)/bin/.
+	chmod 755 $(PREFIX)/bin/$(BIN)
+	mkdir -p $(PREFIX)/share/man/man1
+	cp $(DOC_DIR)/$(BIN).1 $(PREFIX)/share/man/man1/.
+	chmod 644 $(PREFIX)/share/man/man1/$(BIN).1
+
+uninstall:
+	rm -f $(PREFIX)/bin/$(BIN)
+	rm -f $(PREFIX)/share/man/man1/$(BIN).1
+
+.PHONY: all clean mojitos debug format tests readme man install uninstall
