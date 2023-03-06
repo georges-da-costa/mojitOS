@@ -1,3 +1,23 @@
+/*******************************************************
+ Copyright (C) 2023-2023 Georges Da Costa <georges.da-costa@irit.fr>
+
+    This file is part of Mojitos.
+
+    Mojitos is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Mojitos is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
+
+ *******************************************************/
+
 #include <stdio.h>
 #include <stdint.h>
 #include <nvml.h>
@@ -5,7 +25,6 @@
 #include <string.h>
 
 #include "util.h"
-
 
 // -----------------------------SENSOR_KIND
 typedef enum {
@@ -16,47 +35,82 @@ typedef enum {
     COUNT_SENSOR       = 3,
 } SENSOR_KIND;
 
-typedef unsigned int (Initializer) (nvmlDevice_t, void **);
-typedef unsigned int (Getter)      (nvmlDevice_t, uint64_t *, void *);
+typedef struct Device Device;
+typedef struct NvidiaSensor NvidiaSensor;
+typedef struct ISensor ISensor;
+typedef struct Sensor Sensor;
+
+// -- Sensor interface
+typedef unsigned int (Initializer) (const Device *, void **);
+typedef unsigned int (Getter)      (uint64_t *, const Device *, void *);
+typedef unsigned int (Labeller)    (char **, void *);
 typedef void         (Cleaner)     (void *);
 
-typedef struct {
-    void *data;
-
+struct ISensor {
     Initializer *init;
     Getter *get;
+    Labeller *label;
     Cleaner *clean;
-} ISensor;
+};
+
+// -- Sensor
+struct Sensor {
+    void *data;
+    const ISensor *fun;
+};
+
+// -- Device: represents a gpu
+struct Device {
+    char name[NVML_DEVICE_NAME_BUFFER_SIZE];
+    nvmlDevice_t device;
+    unsigned int idx;
+
+    Sensor sensors[COUNT_SENSOR];
+    unsigned int count;
+};
+
+// -- NvidiaSensor: represents the devices
+struct NvidiaSensor {
+    Device *devices;
+    unsigned int count;
+};
+
+// -- Label template
+static const char *label_template = "gpu%u_%s_%s";
 
 // ----------------------------CLOCK_SENSOR
-// -- All existing clocks
-#if NVML_CLOCK_COUNT != 4
-#error "NVML_CLOCK_COUNT must be equal 4";
-#endif
 
+#define CLOCK_LABEL_SIZE 25
+
+// -- All existing clocks
 // -- SM : Streaming Multiprocessor
 static const nvmlClockType_t clocks[NVML_CLOCK_COUNT] = {NVML_CLOCK_GRAPHICS, NVML_CLOCK_SM, NVML_CLOCK_MEM, NVML_CLOCK_VIDEO};
-static const char *clock_names[NVML_CLOCK_COUNT] = {"Graphics", "SM", "Memory", "Video"};
+static const char *clock_names[NVML_CLOCK_COUNT] = {"graphics", "sm", "memory", "video"};
+static const char *clock_base_name = "clk";
 
 // -- Must contain the clocks compatible with the device
 typedef struct {
     nvmlClockType_t clocks[NVML_CLOCK_COUNT];
+    char labels[NVML_CLOCK_COUNT][CLOCK_LABEL_SIZE];
     unsigned int count;
 } ClockData;
 
-unsigned int init_clock_sensor(nvmlDevice_t device, void** data)
+unsigned int init_clock_sensor(const Device *device, void **data)
 {
+    const nvmlDevice_t nvml_device = device->device;
+    const unsigned int device_idx = device->idx;
     ClockData tmp = {0};
     nvmlReturn_t result;
     unsigned int clock;
 
     // -- Test all clocks
     for (unsigned int i = 0; i < NVML_CLOCK_COUNT; i++) {
-        if ((result = nvmlDeviceGetClockInfo(device, clocks[i], &clock)) == NVML_SUCCESS) {
+        if ((result = nvmlDeviceGetClockInfo(nvml_device, clocks[i], &clock)) == NVML_SUCCESS) {
+            snprintf(tmp.labels[tmp.count], CLOCK_LABEL_SIZE, label_template, device_idx, clock_base_name, clock_names[i]);
             tmp.clocks[tmp.count] = clocks[i];
             tmp.count += 1;
         } else {
-            fprintf(stderr, "Failed to get %s clock : %s", clock_names[i], nvmlErrorString(result));
+            fprintf(stderr, "Failed to get %s clock : %s\n", clock_names[i], nvmlErrorString(result));
         }
     }
 
@@ -70,8 +124,9 @@ unsigned int init_clock_sensor(nvmlDevice_t device, void** data)
     return tmp.count;
 }
 
-unsigned int get_clock_sensor(nvmlDevice_t device, uint64_t *results, void* data)
+unsigned int get_clock_sensor(uint64_t *results, const Device *device, void *data)
 {
+    const nvmlDevice_t nvml_device = device->device;
     ClockData *clock_data = (ClockData *) data;
     nvmlReturn_t err;
     unsigned int clock;
@@ -79,8 +134,8 @@ unsigned int get_clock_sensor(nvmlDevice_t device, uint64_t *results, void* data
     for (unsigned int i = 0; i < clock_data->count; i++) {
         nvmlClockType_t clock_type = clock_data->clocks[i];
 
-        if((err = nvmlDeviceGetClockInfo(device, clock_type, &clock)) != NVML_SUCCESS) {
-            fprintf(stderr, "Failed to get %s clock : %s", clock_names[clock_type], nvmlErrorString(err));
+        if((err = nvmlDeviceGetClockInfo(nvml_device, clock_type, &clock)) != NVML_SUCCESS) {
+            fprintf(stderr, "Failed to get %s clock : %s\n", clock_names[clock_type], nvmlErrorString(err));
             exit(99);
         }
         results[i] = clock;
@@ -88,42 +143,69 @@ unsigned int get_clock_sensor(nvmlDevice_t device, uint64_t *results, void* data
     return clock_data->count;
 }
 
-void clean_clock_sensor(void* data)
+unsigned int label_clock_sensor(char **labels, void *data)
+{
+    ClockData *clock_data = (ClockData *) data;
+
+    for (unsigned int i = 0; i < clock_data->count; i++) {
+        labels[i] = clock_data->labels[i];
+    }
+
+    return clock_data->count;
+}
+
+void clean_clock_sensor(void *data)
 {
     free(data);
 }
 
 // ---------------------------MEMORY_SENSOR
+#define MEMORY_LABEL_SIZE 25
+
 typedef enum {
     FREE_MEMORY  = 0U,
     USED_MEMORY  = 1U,
     TOTAL_MEMORY = 2U,
- 
+
     COUNT_MEMORY = 3U,
 } MemoryKind;
-static const char *memory_names[COUNT_MEMORY] = {"Free", "Used", "Total"};
 
-unsigned int init_memory_sensor(nvmlDevice_t device, void **none)
+static const char *memory_names[COUNT_MEMORY] = {"free", "used", "total"};
+static const char *memory_base_name = "mem";
+
+typedef struct {
+    char labels[COUNT_MEMORY][MEMORY_LABEL_SIZE];
+} MemoryData;
+
+unsigned int init_memory_sensor(const Device *device, void **data)
 {
-    UNUSED(none);
+    const nvmlDevice_t nvml_device = device->device;
+    const unsigned int device_idx = device->idx;
 
     nvmlMemory_t memory;
     nvmlReturn_t result;
-    if ((result = nvmlDeviceGetMemoryInfo(device, &memory)) != NVML_SUCCESS) {
+    if ((result = nvmlDeviceGetMemoryInfo(nvml_device, &memory)) != NVML_SUCCESS) {
         fprintf(stderr, "Failed to get device memory : %s\n", nvmlErrorString(result));
         return 0;
     }
 
+    MemoryData *memory_data = (MemoryData *) calloc(1, sizeof(MemoryData));
+    for (unsigned int i = 0; i < COUNT_MEMORY; i++) {
+        snprintf(memory_data->labels[i], MEMORY_LABEL_SIZE, label_template, device_idx, memory_base_name, memory_names[i]);
+    }
+
+    *data = (void *) memory_data;
     return COUNT_MEMORY;
 }
 
-unsigned int get_memory_sensor(nvmlDevice_t device, uint64_t *results, void *none)
+unsigned int get_memory_sensor(uint64_t *results, const Device *device, void *none)
 {
     UNUSED(none);
+    const nvmlDevice_t nvml_device = device->device;
 
     nvmlMemory_t memory;
     nvmlReturn_t result;
-    if ((result = nvmlDeviceGetMemoryInfo(device, &memory)) != NVML_SUCCESS) {
+    if ((result = nvmlDeviceGetMemoryInfo(nvml_device, &memory)) != NVML_SUCCESS) {
         fprintf(stderr, "Failed to get device memory : %s\n", nvmlErrorString(result));
         exit(99);
     }
@@ -135,12 +217,23 @@ unsigned int get_memory_sensor(nvmlDevice_t device, uint64_t *results, void *non
 }
 
 
-void clean_memory_sensor(void *none)
+unsigned int label_memory_sensor(char **labels, void* data)
 {
-    UNUSED(none);
+    MemoryData *memory_data = (MemoryData *) data;
+
+    for (unsigned int i = 0; i < COUNT_MEMORY; i++) {
+        labels[i] = memory_data->labels[i];
+    }
+
+    return COUNT_MEMORY;
+}
+void clean_memory_sensor(void *data)
+{
+  free(data);
 }
 
 // ----------------------UTILIZATION_SENSOR
+#define UTILIZATION_LABEL_SIZE 35
 typedef enum {
     GPU_UTILIZATION    = 0U,
     MEMORY_UTILIZATION = 1U,
@@ -148,29 +241,42 @@ typedef enum {
     COUNT_UTILIZATION  = 2U,
 } UtilizationKind;
 
-static const char *utilization_names[COUNT_UTILIZATION] = {"Gpu", "Memory"};
+typedef struct {
+  char labels[COUNT_UTILIZATION][UTILIZATION_LABEL_SIZE];
+} UtilizationData;
 
-unsigned int init_utilization_sensor(nvmlDevice_t device, void **none);
+static const char *utilization_names[COUNT_UTILIZATION] = {"gpu", "memory"};
+static const char *utilization_base_name = "utilization";
+
+unsigned int init_utilization_sensor(const Device *device, void **data)
 {
-    UNUSED(none);
+    const nvmlDevice_t nvml_device = device->device;
+    const unsigned int device_idx = device->idx;
 
     nvmlReturn_t result;
     nvmlUtilization_t utilization;
-    if ((result = nvmlDeviceGetUtilizationRates(device, &utilization)) != NVML_SUCCESS) {
+    if ((result = nvmlDeviceGetUtilizationRates(nvml_device, &utilization)) != NVML_SUCCESS) {
         fprintf(stderr, "Failed to get device utilization: %s\n", nvmlErrorString(result));
         return 0;
     }
 
+    UtilizationData *utilization_data = (UtilizationData *) calloc(1, sizeof(UtilizationData));
+    for (unsigned int i = 0; i < COUNT_UTILIZATION; i++) {
+snprintf(utilization_data->labels[i], UTILIZATION_LABEL_SIZE, label_template, device_idx, utilization_base_name, utilization_names[i]);
+    }
+
+    *data = (void *) utilization_data;
     return COUNT_UTILIZATION;
 }
 
-unsigned int get_utilization_sensor(nvmlDevice_t device, uint64_t *results, void* none)
+unsigned int get_utilization_sensor(uint64_t *results, const Device *device, void *none)
 {
     UNUSED(none);
+    const nvmlDevice_t nvml_device = device->device;
 
     nvmlReturn_t result;
     nvmlUtilization_t utilization;
-    if ((result = nvmlDeviceGetUtilizationRates(device, &utilization)) != NVML_SUCCESS) {
+    if ((result = nvmlDeviceGetUtilizationRates(nvml_device, &utilization)) != NVML_SUCCESS) {
         fprintf(stderr, "Failed to get device utilization: %s\n", nvmlErrorString(result));
         exit(99);
     }
@@ -180,9 +286,19 @@ unsigned int get_utilization_sensor(nvmlDevice_t device, uint64_t *results, void
     return COUNT_UTILIZATION;
 }
 
-void clean_utilization_sensor(void* none)
+unsigned int label_utilization_sensor(char **labels, void* data)
 {
-    UNUSED(none);
+    UtilizationData *utilization_data = (UtilizationData *) data;
+
+    for (unsigned int i = 0; i < COUNT_UTILIZATION; i++) {
+        labels[i] = utilization_data->labels[i];
+    }
+
+    return COUNT_UTILIZATION;
+}
+void clean_utilization_sensor(void *data)
+{
+    free(data);
 }
 
 // ----------------------------ERROR_SENSOR
@@ -190,32 +306,21 @@ void clean_utilization_sensor(void* none)
 
 // ----------------------------------------
 
-typedef struct {
-    char name[NVML_DEVICE_NAME_BUFFER_SIZE];
-    nvmlDevice_t device;
-
-    ISensor sensors[COUNT_SENSOR];
-    unsigned int count;
-} Device;
-
-typedef struct {
-    Device *devices;
-    unsigned int count;
-} NvidiaSensor;
 
 // -------------------------AVAIBLE_SENSORS
 static const ISensor avaible_sensors[COUNT_SENSOR] = {
-    {.init = init_clock_sensor, .get = get_clock_sensor, .clean = clean_memory_sensor, .data = NULL};
-    {.init = init_memory_sensor, .get = get_memory_sensor, .clean = clean_memory_sensor, .data = NULL};
-    {.init = init_utilization_sensor, .get = get_utilization_sensor, .clean = clean_memory_sensor, .data = NULL};
+    {.init = init_clock_sensor, .get = get_clock_sensor, .label = label_clock_sensor, .clean = clean_clock_sensor},
+    {.init = init_memory_sensor, .get = get_memory_sensor, .label = label_memory_sensor, .clean = clean_memory_sensor},
+    {.init = init_utilization_sensor, .get = get_utilization_sensor, .label = label_utilization_sensor, .clean = clean_utilization_sensor},
 };
 
 // ------------------------DEVICE_FUNCTIONS
 
-unsigned int init_device(unsigned int device_idx, Device *device) {
+unsigned int init_device(unsigned int device_idx, Device *device)
+{
     nvmlReturn_t result;
     nvmlDevice_t nvml_device;
-    if ((result = nvmlDeviceGetByIndex(i, &nvml_device) != NVML_SUCCESS) {
+    if ((result = nvmlDeviceGetHandleByIndex(device_idx, &nvml_device)) != NVML_SUCCESS) {
         fprintf(stderr, "Failed to get device handle for device %d: %s\n", device_idx, nvmlErrorString(result));
         return 0;
     }
@@ -225,38 +330,61 @@ unsigned int init_device(unsigned int device_idx, Device *device) {
         return 0;
     }
 
-    unsigned int count = 0;
+    device->device = nvml_device;
+    device->idx = device_idx;
+
+    unsigned int sensor_count = 0;
+    unsigned int total_count = 0;
+
     for (unsigned int i = 0; i < COUNT_SENSOR; i++) {
-        void* data;
-        if (avaible_sensors.init(nvml_device, &data) != 0) {
-            ISensor *sensor = &device->sensors[count];
-            memcpy(sensor, &avaible_sensors[i], sizeof(ISensor));
-            sensor->data = data;
-            count += 1;
+        Sensor *sensor = &device->sensors[sensor_count];
+        sensor->fun = &avaible_sensors[i];
+        unsigned int count;
+
+        if ((count = sensor->fun->init(device, &sensor->data)) != 0) {
+            sensor_count += 1;
+            total_count += count;
         }
     }
 
-    device->device = nvml_device;
-    device->count = count;
-    return count;
+    device->count = sensor_count;
+    return total_count;
 }
 
-unsigned int get_device(Device *device, uint64_t *results) {
-    unsigned int count;
-    nvmlDevice_t nvml_device = device->device;
+unsigned int get_device(uint64_t *results, Device *device)
+{
+    unsigned int count = 0;
     for (unsigned int i = 0; i < device->count; i++) {
-        unsigned int result = device->sensor.get(nvml_device, &device->sensor.data, results);
+        Sensor *sensor = &device->sensors[i];
+        unsigned int result = sensor->fun->get(results, device, sensor->data);
         count += result;
         results += result;
     }
 
     return count;
 }
-void clean_device(Device *device) {
+
+unsigned int label_device(char **labels, Device *device)
+{
+    unsigned int count = 0;
     for (unsigned int i = 0; i < device->count; i++) {
-        device->sensor.clean(&device->sensor.data);
+        Sensor *sensor = &device->sensors[i];
+        unsigned int result = sensor->fun->label(labels, sensor->data);
+        labels += result;
+        count += result;
+    }
+
+    return count;
+}
+
+void clean_device(Device *device)
+{
+    for (unsigned int i = 0; i < device->count; i++) {
+        Sensor *sensor = &device->sensors[i];
+        sensor->fun->clean(sensor->data);
     }
 }
+
 
 // ------------------------NVIDIA_INTERFACE
 
@@ -278,47 +406,106 @@ unsigned int init_nvidia_sensor(char *none, void **ptr)
         exit(1);
     }
 
-    Device* devices = calloc(avaible_device_count, sizeof(Device));
+    Device *devices = calloc(avaible_device_count, sizeof(Device));
 
     unsigned int sensor_count = 0;
     unsigned int device_count = 0;
     for (unsigned int i = 0; i < avaible_device_count; i++) {
         unsigned int initialized_count;
-        if ((initialized_count = init_device(&devices[device_count])) != 0) {
+        if ((initialized_count = init_device(i, &devices[device_count])) != 0) {
             sensor_count += initialized_count;
             device_count += 1;
         }
     }
 
-    NvidiaSensor *nvidia = (NvidiaSensor*) calloc(1, sizeof(NvidiaSensor));
+    NvidiaSensor *nvidia = (NvidiaSensor *) calloc(1, sizeof(NvidiaSensor));
     nvidia->devices = devices;
     nvidia->count = device_count;
 
-    *ptr = (void*) nvidia;
-    return count;
+    *ptr = (void *) nvidia;
+    return sensor_count;
 }
 
 
-unsigned int get_nvidia_sensor(uint64_t *results, void *ptr) {
+unsigned int get_nvidia_sensor(uint64_t *results, void *ptr)
+{
     NvidiaSensor *nvidia = (NvidiaSensor *) ptr;
     unsigned count = 0;
 
-    for (unsigned int i = 0; i < nvidia.count; i++) {
-        unsigned int result = get_device(&nvidia->devices[i], results);
+    for (unsigned int i = 0; i < nvidia->count; i++) {
+        unsigned int result = get_device(results, &nvidia->devices[i]);
         results += result;
         count += result;
     }
 
     return count;
 }
-void label_nvidia_sensor(char **labels, void *ptr);
+
+unsigned int label_nvidia_sensor(char **labels, void *ptr) {
+    NvidiaSensor *nvidia = (NvidiaSensor *) ptr;
+    unsigned count = 0;
+
+    for (unsigned int i = 0; i < nvidia->count; i++) {
+        unsigned int result = label_device(labels, &nvidia->devices[i]);
+        labels += result;
+        count += result;
+    }
+
+    return count;
+}
 
 void clean_nvidia_sensor(void *ptr)
 {
     NvidiaSensor *nvidia = (NvidiaSensor *) ptr;
 
     for (unsigned int i = 0; i < nvidia->count; i++) {
-        clean_device(&nvidia->device[i]);
+        clean_device(&nvidia->devices[i]);
     }
+
+    free(nvidia->devices);
+    free(nvidia);
     nvmlShutdown();
 }
+
+// -------------------------------TEST_MAIN
+
+#ifdef __NVIDIA__MAIN__TEST
+int main()
+{
+    void *ptr = NULL;
+    char *none = NULL;
+
+    unsigned int sensor_count = init_nvidia_sensor(none, &ptr);
+
+    NvidiaSensor *nvidia = (NvidiaSensor *) ptr;
+    printf("%d\n", nvidia->count);
+    printf("%u\n", sensor_count);
+
+  
+
+    uint64_t results[sensor_count];
+    char *labels[sensor_count];
+
+    memset(results, 0, sensor_count * sizeof(uint64_t));
+    memset(labels, 0, sensor_count * sizeof(char**));
+
+
+    unsigned count_label = label_nvidia_sensor(labels, ptr);
+    unsigned count_get = get_nvidia_sensor(results, ptr);
+    printf("total : %u, get : %u, label : %u\n", sensor_count, count_get, count_label);
+
+    
+    for (unsigned int i = 0; i < sensor_count; i++) {
+        printf("%s ", labels[i]);
+    }
+    printf("\n");
+    for (unsigned int i = 0; i < sensor_count; i++) {
+        printf("%lu ", results[i]);
+    }
+    printf("\n");
+    printf("sensor_count: %d\n", sensor_count);
+
+    clean_nvidia_sensor(ptr);
+}
+#endif
+
