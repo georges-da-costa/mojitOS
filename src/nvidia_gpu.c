@@ -20,9 +20,13 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <nvml.h>
 #include <stdlib.h>
 #include <string.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#include <nvml.h>
+#pragma GCC diagnostic pop
 
 #include "util.h"
 
@@ -36,7 +40,7 @@ typedef enum {
 } SENSOR_KIND;
 
 typedef struct Device Device;
-typedef struct NvidiaSensor NvidiaSensor;
+typedef struct NvidiaGpu NvidiaGpu;
 typedef struct ISensor ISensor;
 typedef struct Sensor Sensor;
 
@@ -69,8 +73,8 @@ struct Device {
     unsigned int count;
 };
 
-// -- NvidiaSensor: represents the devices
-struct NvidiaSensor {
+// -- NvidiaGpu: represents the devices
+struct NvidiaGpu {
     Device *devices;
     unsigned int count;
 };
@@ -217,7 +221,7 @@ unsigned int get_memory_sensor(uint64_t *results, const Device *device, void *no
 }
 
 
-unsigned int label_memory_sensor(char **labels, void* data)
+unsigned int label_memory_sensor(char **labels, void *data)
 {
     MemoryData *memory_data = (MemoryData *) data;
 
@@ -229,7 +233,7 @@ unsigned int label_memory_sensor(char **labels, void* data)
 }
 void clean_memory_sensor(void *data)
 {
-  free(data);
+    free(data);
 }
 
 // ----------------------UTILIZATION_SENSOR
@@ -242,7 +246,7 @@ typedef enum {
 } UtilizationKind;
 
 typedef struct {
-  char labels[COUNT_UTILIZATION][UTILIZATION_LABEL_SIZE];
+    char labels[COUNT_UTILIZATION][UTILIZATION_LABEL_SIZE];
 } UtilizationData;
 
 static const char *utilization_names[COUNT_UTILIZATION] = {"gpu", "memory"};
@@ -262,7 +266,7 @@ unsigned int init_utilization_sensor(const Device *device, void **data)
 
     UtilizationData *utilization_data = (UtilizationData *) calloc(1, sizeof(UtilizationData));
     for (unsigned int i = 0; i < COUNT_UTILIZATION; i++) {
-snprintf(utilization_data->labels[i], UTILIZATION_LABEL_SIZE, label_template, device_idx, utilization_base_name, utilization_names[i]);
+        snprintf(utilization_data->labels[i], UTILIZATION_LABEL_SIZE, label_template, device_idx, utilization_base_name, utilization_names[i]);
     }
 
     *data = (void *) utilization_data;
@@ -286,7 +290,7 @@ unsigned int get_utilization_sensor(uint64_t *results, const Device *device, voi
     return COUNT_UTILIZATION;
 }
 
-unsigned int label_utilization_sensor(char **labels, void* data)
+unsigned int label_utilization_sensor(char **labels, void *data)
 {
     UtilizationData *utilization_data = (UtilizationData *) data;
 
@@ -388,7 +392,7 @@ void clean_device(Device *device)
 
 // ------------------------NVIDIA_INTERFACE
 
-unsigned int init_nvidia_sensor(char *none, void **ptr)
+unsigned int init_nvidia_gpu(char *none, void **ptr)
 {
     UNUSED(none);
     UNUSED(ptr);
@@ -418,7 +422,7 @@ unsigned int init_nvidia_sensor(char *none, void **ptr)
         }
     }
 
-    NvidiaSensor *nvidia = (NvidiaSensor *) calloc(1, sizeof(NvidiaSensor));
+    NvidiaGpu *nvidia = (NvidiaGpu *) calloc(1, sizeof(NvidiaGpu));
     nvidia->devices = devices;
     nvidia->count = device_count;
 
@@ -427,9 +431,9 @@ unsigned int init_nvidia_sensor(char *none, void **ptr)
 }
 
 
-unsigned int get_nvidia_sensor(uint64_t *results, void *ptr)
+unsigned int get_nvidia_gpu(uint64_t *results, void *ptr)
 {
-    NvidiaSensor *nvidia = (NvidiaSensor *) ptr;
+    NvidiaGpu *nvidia = (NvidiaGpu *) ptr;
     unsigned count = 0;
 
     for (unsigned int i = 0; i < nvidia->count; i++) {
@@ -441,8 +445,9 @@ unsigned int get_nvidia_sensor(uint64_t *results, void *ptr)
     return count;
 }
 
-unsigned int label_nvidia_sensor(char **labels, void *ptr) {
-    NvidiaSensor *nvidia = (NvidiaSensor *) ptr;
+unsigned int label_nvidia_gpu(char **labels, void *ptr)
+{
+    NvidiaGpu *nvidia = (NvidiaGpu *) ptr;
     unsigned count = 0;
 
     for (unsigned int i = 0; i < nvidia->count; i++) {
@@ -454,9 +459,9 @@ unsigned int label_nvidia_sensor(char **labels, void *ptr) {
     return count;
 }
 
-void clean_nvidia_sensor(void *ptr)
+void clean_nvidia_gpu(void *ptr)
 {
-    NvidiaSensor *nvidia = (NvidiaSensor *) ptr;
+    NvidiaGpu *nvidia = (NvidiaGpu *) ptr;
 
     for (unsigned int i = 0; i < nvidia->count; i++) {
         clean_device(&nvidia->devices[i]);
@@ -475,26 +480,26 @@ int main()
     void *ptr = NULL;
     char *none = NULL;
 
-    unsigned int sensor_count = init_nvidia_sensor(none, &ptr);
+    unsigned int sensor_count = init_nvidia_gpu(none, &ptr);
 
-    NvidiaSensor *nvidia = (NvidiaSensor *) ptr;
+    NvidiaGpu *nvidia = (NvidiaGpu *) ptr;
     printf("%d\n", nvidia->count);
     printf("%u\n", sensor_count);
 
-  
+
 
     uint64_t results[sensor_count];
     char *labels[sensor_count];
 
     memset(results, 0, sensor_count * sizeof(uint64_t));
-    memset(labels, 0, sensor_count * sizeof(char**));
+    memset(labels, 0, sensor_count * sizeof(char **));
 
 
-    unsigned count_label = label_nvidia_sensor(labels, ptr);
-    unsigned count_get = get_nvidia_sensor(results, ptr);
+    unsigned count_label = label_nvidia_gpu(labels, ptr);
+    unsigned count_get = get_nvidia_gpu(results, ptr);
     printf("total : %u, get : %u, label : %u\n", sensor_count, count_get, count_label);
 
-    
+
     for (unsigned int i = 0; i < sensor_count; i++) {
         printf("%s ", labels[i]);
     }
@@ -505,7 +510,7 @@ int main()
     printf("\n");
     printf("sensor_count: %d\n", sensor_count);
 
-    clean_nvidia_sensor(ptr);
+    clean_nvidia_gpu(ptr);
 }
 #endif
 

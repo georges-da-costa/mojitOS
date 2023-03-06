@@ -18,23 +18,23 @@
 
  *******************************************************/
 
-unsigned int init_nvidia_sensor(char *, void **);
-unsigned int get_nvidia_sensor(uint64_t *results, void *);
-void clean_nvidia_sensor(void *);
-void label_nvidia_sensor(char **labels, void *);
+unsigned int init_nvidia_gpu(char *, void **);
+unsigned int get_nvidia_gpu(uint64_t *results, void *);
+void clean_nvidia_gpu(void *);
+void label_nvidia_gpu(char **labels, void *);
 
 
 Sensor nvidia_gpu = {
-    .init = init_nvidia_sensor,
-    .get = get_nvidia_sensor,
-    .clean = clean_nvidia_sensor,
-    .label = label_nvidia_sensor,
+    .init = init_nvidia_gpu,
+    .get = get_nvidia_gpu,
+    .clean = clean_nvidia_gpu,
+    .label = label_nvidia_gpu,
     .nb_opt = 1,
 };
 
 Optparse nvidia_gpu_opt[1] = {
     {
-        .longname = "nvidia",
+        .longname = "nvidia-gpu",
         .shortname = 'n',
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
