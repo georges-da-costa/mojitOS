@@ -17,9 +17,9 @@ OBJ =  \
 	$(OBJ_DIR)/util.o
 
 CC = gcc
-CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib -I/usr/local/cuda/include
 CFLAGS = $(CPPFLAGS) -O3 -Werror
-LDFLAGS =
+LDFLAGS = -L/usr/local/cuda/lib64 -lnvidia-ml
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
@@ -27,7 +27,7 @@ ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 all: $(BIN) man
 
 $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
-	$(CC) $(LDFLAGS) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o
+	$(CC) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o $(LDFLAGS)
 
 $(OBJ): $(OBJ_DIR)
 $(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
