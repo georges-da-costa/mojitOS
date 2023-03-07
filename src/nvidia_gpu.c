@@ -18,6 +18,8 @@
 
  *******************************************************/
 
+// -- test :
+// gcc -std=gnu99 -Wall -Wextra -Wpedantic -fsanitize=address -D__NVIDIA__MAIN__TEST nvidia_gpu.c -I/lib -I/usr/local/cuda/include -L/usr/local/cuda/lib64 -lnvidia-ml
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -300,6 +302,7 @@ unsigned int label_utilization_sensor(char **labels, void *data)
 
     return COUNT_UTILIZATION;
 }
+
 void clean_utilization_sensor(void *data)
 {
     free(data);
