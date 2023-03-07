@@ -26,18 +26,19 @@ debug=0
 target_hdr=src/sensors.h
 target_mk=sensors.mk
 
-nonsensor='counters_option|optparse|sensors|util|info_reader'
+nonsensor='counters_option|sensors|util'
 
 hdr_blacklist=$nonsensor
 hdr_whitelist=''
 
 usage() {
-	printf -- 'Usage: %s [-l] [-e <captor>] [-i <captor>] [-u <captor>]\n' "$(basename "$0")" >&2
-	printf -- '-e | --exclude      :   exclude captor, can be called multiple times\n' >&2
-	printf -- '-i | --include      :   include captor, can be called multiple times\n' >&2
-	printf -- '-l | --list-captors :   list all captors and exit\n' >&2
-	printf -- '-u | --unique       :   only include the specified captor\n' >&2
-	printf -- '                        if this option is used, any use of `-e` or `-i` will be ignored\n' >&2
+	printf -- 'Usage: %s [-la] [-e <sensor>] [-i <sensor>] [-u <sensor>]\n' "$(basename "$0")" >&2
+	printf -- '-e | --exclude      :   exclude sensor, can be called multiple times\n' >&2
+	printf -- '-i | --include      :   include sensor, can be called multiple times\n' >&2
+	printf -- '-l | --list-sensors :   list all sensors and exit\n' >&2
+	printf -- '-u | --unique       :   only include the specified sensor\n' >&2
+	printf -- '                        if this option is used, any usage of `-e` or `-i` will be ignored\n' >&2
+	printf -- '-a | --all          :   include all sensors, meant to be used only by the makefile\n' >&2
 	exit 1
 }
 
@@ -62,9 +63,9 @@ gen_sensors_h() {
 		for sensor in $sensors; do
 			sed -n 's/.*'"${sensor}"'_opt\[\([0-9]\+\)\].*/\1/p' "src/${sensor}.h"
 		done |
-			paste -s -d '+' |
-			bc
+			paste -s -d '+'
 	)
+	nb_sensor_opts=$(eval "echo \$(($nb_sensor_opts))")
 
 	dprint sensors >&2
 	dprint nb_sensor_opts >&2
@@ -106,7 +107,7 @@ gen_sensors_mk() {
 
 detect_caps() {
 	[ -r /usr/include/linux/perf_event.h ] && hdr_whitelist=counters
-	[ -d /sys/class/infiniband ] && hdr_whitelist=${hdr_whitelist}|infiniband
+	[ -d /sys/class/infiniband ] && hdr_whitelist="${hdr_whitelist}|infiniband"
 	[ -r /proc/stat ] && hdr_whitelist="${hdr_whitelist}|load"
 
 	if [ -r /proc/net/route ]; then
@@ -134,8 +135,15 @@ detect_caps() {
 	[ $(ls -1 /sys/class/hwmon | wc -l) -gt 0 ] && hdr_whitelist="${hdr_whitelist}|temperature"
 }
 
-detect_caps
+case $1 in
+--all|-a)
+	all=1
+	;;
+esac
 
+[ "$all" ] || detect_caps
+
+[ "$all" ] ||
 while [ "$1" ]; do
 	case $1 in
 	--include|-i)

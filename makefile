@@ -24,7 +24,7 @@ LDFLAGS =
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
 
-all: $(BIN) readme man
+all: $(BIN) man
 
 $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
 	$(CC) $(LDFLAGS) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o
@@ -51,7 +51,7 @@ debug: CFLAGS = $(CPPFLAGS) -DDEBUG -g -Og
 debug: $(BIN)
 
 tests:
-	gcc $(CPPFLAGS) $(TESTS_DIR)/main.c $(SRC_DIR)/util.c -o $(TESTS_DIR)/run
+	$(CC) $(CPPFLAGS) $(TESTS_DIR)/main.c $(SRC_DIR)/util.c -o $(TESTS_DIR)/run
 	$(TESTS_DIR)/run
 
 format:
@@ -70,8 +70,8 @@ readme: $(BIN)
 	sh ./tools/update-readme-usage.sh
 
 man: $(BIN)
-	awk -v "usage=$$($(BIN_DIR)/$(BIN) -1)" \
+	awk -v "usage=$$($(BIN_DIR)/$(BIN) --dump-opts)" \
 		'/^USAGE/ { $$0=usage } 1' \
-		doc/mojitos.pre.1 > doc/mojitos.1 2>/dev/null
+		doc/$(BIN).pre.1 > doc/$(BIN).1 2>/dev/null
 
 .PHONY: all clean mojitos debug format tests readme man
