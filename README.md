@@ -22,20 +22,8 @@ OPTIONS:
 	enable overhead statistics (nanoseconds).
 
 SENSORS:
--p|--perf-list <perf_list>
-	performance counters
-	perf_list is a coma separated list of performance counters.
-	Ex: instructions,cache_misses
--l|--list
-	list the available performance counters and quit
--u|--sysload
-	system load
--d|--net-dev <net_dev>
-	network monitoring (if network_device is X, tries to detect it automatically)
 -r|--intel-rapl
 	INTEL RAPL
--c|--cpu-temp
-	processor temperature
 ```
 
 ## Installation Instructions
