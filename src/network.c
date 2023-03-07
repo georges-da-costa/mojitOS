@@ -64,6 +64,10 @@ static void _get_network(uint64_t *results, int *sources)
     }
 }
 
+/*
+ * read from fd len chars and store them into buf
+ * make *s points to the first occurence of c into buf
+*/
 static int strchr_refill(int fd, char *buf, int len, char **s, char c)
 {
     *s = strchr(*s, c);
@@ -152,7 +156,13 @@ unsigned int init_network(char *dev, void **ptr)
             }
 
             /* compare dev name to the previously saved one */
-            if (strncmp(start_of_dev, state->devs[state->ndev - 1], s - start_of_dev) != 0) {
+            int newdev = 1;
+            for (int i = 0; i < state->ndev && newdev; i++) {
+	            if (strncmp(start_of_dev, state->devs[i], s - start_of_dev) == 0) {
+	            	newdev = 0;
+	            }
+            }
+            if (newdev) {
                 if (state->ndev >= NB_MAX_DEV) {
                     fprintf(stderr, "Maximum amount of network devices exceeded (%d).\n", NB_MAX_DEV);
                     break;
