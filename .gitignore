@@ -1,1 +1,15 @@
-*.o
+src/counters_option.h
+src/captors.h
+tests/run
+doc/test_main_ex
+doc/info_reader_ex
+doc/mojitos.1
+tests/run
+src/counters_option.h
+src/sensors.h
+sensors.mk
+bin
+obj
+*.swp
+*.swo
+.vscode

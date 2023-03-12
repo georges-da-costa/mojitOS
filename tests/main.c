@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2023-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -16,9 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
 
- *******************************************************/
+*******************************************************/
 
-unsigned int init_load(char*, void **);
-unsigned int get_load(uint64_t* results, void*);
-void clean_load(void *);
-void label_load(char **labels, void*);
+#include "util.c"
+#include "amd_rapl.c"
+#include "info_reader.c"
+
+TMAIN({
+    CALL_TFUNCTION(test_util);
+    CALL_TFUNCTION(test_amd_rapl);
+    CALL_TFUNCTION(test_info_reader);
+})

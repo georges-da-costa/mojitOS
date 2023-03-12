@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2018-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -18,8 +18,26 @@
 
  *******************************************************/
 
-unsigned int init_rapl(char*, void **);
-unsigned int get_rapl(uint64_t* results, void*);
-void clean_rapl(void *);
-void label_rapl(char **labels, void*);
+unsigned int init_infiniband(char *infi_path, void **ptr);
+unsigned int get_infiniband(uint64_t *results, void *ptr);
+void clean_infiniband(void *ptr);
+void label_infiniband(char **labels, void *);
+
+Sensor infiniband = {
+    .init = init_infiniband,
+    .get = get_infiniband,
+    .clean = clean_infiniband,
+    .label = label_infiniband,
+    .nb_opt = 1,
+};
+
+Optparse infiniband_opt[1] = {
+    {
+        .longname = "monitor-infiniband",
+        .shortname = 'i',
+        .argtype = OPTPARSE_REQUIRED,
+        .usage_arg = "<infiniband_path>",
+        .usage_msg = "infiniband monitoring (if infiniband_path is X, tries to detect it automatically)",
+    },
+};
 

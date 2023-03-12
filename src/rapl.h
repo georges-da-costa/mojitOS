@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2022-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -18,9 +18,26 @@
 
  *******************************************************/
 
-unsigned int init_counters(char*, void **);
-unsigned int get_counters(uint64_t* results, void*);
-void clean_counters(void *);
-void label_counters(char **labels, void*);
+unsigned int init_rapl(char *, void **);
+unsigned int get_rapl(uint64_t *results, void *);
+void clean_rapl(void *);
+void label_rapl(char **labels, void *);
 
-void show_all_counters();
+Sensor rapl = {
+    .init = init_rapl,
+    .get = get_rapl,
+    .clean = clean_rapl,
+    .label = label_rapl,
+    .nb_opt = 1,
+};
+
+Optparse rapl_opt[1] = {
+    {
+        .longname = "intel-rapl",
+        .shortname = 'r',
+        .argtype = OPTPARSE_NONE,
+        .usage_arg = NULL,
+        .usage_msg = "INTEL RAPL",
+    },
+};
+
