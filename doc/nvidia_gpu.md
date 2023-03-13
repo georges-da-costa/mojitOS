@@ -1,6 +1,6 @@
 # Nvidia Gpu
 
-The `nvidia-gpu` sensor provides basic information about the gpu. Depending on
+The `nvidia_gpu` sensor provides basic information about the gpu. Depending on
 the driver version it is possible that not all sensors are supported, so an
 error message will be written to `stderr` but the execution will continue.
 
