@@ -1,3 +1,6 @@
+src/counters_option.h
+src/captors.h
+tests/run
 doc/test_main_ex
 doc/info_reader_ex
 doc/mojitos.1

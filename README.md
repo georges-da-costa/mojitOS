@@ -43,8 +43,6 @@ SENSORS:
 	network monitoring (if network_device is X, tries to detect it automatically)
 -r|--intel-rapl
 	INTEL RAPL
--c|--cpu-temp
-	processor temperature
 ```
 
 ## Installation Instructions

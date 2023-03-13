@@ -17,25 +17,44 @@
     along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
 
  *******************************************************/
-#include <stdlib.h>
 #include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
 #include <glob.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "util.h"
 
 #define NB_SENSOR 4
 
-struct Network {
+struct Infiniband {
     uint64_t values[NB_SENSOR];
     uint64_t tmp_values[NB_SENSOR];
     int sources[NB_SENSOR];
 };
-typedef struct Network Network;
+typedef struct Infiniband Infiniband;
 
-unsigned int _get_network(uint64_t *results, int *sources);
+unsigned int _get_infiniband(uint64_t *results, int *sources)
+{
+    if (sources == NULL) {
+        return 0;
+    }
 
+    char buffer[128];
+
+    for (int i = 0; i < NB_SENSOR; i++) {
+        if (pread(sources[i], buffer, 127, 0) < 0) {
+            perror("pread");
+            exit(1);
+        }
+
+        results[i] = strtoull(buffer, NULL, 10);
+    }
+
+    return NB_SENSOR;
+}
 
 unsigned int init_infiniband(char *infi_path, void **ptr)
 {
@@ -50,6 +69,7 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
         glob("/sys/class/infiniband/*/ports/*/counters/", 0, NULL, &res);
 
         if (res.gl_pathc == 0) {
+            fprintf(stderr, "No infiniband found.\n");
             return 0;
         }
 
@@ -62,7 +82,7 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
                          "%s/port_xmit_data"
                         };
 
-    Network *state = malloc(sizeof(Network));
+    Infiniband *state = malloc(sizeof(Infiniband));
 
     char buffer[1024];
     for (int i = 0; i < NB_SENSOR; i++) {
@@ -71,9 +91,37 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
     }
 
     *ptr = (void *) state;
-    _get_network(state->values, state->sources);
+    _get_infiniband(state->values, state->sources);
 
     return NB_SENSOR;
+}
+
+unsigned int get_infiniband(uint64_t *results, void *ptr)
+{
+    Infiniband *state = (Infiniband *) ptr;
+    _get_infiniband(state->tmp_values, state->sources);
+
+    for (int i = 0; i < NB_SENSOR; i++) {
+        results[i] = modulo_substraction(state->tmp_values[i], state->values[i]);
+    }
+
+    memcpy(state->values, state->tmp_values, NB_SENSOR * sizeof(uint64_t));
+    return NB_SENSOR;
+}
+
+void clean_infiniband(void *ptr)
+{
+    Infiniband *state = (Infiniband *) ptr;
+
+    if (state == NULL) {
+        return;
+    }
+
+    for (int i = 0; i < NB_SENSOR; i++) {
+        close(state->sources[i]);
+    }
+
+    free(state);
 }
 
 char *_labels_infiniband[NB_SENSOR] = {"irxp", "irxb", "itxp", "itxb"};
