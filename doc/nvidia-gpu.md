@@ -49,7 +49,6 @@ Retrieves power usage for this GPU in milliwatts and its associated circuitry (e
 |power   | Power consumption in mW |
 
 ## [Temperature](https://docs.nvidia.com/deploy/nvml-api/group__nvmlDeviceEnumvs.html#group__nvmlDeviceEnumvs_1g2650b526841fa38b8f293c2d509a1de0)
-
 Temperature of the GPU.
 
 |Output      |Description                 |
