@@ -37,8 +37,10 @@ typedef enum {
     CLOCK_SENSOR       = 0,
     MEMORY_SENSOR      = 1,
     UTILIZATION_SENSOR = 2,
+    POWER_SENSOR       = 3,
+    TEMPERATURE_SENSOR = 4,
 
-    COUNT_SENSOR       = 3,
+    COUNT_SENSOR       = 5,
 } SENSOR_KIND;
 
 typedef struct Device Device;
@@ -83,6 +85,7 @@ struct NvidiaGpu {
 
 // -- Label template
 static const char *label_template = "gpu%u_%s_%s";
+static const char *short_label_template = "gpu%u_%s";
 
 // ----------------------------CLOCK_SENSOR
 
@@ -106,17 +109,17 @@ unsigned int init_clock_sensor(const Device *device, void **data)
     const nvmlDevice_t nvml_device = device->device;
     const unsigned int device_idx = device->idx;
     ClockData tmp = {0};
-    nvmlReturn_t result;
+    nvmlReturn_t err;
     unsigned int clock;
 
     // -- Test all clocks
     for (unsigned int i = 0; i < NVML_CLOCK_COUNT; i++) {
-        if ((result = nvmlDeviceGetClockInfo(nvml_device, clocks[i], &clock)) == NVML_SUCCESS) {
+        if ((err = nvmlDeviceGetClockInfo(nvml_device, clocks[i], &clock)) == NVML_SUCCESS) {
             snprintf(tmp.labels[tmp.count], CLOCK_LABEL_SIZE, label_template, device_idx, clock_base_name, clock_names[i]);
             tmp.clocks[tmp.count] = clocks[i];
             tmp.count += 1;
         } else {
-            fprintf(stderr, "Failed to get %s clock : %s\n", clock_names[i], nvmlErrorString(result));
+            fprintf(stderr, "Failed to get %s clock : %s\n", clock_names[i], nvmlErrorString(err));
         }
     }
 
@@ -189,9 +192,9 @@ unsigned int init_memory_sensor(const Device *device, void **data)
     const unsigned int device_idx = device->idx;
 
     nvmlMemory_t memory;
-    nvmlReturn_t result;
-    if ((result = nvmlDeviceGetMemoryInfo(nvml_device, &memory)) != NVML_SUCCESS) {
-        fprintf(stderr, "Failed to get device memory : %s\n", nvmlErrorString(result));
+    nvmlReturn_t err;
+    if ((err = nvmlDeviceGetMemoryInfo(nvml_device, &memory)) != NVML_SUCCESS) {
+        fprintf(stderr, "Failed to get device memory : %s\n", nvmlErrorString(err));
         return 0;
     }
 
@@ -210,9 +213,9 @@ unsigned int get_memory_sensor(uint64_t *results, const Device *device, void *no
     const nvmlDevice_t nvml_device = device->device;
 
     nvmlMemory_t memory;
-    nvmlReturn_t result;
-    if ((result = nvmlDeviceGetMemoryInfo(nvml_device, &memory)) != NVML_SUCCESS) {
-        fprintf(stderr, "Failed to get device memory : %s\n", nvmlErrorString(result));
+    nvmlReturn_t err;
+    if ((err = nvmlDeviceGetMemoryInfo(nvml_device, &memory)) != NVML_SUCCESS) {
+        fprintf(stderr, "Failed to get device memory : %s\n", nvmlErrorString(err));
         exit(99);
     }
 
@@ -259,10 +262,10 @@ unsigned int init_utilization_sensor(const Device *device, void **data)
     const nvmlDevice_t nvml_device = device->device;
     const unsigned int device_idx = device->idx;
 
-    nvmlReturn_t result;
+    nvmlReturn_t err;
     nvmlUtilization_t utilization;
-    if ((result = nvmlDeviceGetUtilizationRates(nvml_device, &utilization)) != NVML_SUCCESS) {
-        fprintf(stderr, "Failed to get device utilization: %s\n", nvmlErrorString(result));
+    if ((err = nvmlDeviceGetUtilizationRates(nvml_device, &utilization)) != NVML_SUCCESS) {
+        fprintf(stderr, "Failed to get device utilization: %s\n", nvmlErrorString(err));
         return 0;
     }
 
@@ -280,10 +283,10 @@ unsigned int get_utilization_sensor(uint64_t *results, const Device *device, voi
     UNUSED(none);
     const nvmlDevice_t nvml_device = device->device;
 
-    nvmlReturn_t result;
+    nvmlReturn_t err;
     nvmlUtilization_t utilization;
-    if ((result = nvmlDeviceGetUtilizationRates(nvml_device, &utilization)) != NVML_SUCCESS) {
-        fprintf(stderr, "Failed to get device utilization: %s\n", nvmlErrorString(result));
+    if ((err = nvmlDeviceGetUtilizationRates(nvml_device, &utilization)) != NVML_SUCCESS) {
+        fprintf(stderr, "Failed to get device utilization: %s\n", nvmlErrorString(err));
         exit(99);
     }
 
@@ -308,8 +311,122 @@ void clean_utilization_sensor(void *data)
     free(data);
 }
 
-// ----------------------------ERROR_SENSOR
-// TODO
+// ----------------------------POWER_SENSOR
+
+#define POWER_LABEL_SIZE 25
+#define COUNT_POWER 1
+
+static const char *power_base_name = "power";
+
+typedef struct {
+  char label[POWER_LABEL_SIZE];
+} PowerData;
+
+
+unsigned int init_power_sensor(const Device *device, void** data) {
+    const nvmlDevice_t nvml_device = device->device;
+    const unsigned int device_idx = device->idx;
+
+    unsigned int power;
+    nvmlReturn_t err;
+    if ((err = nvmlDeviceGetPowerUsage(nvml_device, &power)) != NVML_SUCCESS) {
+      printf("Failed to get the device power consumption: %s\n", nvmlErrorString(err));
+      return 0;
+    }
+
+    PowerData *power_data = (PowerData *) calloc(1, sizeof(PowerData));
+    snprintf(power_data->label, POWER_LABEL_SIZE, short_label_template, device_idx, power_base_name);
+
+    *data = (void *) power_data;
+    return COUNT_POWER;
+}
+
+unsigned int get_power_sensor(uint64_t *results, const Device *device, void *none) {
+    UNUSED(none);
+    const nvmlDevice_t nvml_device = device->device;
+
+    unsigned int power;
+    nvmlReturn_t err;
+    if ((err = nvmlDeviceGetPowerUsage(nvml_device, &power)) != NVML_SUCCESS) {
+      printf("Failed to get the device power consumption: %s\n", nvmlErrorString(err));
+      exit(99);
+    }
+
+    *results = power;
+    return COUNT_POWER;
+}
+
+unsigned int label_power_sensor(char** labels, void *data) {
+    PowerData *power_data = (PowerData *) data;
+    *labels = power_data->label;
+    return COUNT_POWER;
+}
+
+void clean_power_sensor(void *data) {
+    free(data);
+}
+
+// ----------------------TEMPERATURE_SENSOR
+
+
+#define TEMPERATURE_LABEL_SIZE 35
+#define COUNT_TEMPERATURE 1
+
+static const char *temperature_base_name = "temperature";
+
+typedef struct {
+  char label[TEMPERATURE_LABEL_SIZE];
+} TemperatureData;
+
+unsigned int init_temperature_sensor(const Device *device, void** data) {
+    const nvmlDevice_t nvml_device = device->device;
+    const unsigned int device_idx = device->idx;
+
+    unsigned int temperature;
+    nvmlReturn_t err;
+    if ((err = nvmlDeviceGetTemperature(nvml_device, NVML_TEMPERATURE_GPU, &temperature)) != NVML_SUCCESS) {
+        printf("Failed to get the device temperature: %s\n", nvmlErrorString(err));
+        return 0;
+    }
+
+    TemperatureData *temperature_data = (TemperatureData *) calloc(1, sizeof(TemperatureData));
+    snprintf(temperature_data->label, TEMPERATURE_LABEL_SIZE, short_label_template, device_idx, temperature_base_name);
+
+    *data = (void *) temperature_data;
+    return COUNT_TEMPERATURE;
+}
+
+unsigned int get_temperature_sensor(uint64_t *results, const Device *device, void *none) {
+    UNUSED(none);
+    const nvmlDevice_t nvml_device = device->device;
+
+    unsigned int temperature;
+    nvmlReturn_t err;
+    if ((err = nvmlDeviceGetTemperature(nvml_device, NVML_TEMPERATURE_GPU, &temperature)) != NVML_SUCCESS) {
+        printf("Failed to get the device temperature: %s\n", nvmlErrorString(err));
+        exit(99);
+    }
+
+    *results = temperature;
+    return COUNT_TEMPERATURE;
+}
+
+unsigned int label_temperature_sensor(char** labels, void *data) {
+    TemperatureData *temperature_data = (TemperatureData *) data;
+    *labels = temperature_data->label;
+    return COUNT_TEMPERATURE;
+}
+
+void clean_temperature_sensor(void *data) {
+    free(data);
+}
+// // Get the temperature
+// result = nvmlDeviceGetTemperature(device, NVML_TEMPERATURE_GPU, &temperature);
+// if (NVML_SUCCESS != result) {
+//   printf("Failed to get temperature for device %d: %s\n", i, nvmlErrorString(result));
+//   continue;
+// }
+// printf("\t - temperature: %u\n", temperature);
 
 // ----------------------------------------
 
@@ -319,6 +436,8 @@ static const ISensor avaible_sensors[COUNT_SENSOR] = {
     {.init = init_clock_sensor, .get = get_clock_sensor, .label = label_clock_sensor, .clean = clean_clock_sensor},
     {.init = init_memory_sensor, .get = get_memory_sensor, .label = label_memory_sensor, .clean = clean_memory_sensor},
     {.init = init_utilization_sensor, .get = get_utilization_sensor, .label = label_utilization_sensor, .clean = clean_utilization_sensor},
+    {.init = init_power_sensor, .get = get_power_sensor, .label = label_power_sensor, .clean = clean_power_sensor},
+    {.init = init_temperature_sensor, .get = get_temperature_sensor, .label = label_temperature_sensor, .clean = clean_temperature_sensor},
 };
 
 // ------------------------DEVICE_FUNCTIONS
