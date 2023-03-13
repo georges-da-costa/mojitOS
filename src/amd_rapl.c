@@ -25,6 +25,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include "info_reader.h"
 #include "util.h"
