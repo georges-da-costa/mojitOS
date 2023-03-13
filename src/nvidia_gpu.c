@@ -319,19 +319,20 @@ void clean_utilization_sensor(void *data)
 static const char *power_base_name = "power";
 
 typedef struct {
-  char label[POWER_LABEL_SIZE];
+    char label[POWER_LABEL_SIZE];
 } PowerData;
 
 
-unsigned int init_power_sensor(const Device *device, void** data) {
+unsigned int init_power_sensor(const Device *device, void **data)
+{
     const nvmlDevice_t nvml_device = device->device;
     const unsigned int device_idx = device->idx;
 
     unsigned int power;
     nvmlReturn_t err;
     if ((err = nvmlDeviceGetPowerUsage(nvml_device, &power)) != NVML_SUCCESS) {
-      printf("Failed to get the device power consumption: %s\n", nvmlErrorString(err));
-      return 0;
+        printf("Failed to get the device power consumption: %s\n", nvmlErrorString(err));
+        return 0;
     }
 
     PowerData *power_data = (PowerData *) calloc(1, sizeof(PowerData));
@@ -341,28 +342,31 @@ unsigned int init_power_sensor(const Device *device, void** data) {
     return COUNT_POWER;
 }
 
-unsigned int get_power_sensor(uint64_t *results, const Device *device, void *none) {
+unsigned int get_power_sensor(uint64_t *results, const Device *device, void *none)
+{
     UNUSED(none);
     const nvmlDevice_t nvml_device = device->device;
 
     unsigned int power;
     nvmlReturn_t err;
     if ((err = nvmlDeviceGetPowerUsage(nvml_device, &power)) != NVML_SUCCESS) {
-      printf("Failed to get the device power consumption: %s\n", nvmlErrorString(err));
-      exit(99);
+        printf("Failed to get the device power consumption: %s\n", nvmlErrorString(err));
+        exit(99);
     }
 
     *results = power;
     return COUNT_POWER;
 }
 
-unsigned int label_power_sensor(char** labels, void *data) {
+unsigned int label_power_sensor(char **labels, void *data)
+{
     PowerData *power_data = (PowerData *) data;
     *labels = power_data->label;
     return COUNT_POWER;
 }
 
-void clean_power_sensor(void *data) {
+void clean_power_sensor(void *data)
+{
     free(data);
 }
 
@@ -375,10 +379,11 @@ void clean_power_sensor(void *data) {
 static const char *temperature_base_name = "temperature";
 
 typedef struct {
-  char label[TEMPERATURE_LABEL_SIZE];
+    char label[TEMPERATURE_LABEL_SIZE];
 } TemperatureData;
 
-unsigned int init_temperature_sensor(const Device *device, void** data) {
+unsigned int init_temperature_sensor(const Device *device, void **data)
+{
     const nvmlDevice_t nvml_device = device->device;
     const unsigned int device_idx = device->idx;
 
@@ -396,7 +401,8 @@ unsigned int init_temperature_sensor(const Device *device, void** data) {
     return COUNT_TEMPERATURE;
 }
 
-unsigned int get_temperature_sensor(uint64_t *results, const Device *device, void *none) {
+unsigned int get_temperature_sensor(uint64_t *results, const Device *device, void *none)
+{
     UNUSED(none);
     const nvmlDevice_t nvml_device = device->device;
 
@@ -411,13 +417,15 @@ unsigned int get_temperature_sensor(uint64_t *results, const Device *device, voi
     return COUNT_TEMPERATURE;
 }
 
-unsigned int label_temperature_sensor(char** labels, void *data) {
+unsigned int label_temperature_sensor(char **labels, void *data)
+{
     TemperatureData *temperature_data = (TemperatureData *) data;
     *labels = temperature_data->label;
     return COUNT_TEMPERATURE;
 }
 
-void clean_temperature_sensor(void *data) {
+void clean_temperature_sensor(void *data)
+{
     free(data);
 }
 // // Get the temperature
