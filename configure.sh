@@ -115,6 +115,10 @@ detect_caps() {
 		[ -e "/sys/class/net/$dev" ] && hdr_whitelist="${hdr_whitelist}|network"
 	fi
 
+	if [ -e /usr/local/cuda/lib64 ] && [ -e /usr/local/cuda/include ]; then
+		hdr_whitelist="${hdr_whitelist}|nvidia_gpu"
+	fi
+
 	vendor=$(awk '/vendor_id/ {print $3; exit}' /proc/cpuinfo)
 	vendor_lc=$(echo "$vendor" | tr 'A-Z' 'a-z')
 	case $vendor_lc in
