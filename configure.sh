@@ -43,16 +43,16 @@ usage() {
 }
 
 ls_sensors() {
-	try cd src
+	[ -d src ] || die 'fatal: the "src" directory does not exit.'
 
 	[ -z "$hdr_whitelist" ] && hdr_whitelist='.*'
 	dprint hdr_blacklist >&2
 	dprint hdr_whitelist >&2
 
-	ls -1 *.h |
-		grep -xEv "($hdr_blacklist)\.h" |
-		grep -xE  "($hdr_whitelist)\.h" |
-		sed 's/\.h$//'
+	try find src -type f -name '*.h' |
+		sed 's,src/\(.*\)\.h,\1,' |
+		grep -xEv "($hdr_blacklist)" |
+		grep -xE  "($hdr_whitelist)"
 }
 
 # gen_sensors_h(sensor, nb_sensors)
