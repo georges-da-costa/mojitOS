@@ -9,8 +9,8 @@ TESTS_DIR = tests
 BIN = mojitos
 
 CAPTOR_OBJ =
-IFLAGS =
-LDFLAGS =
+NVML_LDFLAGS =
+NVML_IFLAGS =
 
 include ./sensors.mk
 
@@ -19,9 +19,9 @@ OBJ =  \
 	$(OBJ_DIR)/util.o
 
 CC = gcc
-CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(IFLAGS)
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
 CFLAGS = $(CPPFLAGS) -O3 -Werror
-LDFLAGS +=
+LDFLAGS = $(NVML_LDFLAGS)
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 

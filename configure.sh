@@ -191,8 +191,9 @@ fi
 
 try gen_sensors_h "$sensors" "$nb_sensors" >"$target_hdr"
 try gen_sensors_mk "$sensors" >"$target_mk"
-try printf "LDFLAGS += %s\n" "$NVML_LDFLAGS" >>"$target_mk"
-try printf "IFLAGS += %s\n" "$NVML_IFLAGS" >>"$target_mk"
+
+try printf "NVML_LDFLAGS = %s\n" "$NVML_LDFLAGS" >>"$target_mk"
+try printf "NVML_IFLAGS = %s\n" "$NVML_IFLAGS" >>"$target_mk"
 
 printf -- 'Run `make` to build `bin/mojitos`.\n' >&2
 printf -- 'The resulting binary will have the %d following sensors:\n' "$nb_sensors" >&2
