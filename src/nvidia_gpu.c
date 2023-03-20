@@ -18,13 +18,12 @@
 
  *******************************************************/
 
-// -- test :
-// gcc -std=gnu99 -Wall -Wextra -Wpedantic -fsanitize=address -D__NVIDIA__MAIN__TEST nvidia_gpu.c -I/lib -I/usr/local/cuda/include -L/usr/local/cuda/lib64 -lnvidia-ml
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
+// Pedantic throws a warning in the nvml library
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include <nvml.h>
@@ -428,16 +427,6 @@ void clean_temperature_sensor(void *data)
 {
     free(data);
 }
-// // Get the temperature
-// result = nvmlDeviceGetTemperature(device, NVML_TEMPERATURE_GPU, &temperature);
-// if (NVML_SUCCESS != result) {
-//   printf("Failed to get temperature for device %d: %s\n", i, nvmlErrorString(result));
-//   continue;
-// }
-// printf("\t - temperature: %u\n", temperature);
-
-// ----------------------------------------
-
 
 // -------------------------AVAIBLE_SENSORS
 static const ISensor avaible_sensors[COUNT_SENSOR] = {
@@ -601,46 +590,4 @@ void clean_nvidia_gpu(void *ptr)
     free(nvidia);
     nvmlShutdown();
 }
-
-// -------------------------------TEST_MAIN
-
-#ifdef __NVIDIA__MAIN__TEST
-int main()
-{
-    void *ptr = NULL;
-    char *none = NULL;
-
-    unsigned int sensor_count = init_nvidia_gpu(none, &ptr);
-
-    NvidiaGpu *nvidia = (NvidiaGpu *) ptr;
-    printf("%d\n", nvidia->count);
-    printf("%u\n", sensor_count);
-
-
-
-    uint64_t results[sensor_count];
-    char *labels[sensor_count];
-
-    memset(results, 0, sensor_count * sizeof(uint64_t));
-    memset(labels, 0, sensor_count * sizeof(char **));
-
-
-    unsigned count_label = label_nvidia_gpu(labels, ptr);
-    unsigned count_get = get_nvidia_gpu(results, ptr);
-    printf("total : %u, get : %u, label : %u\n", sensor_count, count_get, count_label);
-
-
-    for (unsigned int i = 0; i < sensor_count; i++) {
-        printf("%s ", labels[i]);
-    }
-    printf("\n");
-    for (unsigned int i = 0; i < sensor_count; i++) {
-        printf("%lu ", results[i]);
-    }
-    printf("\n");
-    printf("sensor_count: %d\n", sensor_count);
-
-    clean_nvidia_gpu(ptr);
-}
-#endif
 
