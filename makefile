@@ -10,15 +10,17 @@ BIN = mojitos
 PREFIX = /usr/local
 
 CC = gcc
-CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
 CFLAGS = $(CPPFLAGS) -O3 -Werror
-LDFLAGS =
+LDFLAGS = $(NVML_LDFLAGS)
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
 all: $(BIN) man
 
 CAPTOR_OBJ =
+NVML_LDFLAGS =
+NVML_IFLAGS =
 
 include ./sensors.mk
 
@@ -34,7 +36,7 @@ options:
 	@echo OBJ: $(OBJ)
 
 $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
-	$(CC) $(LDFLAGS) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o
+	$(CC) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o $(LDFLAGS)
 
 $(OBJ): $(OBJ_DIR)
 $(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
