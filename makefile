@@ -9,6 +9,8 @@ TESTS_DIR = tests
 BIN = mojitos
 
 CAPTOR_OBJ =
+IFLAGS =
+LDFLAGS =
 
 include ./sensors.mk
 
@@ -17,9 +19,9 @@ OBJ =  \
 	$(OBJ_DIR)/util.o
 
 CC = gcc
-CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib -I/usr/local/cuda/include
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(IFLAGS)
 CFLAGS = $(CPPFLAGS) -O3 -Werror
-LDFLAGS = -L/usr/local/cuda/lib64 -lnvidia-ml
+LDFLAGS +=
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
