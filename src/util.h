@@ -38,6 +38,8 @@
         exit(code);                          \
     } while (0)
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 /**
  * @brief Substracts lhs by rhs, assuming that lhs is a cyclic increment from rhs,
