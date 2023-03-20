@@ -25,6 +25,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include "info_reader.h"
 #include "util.h"
@@ -120,7 +121,7 @@ uint64_t read_msr(int fd, uint64_t msr)
 {
     uint64_t data;
     if (pread(fd, &data, sizeof data, msr) != sizeof data) {
-        fprintf(stderr, "read_msr(%ld):", msr);
+        fprintf(stderr, "read_msr(%"PRIu64"):", msr);
         perror("pread");
         exit(127);
     }
@@ -175,7 +176,7 @@ uint64_t raw_to_joule(uint64_t raw, uint64_t unit)
 void debug_print_sensor(CpuSensor *sensor)
 {
     //CASSERT(sizeof(CpuSensor) == 56, amd_rapl_c);
-    printf("cpu_id : %d, package_id : %d, core_id : %d, name : %s, fd: %d,  energy_units : %d, core_energy: %ld\n",
+    printf("cpu_id : %d, package_id : %d, core_id : %d, name : %s, fd: %d,  energy_units : %d, core_energy: %"PRIu64"\n",
            sensor->cpu_id,
            sensor->package_id,
            sensor->core_id,
