@@ -38,6 +38,6 @@ Optparse nvidia_gpu_opt[1] = {
         .shortname = 'n',
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
-        .usage_msg = "provides basic gpu information",
+        .usage_msg = "provides basic gpu information [clocks, memory, utilization, power, temperature].",
     },
 };
