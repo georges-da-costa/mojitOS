@@ -7,6 +7,16 @@ BIN_DIR = bin
 TESTS_DIR = tests
 
 BIN = mojitos
+PREFIX = /usr/local
+
+CC = gcc
+CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib
+CFLAGS = $(CPPFLAGS) -O3 -Werror
+LDFLAGS =
+
+ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
+
+all: $(BIN) man
 
 CAPTOR_OBJ =
 
@@ -16,15 +26,12 @@ OBJ =  \
 	$(CAPTOR_OBJ) \
 	$(OBJ_DIR)/util.o
 
-CC = gcc
-CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib
-CFLAGS = $(CPPFLAGS) -O3 -Werror
-LDFLAGS =
-
-ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
-
-
-all: $(BIN) man
+options:
+	@echo BIN: $(BIN)
+	@echo CC: $(CC)
+	@echo CFLAGS: $(CFLAGS)
+	@echo LDFLAGS: $(LDFLAGS)
+	@echo OBJ: $(OBJ)
 
 $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
 	$(CC) $(LDFLAGS) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o
@@ -35,7 +42,7 @@ $(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
 $(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c $(SRC_DIR)/counters_option.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/%.h
+$(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.sh
@@ -74,4 +81,16 @@ man: $(BIN)
 		'/^USAGE/ { $$0=usage } 1' \
 		doc/$(BIN).pre.1 > doc/$(BIN).1 2>/dev/null
 
-.PHONY: all clean mojitos debug format tests readme man
+install: $(BIN) man
+	mkdir -p $(PREFIX)/bin
+	cp $(BIN_DIR)/$(BIN) $(PREFIX)/bin/.
+	chmod 755 $(PREFIX)/bin/$(BIN)
+	mkdir -p $(PREFIX)/share/man/man1
+	cp $(DOC_DIR)/$(BIN).1 $(PREFIX)/share/man/man1/.
+	chmod 644 $(PREFIX)/share/man/man1/$(BIN).1
+
+uninstall:
+	rm -f $(PREFIX)/bin/$(BIN)
+	rm -f $(PREFIX)/share/man/man1/$(BIN).1
+
+.PHONY: all clean mojitos debug format tests readme man install uninstall

@@ -43,16 +43,16 @@ usage() {
 }
 
 ls_sensors() {
-	try cd src
+	[ -d src ] || die 'fatal: the "src" directory does not exit.'
 
 	[ -z "$hdr_whitelist" ] && hdr_whitelist='.*'
 	dprint hdr_blacklist >&2
 	dprint hdr_whitelist >&2
 
-	ls -1 *.h |
-		grep -xEv "($hdr_blacklist)\.h" |
-		grep -xE  "($hdr_whitelist)\.h" |
-		sed 's/\.h$//'
+	try find src -type f -name '*.h' |
+		sed 's,src/\(.*\)\.h,\1,' |
+		grep -xEv "($hdr_blacklist)" |
+		grep -xE  "($hdr_whitelist)"
 }
 
 # gen_sensors_h(sensor, nb_sensors)
@@ -103,6 +103,11 @@ gen_sensors_mk() {
 		printf '$(OBJ_DIR)/%s.o ' "$sensor"
 	done
 	printf '\n'
+	for sensor in $sensors; do
+		printf '$(OBJ_DIR)/%s.o: $(SRC_DIR)/%s.c $(SRC_DIR)/%s.h $(SRC_DIR)/util.h\n' \
+			"$sensor" "$sensor" "$sensor"
+		printf '\t$(CC) $(CFLAGS) -c $< -o $@\n'
+	done
 }
 
 detect_caps() {
