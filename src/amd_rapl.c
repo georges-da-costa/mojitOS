@@ -217,7 +217,7 @@ unsigned int get_nb_cpu()
 
 	if (n_cpu == 0) {
 		perror("open()");
-		fprintf(stderr, "on %s\n", filename);
+		fprintf(stderr, "on the file: '%s'\n", filename);
 		switch (cpy_errno) {
 			case ENOENT:
 				fprintf(stderr, "Amd rapl works with msr module, try to run 'sudo modprobe msr', then retry.\n");
@@ -226,7 +226,7 @@ unsigned int get_nb_cpu()
 				fprintf(stderr, "Amd rapl must be executed with the administrator privilege, try with 'sudo'.\n");
 				exit(98);
 			default:
-				fprintf(stderr, "Unexpected error");
+				fprintf(stderr, "Unexpected error\n");
 				exit(97);
 		}
 	}
