@@ -169,28 +169,36 @@ TFUNCTION(test_start_with, {
 })
 
 #define NONE 0
-#define DUMMY_KEYFINDER(__key_finder, __key, __delimiter) \
-  do {                                                    \
-    __key_finder = (KeyFinder) {                          \
-      .key = __key,                                       \
-      .delimiter = __delimiter,                           \
-      .copy = NONE,                                       \
-      .set = NONE                                         \
-    };                                                    \
+#define INIT_KEYFINDER(__key_finder, __key, __delimiter, __copy, __set)  \
+  do {                                                                   \
+    __key_finder = (KeyFinder) {                                         \
+      .key = __key,                                                      \
+      .delimiter = __delimiter,                                          \
+      .copy = __copy,                                                    \
+      .set = __set                                                       \
+    };                                                                   \
   } while (0);
 
-#define DUMMY_PARSER(__parser, __keys, __nb_keys) \
-  do {                                            \
-    __parser = (Parser) {                         \
-      .storage = NONE,                            \
-      .nb_stored = NONE,                          \
-      .capacity = NONE,                           \
-      .storage_struct_size = NONE,                \
-      .keys = __keys,                             \
-      .nb_keys = __nb_keys,                       \
-      .file = NONE                                \
-    };                                            \
+#define DUMMY_KEYFINDER(__key_finder, __key, __delimiter) \
+  INIT_KEYFINDER(__key_finder, __key, __delimiter, NONE, NONE)    \
+
+#define INIT_PARSER(__parser, __storage, __nb_stored, __capacity,     \
+                    __storage_struct_size, __keys, __nb_keys, __file) \
+do {                                                                  \
+    __parser = (Parser) {                                             \
+      .storage = __storage,                                           \
+      .nb_stored = __nb_stored,                                       \
+      .capacity = __capacity,                                         \
+      .storage_struct_size = __storage_struct_size,                   \
+      .keys = __keys,                                                 \
+      .nb_keys = __nb_keys,                                           \
+      .file = __file                                                  \
+    };                                                                \
   } while (0);
+
+
+#define DUMMY_PARSER(__parser, __keys, __nb_keys) \
+  INIT_PARSER(__parser, NONE, NONE, NONE, NONE, __keys, __nb_keys, NONE)
 
 
 TFUNCTION(test_match, {
@@ -275,10 +283,58 @@ TFUNCTION(test_match, {
     TEST_STR(raw_value, NULL);
 })
 
+
+#define __NB_KEYS 4
+
+typedef struct {
+    int values[__NB_KEYS];
+} IntArray;
+
+GenericPointer __test_file_int_allocator(char *s)
+{
+    unsigned int value = atoi(s);
+    return (GenericPointer) value;
+}
+
+void __test_file_set_int(GenericPointer storage, GenericPointer data)
+{
+    IntArray *array = (IntArray *) storage;
+    int i = (int) data;
+    array->values[i] = i;
+}
+
+TFUNCTION(test_dummy_file, {
+    KeyFinder keys[__NB_KEYS];
+    INIT_KEYFINDER(keys[0], "int0", " : ", __test_file_int_allocator, __test_file_set_int);
+    INIT_KEYFINDER(keys[1], "int1", " ", __test_file_int_allocator, __test_file_set_int);
+    INIT_KEYFINDER(keys[2], "int2", " -> ", __test_file_int_allocator, __test_file_set_int);
+    INIT_KEYFINDER(keys[3], "int3", "--", __test_file_int_allocator, __test_file_set_int);
+
+    IntArray results;
+    IntArray expected;
+
+    expected.values[0] = 0;
+    expected.values[1] = 1;
+    expected.values[2] = 2;
+    expected.values[3] = 3;
+
+    Parser parser;
+    FILE *file = fopen("./tests/info_reader_test.txt", "r");
+    INIT_PARSER(parser, (GenericPointer) &results, 0, 1, sizeof(IntArray), keys, __NB_KEYS, file);
+    parse(&parser);
+
+    for (unsigned int i = 0; i < __NB_KEYS; i++)
+    {
+        TEST_INT(&(results.values[i]), &(expected.values[i]));
+    }
+    fclose(file);
+})
+
 TFILE_ENTRY_POINT(test_info_reader, {
     CALL_TFUNCTION(test_replace_first);
     CALL_TFUNCTION(test_split_on_delimiter);
     CALL_TFUNCTION(test_start_with);
     CALL_TFUNCTION(test_match);
+    CALL_TFUNCTION(test_dummy_file);
 })
 
