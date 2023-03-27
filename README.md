@@ -59,11 +59,15 @@ make
 ```
 You may want to run `./configure.sh --help` to see configuration options.
 
+To use `amd_rapl` you have to load the module `msr`
+```bash
+sudo modprobe msr
+```
 To execute mojitos without being root to monitor performance counters
 ```bash
 sudo sh -c 'echo 0 >/proc/sys/kernel/perf_event_paranoid'
 ```
-To execute mohitos without being root for accessing RAPL
+To execute mojitos without being root for accessing RAPL
 ```bash
 sudo chmod a+w /sys/class/powercap/intel-rapl/*/*
 sudo chmod a+w /sys/class/powercap/intel-rapl/*/*/*

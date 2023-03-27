@@ -253,8 +253,8 @@
 #define DEFERRED_ERROR(nb_error) \
     INDENTED_PRINT("|_Deferred Error : %d\n",nb_error);
 
-typedef int (Comparator) (void *, void *);
-typedef char *(Formatter) (char[FMT_BUFFER_SIZE], void *);
+typedef int (Comparator) (const void *, const void *);
+typedef char *(Formatter) (char[FMT_BUFFER_SIZE], const void *);
 
 typedef struct {
     Comparator *compare;
@@ -263,7 +263,7 @@ typedef struct {
 
 // ---------------------------TEST FUNCTION
 
-int test(char *file, int line, unsigned int __indentation_level, void *result, void *expected, const TestInterface *interface)
+int test(char *file, int line, unsigned int __indentation_level, const void *result, const void *expected, const TestInterface *interface)
 {
     __indentation_level += 1;
     static char buffer_result[FMT_BUFFER_SIZE];
@@ -281,7 +281,7 @@ int test(char *file, int line, unsigned int __indentation_level, void *result, v
 // ------------------------------INTERFACES
 
 // -- str_interface
-int str_compare(void *ptr1, void *ptr2)
+int str_compare(const void *ptr1, const void *ptr2)
 {
     char *str1 = (char *) ptr1;
     char *str2 = (char *) ptr2;
@@ -295,7 +295,7 @@ int str_compare(void *ptr1, void *ptr2)
     }
 }
 
-char *str_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
+char *str_format(char buffer[FMT_BUFFER_SIZE], const void *ptr)
 {
     UNUSED(buffer);
     static char *str_null = "NULL";
@@ -310,14 +310,14 @@ static const TestInterface str_interface = {
 
 // -- bool_interface
 
-int bool_compare(void *ptr1, void *ptr2)
+int bool_compare(const void *ptr1, const void *ptr2)
 {
     bool *bool1 = (bool *) ptr1;
     bool *bool2 = (bool *) ptr2;
     return *bool1 == *bool2;
 }
 
-char *bool_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
+char *bool_format(char buffer[FMT_BUFFER_SIZE], const void *ptr)
 {
     UNUSED(buffer);
     bool *_bool = (bool *) ptr;
@@ -331,14 +331,14 @@ static const TestInterface bool_interface = {
 
 // -- int_interface
 
-int int_compare(void *ptr1, void *ptr2)
+int int_compare(const void *ptr1, const void *ptr2)
 {
     int *int1 = (int *) ptr1;
     int *int2 = (int *) ptr2;
     return *int1 == *int2;
 }
 
-char *int_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
+char *int_format(char buffer[FMT_BUFFER_SIZE], const void *ptr)
 {
     int *_int = (int *) ptr;
     snprintf(buffer, FMT_BUFFER_SIZE, "%d", *_int);
@@ -352,12 +352,12 @@ static const TestInterface int_interface = {
 
 // -- ptr_interface
 
-int ptr_compare(void *ptr1, void *ptr2)
+int ptr_compare(const void *ptr1, const void *ptr2)
 {
     return ptr1 == ptr2;
 }
 
-char *ptr_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
+char *ptr_format(char buffer[FMT_BUFFER_SIZE], const void *ptr)
 {
     snprintf(buffer, FMT_BUFFER_SIZE, "%p", ptr);
     return buffer;
@@ -370,14 +370,14 @@ static const TestInterface ptr_interface = {
 
 // -- u64_interface
 
-int u64_compare(void *ptr1, void *ptr2)
+int u64_compare(const void *ptr1, const void *ptr2)
 {
     uint64_t *v1 = (uint64_t *) ptr1;
     uint64_t *v2 = (uint64_t *) ptr2;
     return *v1 == *v2;
 }
 
-char *u64_format(char buffer[FMT_BUFFER_SIZE], void *ptr)
+char *u64_format(char buffer[FMT_BUFFER_SIZE], const void *ptr)
 {
     uint64_t *v = (uint64_t *) ptr;
     snprintf(buffer, FMT_BUFFER_SIZE, "%"PRIu64"", *v);
