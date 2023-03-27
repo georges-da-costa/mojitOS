@@ -55,7 +55,7 @@ ls_sensors() {
 	try find src -type f -name '*.h' |
 		sed 's,src/\(.*\)\.h,\1,' |
 		grep -xEv "($hdr_blacklist)" |
-		grep -xE  "($hdr_whitelist)"
+		grep -xE "($hdr_whitelist)"
 }
 
 # gen_sensors_h(sensor, nb_sensors)
@@ -117,6 +117,10 @@ detect_caps() {
 	[ -r /usr/include/linux/perf_event.h ] && hdr_whitelist=counters
 	[ -d /sys/class/infiniband ] && hdr_whitelist="${hdr_whitelist}|infiniband"
 	[ -r /proc/stat ] && hdr_whitelist="${hdr_whitelist}|load"
+
+	if [ "$(uname -r | cut -d "." -f 1)" -gt "2" ]; then
+		hdr_whitelist="${hdr_whitelist}|memory"
+	fi
 
 	if [ -r /proc/net/route ]; then
 		dev=$(awk 'NR == 2 { print $1 }' /proc/net/route)

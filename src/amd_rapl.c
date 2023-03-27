@@ -201,17 +201,36 @@ void debug_print_amd_rapl(AmdRapl *rapl)
 unsigned int get_nb_cpu()
 {
     char filename[BUFFER_SIZE];
+	int	cpy_errno;
 
     unsigned int n_cpu = 0;
     for (;; n_cpu++) {
         snprintf(filename, BUFFER_SIZE, base_str, n_cpu);
 
         int fd = open(filename, O_RDONLY);
+        cpy_errno = errno;
         if (fd < 0) {
             break;
         }
         close(fd);
     }
+
+	if (n_cpu == 0) {
+		perror("open()");
+		fprintf(stderr, "on the file: '%s'\n", filename);
+		switch (cpy_errno) {
+			case ENOENT:
+				fprintf(stderr, "Amd rapl works with msr module, try to run 'sudo modprobe msr', then retry.\n");
+				exit(99);
+			case EACCES:
+				fprintf(stderr, "Amd rapl must be executed with the administrator privilege, try with 'sudo'.\n");
+				exit(98);
+			default:
+				fprintf(stderr, "Unexpected error\n");
+				exit(97);
+		}
+	}
+	// n_cpu > 0
     return n_cpu;
 }
 
@@ -295,11 +314,6 @@ unsigned int init_amd_rapl(char *none, void **ptr)
     UNUSED(none);
 
     unsigned int max_cpus = get_nb_cpu();
-    if (max_cpus == 0) {
-        fprintf(stderr, base_str, 0);
-        perror(":open()");
-        exit(127);
-    }
 
     CpuSensor *cpu_information = (CpuSensor *) calloc(max_cpus, sizeof(CpuSensor));
     if (parse_cpuinfo(cpu_information, max_cpus)) {
