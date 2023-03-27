@@ -105,6 +105,24 @@ static bool start_with(const char *prefix, const char *string);
  */
 static unsigned int match(Parser *parser, char *line, KeyFinder **key_finder, char **raw_value);
 
+/**
+* @brief Reads a line of text from a file stream and stores it in a static
+  buffer with a maximum size of PAGE_SIZE.
+
+* This function reads a line of text from the input stream pointed to by
+* 'stream'. The line of text is stored in a static buffer with a maximum size of
+* PAGE_SIZE. The function updates the pointer pointed to by 'lineptr' to point to
+* the buffer containing the line of text. If the line of text is longer than the
+* buffer, the function returns -1. If an error occurs,
+
+* @param lineptr A pointer to a pointer to the buffer where the line of text
+  will be stored.
+* @param stream A pointer to the input stream to read from.
+* @return The number of characters read, or -1 if an error occurred the
+  function returns -1.
+*/
+ssize_t buffer_getline(char **lineptr, FILE *stream);
+
 typedef size_t GenericPointer;
 typedef GenericPointer (CopyAllocator) (char *string);
 typedef void (Setter) (GenericPointer storage, GenericPointer value);
@@ -166,14 +184,50 @@ static unsigned int move_to_next(Parser *parser)
     return 1;
 }
 
+
+#define PAGE_SIZE 4096
+ssize_t buffer_getline(char **lineptr, FILE *stream) {
+    ssize_t num_chars_read = 0;
+    static char buffer[PAGE_SIZE] = {0};
+
+    if (!lineptr || !stream) {
+        return -1;
+    }
+
+    while (1) {
+        int ch = fgetc(stream);
+        if (ch == EOF) {
+            if (num_chars_read == 0) {
+                return -1;
+            } else {
+                break;
+            }
+        }
+
+        if (num_chars_read == PAGE_SIZE - 1) {
+            return -1;
+        }
+
+        buffer[num_chars_read++] = ch;
+        if (ch == '\n') {
+            break;
+        }
+    }
+
+    buffer[num_chars_read] = '\0';
+    *lineptr = buffer;
+
+    return num_chars_read;
+}
+
+
 static unsigned int parse(Parser *parser)
 {
     char *line = NULL;
-    size_t len = 0;
     ssize_t read;
     unsigned int key_assigned = 0;
 
-    while ((read = getline(&line, &len, parser->file)) != -1) {
+    while ((read = buffer_getline(&line, parser->file)) != -1) {
         if (key_assigned == parser->nb_keys && read > 1) {
             continue;
         } else if (read == 1) {
@@ -194,7 +248,6 @@ static unsigned int parse(Parser *parser)
     if (key_assigned > 0) {
         parser->nb_stored++;
     }
-    free(line);
     return 1;
 }
 
