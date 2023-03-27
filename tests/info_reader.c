@@ -326,6 +326,7 @@ TFUNCTION(test_dummy_file, {
     for (unsigned int i = 0; i < __NB_KEYS; i++) {
         TEST_INT(&(results.values[i]), &(expected.values[i]));
     }
+    fclose(file);
 })
 
 TFILE_ENTRY_POINT(test_info_reader, {
