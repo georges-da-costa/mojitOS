@@ -159,9 +159,9 @@ unsigned int init_network(char *dev, void **ptr)
             /* compare dev name to the previously saved one */
             int newdev = 1;
             for (int i = 0; i < state->ndev && newdev; i++) {
-	            if (strncmp(start_of_dev, state->devs[i], s - start_of_dev) == 0) {
-	            	newdev = 0;
-	            }
+                if (strncmp(start_of_dev, state->devs[i], s - start_of_dev) == 0) {
+                    newdev = 0;
+                }
             }
             if (newdev) {
                 if (state->ndev >= NB_MAX_DEV) {

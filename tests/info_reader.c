@@ -287,7 +287,7 @@ TFUNCTION(test_match, {
 #define __NB_KEYS 4
 
 typedef struct {
-  int values[__NB_KEYS];
+    int values[__NB_KEYS];
 } IntArray;
 
 GenericPointer __test_file_int_allocator(char *s)
@@ -298,7 +298,7 @@ GenericPointer __test_file_int_allocator(char *s)
 
 void __test_file_set_int(GenericPointer storage, GenericPointer data)
 {
-    IntArray *array = (IntArray*) storage;
+    IntArray *array = (IntArray *) storage;
     int i = (int) data;
     array->values[i] = i;
 }
@@ -319,11 +319,12 @@ TFUNCTION(test_dummy_file, {
     expected.values[3] = 3;
 
     Parser parser;
-    FILE* file = fopen("./tests/info_reader_test.txt", "r");
+    FILE *file = fopen("./tests/info_reader_test.txt", "r");
     INIT_PARSER(parser, (GenericPointer) &results, 0, 1, sizeof(IntArray), keys, __NB_KEYS, file);
     parse(&parser);
 
-    for (unsigned int i = 0; i < __NB_KEYS; i++) {
+    for (unsigned int i = 0; i < __NB_KEYS; i++)
+    {
         TEST_INT(&(results.values[i]), &(expected.values[i]));
     }
     fclose(file);
