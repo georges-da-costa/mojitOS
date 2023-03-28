@@ -75,6 +75,7 @@ format:
 clean:
 	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/* \
 		$(SRC_DIR)/counters_option.h \
+		$(SRC_DIR)/memory_option.h \
 		$(TESTS_DIR)/run \
 		$(DOC_DIR)/test_main_ex \
 		$(DOC_DIR)/info_reader_ex

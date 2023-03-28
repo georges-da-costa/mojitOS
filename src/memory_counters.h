@@ -48,7 +48,7 @@ Optparse memory_counters_opt[2] = {
         .shortname = 'L',
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
-        .usage_msg = "list the available performance counters and quit",
+        .usage_msg = "list the available memory counters and quit",
         .fn = show_all_memory_counters,
     },
 };
