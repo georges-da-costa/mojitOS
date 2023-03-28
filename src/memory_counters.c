@@ -1,4 +1,6 @@
 #include "meminfo_option.h"
+#include <bits/stdint-uintn.h>
+#include <fcntl.h>
 #include <info_reader.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -6,6 +8,12 @@
 #include <string.h>
 
 static const char *path = "/proc/meminfo";
+
+typedef struct {
+  KeyFinder *keys;
+  unsigned int count;
+  FILE *file;
+} MemoryCounters;
 
 GenericPointer long_allocator(char *s) {
   long value = atol(s);
@@ -54,42 +62,48 @@ void memory_list(char *memory_string, unsigned int *count,
   }
 }
 
-int main(int argc, char **argv) {
-
-  if (argc != 2) {
-    fprintf(stderr, "Usage ... [elem1,elem2...]\n");
-    exit(EXIT_FAILURE);
-  }
-
+unsigned int init_memory_counters(char *args, void **ptr) {
   unsigned int indexes[NB_COUNTERS];
   unsigned int count = 0;
-  memory_list(argv[1], &count, indexes);
-
-  printf("%d, count \n", count);
+  memory_list(args, &count, indexes);
 
   KeyFinder *keys = build_keyfinder(count, indexes);
-  uint64_t value[count];
+  FILE *file = fopen(path, "r");
 
-  // -- Init the parser
-  Parser parser = {.storage = (GenericPointer)&value,
+  MemoryCounters *counters = calloc(1, sizeof(MemoryCounters));
+  counters->keys = keys;
+  counters->count = count;
+  counters->file = file;
+
+  *ptr = (void *)counters;
+  return count;
+}
+
+unsigned int get_memory_counters(uint64_t *results, void *ptr) {
+  MemoryCounters *counters = (MemoryCounters *)ptr;
+  fseek(counters->file, 0, SEEK_SET);
+  Parser parser = {.storage = (GenericPointer)results,
                    .capacity = 1,
-                   .storage_struct_size = sizeof(uint64_t) * count,
-                   .keys = keys,
-                   .nb_keys = count,
-                   .file = fopen(path, "r")};
+                   .nb_stored = 0,
+                   .storage_struct_size = sizeof(uint64_t) * counters->count,
+                   .keys = counters->keys,
+                   .nb_keys = counters->count,
+                   .file = counters->file};
 
-  // -- Parse the file
-  while (1) {
-    parse(&parser);
-    for (unsigned int i = 0; i < count; i++) {
-      printf("%s: %" PRIu64 "\n", keys[i].key, value[i]);
-    }
+  parse(&parser);
+  return counters->count;
+}
+
+void label_memory_counters(char **labels, void *ptr) {
+  MemoryCounters *counters = (MemoryCounters *)ptr;
+  for (unsigned int i = 0; i < counters->count; i++) {
+    labels[i] = counters->keys[i].key;
   }
+}
 
-  free(keys);
-
-  // Print and free the results
-
-  fclose(parser.file);
-  return 0;
+void clean_memory_counters(void *ptr) {
+  MemoryCounters *counters = (MemoryCounters *)ptr;
+  fclose(counters->file);
+  free(counters->keys);
+  free(ptr);
 }
