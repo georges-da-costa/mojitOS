@@ -40,8 +40,9 @@ $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
 
 $(OBJ): $(OBJ_DIR)
 $(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
+$(OBJ_DIR)/memory_counters.o: $(SRC_DIR)/memory_option.h
 
-$(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c $(SRC_DIR)/counters_option.h
+$(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c $(SRC_DIR)/counters_option.h $(SRC_DIR)/memory_counters.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
@@ -49,6 +50,9 @@ $(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
 
 $(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.sh
 	sh ./$(SRC_DIR)/counters_option.sh > $(SRC_DIR)/counters_option.h
+
+$(SRC_DIR)/memory_option.h: $(SRC_DIR)/memory_option.sh
+	sh ./$(SRC_DIR)/memory_option.sh > $(SRC_DIR)/memory_option.h
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)

@@ -24,7 +24,7 @@ void label_memory_counters(char **labels, void *ptr);
 void clean_memory_counters(void *ptr);
 void *show_all_memory_counters(void *, size_t);
 
-sensor memory_counters = {
+Sensor memory_counters = {
     .init = init_memory_counters,
     .get = get_memory_counters,
     .clean = clean_memory_counters,
