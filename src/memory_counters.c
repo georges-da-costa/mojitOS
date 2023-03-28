@@ -1,4 +1,4 @@
-#include "meminfo_option.h"
+#include "memory_option.h"
 #include "util.h"
 #include <fcntl.h>
 #include <info_reader.h>
