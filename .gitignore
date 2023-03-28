@@ -6,6 +6,7 @@ doc/info_reader_ex
 doc/mojitos.1
 tests/run
 src/counters_option.h
+src/meminfo_option.h
 src/sensors.h
 sensors.mk
 bin

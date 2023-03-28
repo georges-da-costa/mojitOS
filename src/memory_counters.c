@@ -16,7 +16,7 @@ KeyFinder *build_keyfinder(unsigned int count, unsigned int *indexes) {
   KeyFinder *keys = (KeyFinder *)calloc(count, sizeof(KeyFinder));
   for (unsigned int i = 0; i < count; i++) {
     unsigned int idx = indexes[i];
-    KeyFinder key = {.key = meminfo_words[idx],
+    KeyFinder key = {.key = memory_counters[idx],
                      .delimiter = ":",
                      .copy = long_allocator,
                      .set = setter_functions[i]};
@@ -34,20 +34,20 @@ void memory_list(char *memory_string, unsigned int *count,
     memory_string = NULL;
 
     unsigned int i;
-    for (i = 0; i < meminfo_count; i++) {
-      if (strcmp(meminfo_words[i], token) == 0) {
+    for (i = 0; i < NB_COUNTERS; i++) {
+      if (strcmp(memory_counters[i], token) == 0) {
         (*count)++;
         indexes[*count - 1] = i;
         break;
       }
     }
 
-    if (i == meminfo_count) {
+    if (i == NB_COUNTERS) {
       fprintf(stderr, "Unknown memory counter: %s\n", token);
       exit(EXIT_FAILURE);
     }
 
-    if ((*count) > meminfo_count) {
+    if ((*count) > NB_COUNTERS) {
       fprintf(stderr, "Too much counters, there are probably duplicates\n");
       exit(EXIT_FAILURE);
     }
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  unsigned int indexes[meminfo_count];
+  unsigned int indexes[NB_COUNTERS];
   unsigned int count = 0;
   memory_list(argv[1], &count, indexes);
 
