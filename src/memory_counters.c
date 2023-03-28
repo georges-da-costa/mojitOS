@@ -1,5 +1,5 @@
 #include "meminfo_option.h"
-#include <bits/stdint-uintn.h>
+#include "util.h"
 #include <fcntl.h>
 #include <info_reader.h>
 #include <inttypes.h>
@@ -106,4 +106,15 @@ void clean_memory_counters(void *ptr) {
   fclose(counters->file);
   free(counters->keys);
   free(ptr);
+}
+
+void *show_all_memory_counters(void *none1, size_t none2) {
+  for (unsigned int i = 0; i < NB_COUNTERS; i++) {
+    printf("%s\n", memory_counters[i]);
+  }
+
+  UNUSED(none1);
+  UNUSED(none2);
+  exit(EXIT_SUCCESS);
+  return NULL; /* not reached */
 }
