@@ -39,9 +39,9 @@ Optparse memory_counters_opt[2] = {
         .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<memory_list>",
         .usage_msg =
-            "memory counters\n"
-            "\tmemory_list is a coma separated list of memory counters.\n"
-            "\tEx: Zswap,Zswapped",
+        "memory counters\n"
+        "\tmemory_list is a coma separated list of memory counters.\n"
+        "\tEx: Zswap,Zswapped",
     },
     {
         .longname = "memory-list",
