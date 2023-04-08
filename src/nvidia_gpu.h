@@ -16,16 +16,28 @@
     You should have received a copy of the GNU General Public License
     along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
 
-*******************************************************/
+ *******************************************************/
 
-#include "util.c"
-#include "amd_rapl.c"
-#include "info_reader.c"
-#include "memory.c"
+unsigned int init_nvidia_gpu(char *, void **);
+unsigned int get_nvidia_gpu(uint64_t *results, void *);
+void clean_nvidia_gpu(void *);
+void label_nvidia_gpu(char **labels, void *);
 
-TMAIN({
-    CALL_TFUNCTION(test_util);
-    CALL_TFUNCTION(test_amd_rapl);
-    CALL_TFUNCTION(test_info_reader);
-    CALL_TFUNCTION(test_memory);
-})
+
+Sensor nvidia_gpu = {
+    .init = init_nvidia_gpu,
+    .get = get_nvidia_gpu,
+    .clean = clean_nvidia_gpu,
+    .label = label_nvidia_gpu,
+    .nb_opt = 1,
+};
+
+Optparse nvidia_gpu_opt[1] = {
+    {
+        .longname = "nvidia-gpu",
+        .shortname = 'n',
+        .argtype = OPTPARSE_NONE,
+        .usage_arg = NULL,
+        .usage_msg = "provides basic gpu information [clocks, memory, utilization, power, temperature].",
+    },
+};
