@@ -42,7 +42,7 @@ $(OBJ): $(OBJ_DIR)
 $(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
 $(OBJ_DIR)/memory_counters.o: $(SRC_DIR)/memory_option.h
 
-$(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c $(SRC_DIR)/counters_option.h $(SRC_DIR)/memory_counters.h
+$(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
