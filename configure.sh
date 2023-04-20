@@ -29,7 +29,7 @@ debug=0
 target_hdr=src/sensors.h
 target_mk=sensors.mk
 
-nonsensor='counters_option|sensors|util'
+nonsensor='counters_option|memory_option|sensors|util'
 
 hdr_blacklist=$nonsensor
 hdr_whitelist=''
@@ -117,6 +117,7 @@ detect_caps() {
 	[ -r /usr/include/linux/perf_event.h ] && hdr_whitelist=counters
 	[ -d /sys/class/infiniband ] && hdr_whitelist="${hdr_whitelist}|infiniband"
 	[ -r /proc/stat ] && hdr_whitelist="${hdr_whitelist}|load"
+	[ -r /proc/meminfo ] && hdr_whitelist="${hdr_whitelist}|memory_counters"
 
 	if [ "$(uname -r | cut -d "." -f 1)" -gt "2" ]; then
 		hdr_whitelist="${hdr_whitelist}|memory"
@@ -156,6 +157,8 @@ detect_caps() {
 case $1 in
 --all | -a)
 	all=1
+	NVML_LDFLAGS="-L/usr/local/cuda/lib64 -lnvidia-ml"
+	NVML_IFLAGS="-I/usr/local/cuda/include"
 	;;
 esac
 
