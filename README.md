@@ -27,7 +27,7 @@ The following is an exhaustive list of all the sensors (it is very likely
 that one will not have all the sensors activated in his build):
 ```bash
 SENSORS:
--a|--amd-rapl
+-r|--amd-rapl
 	AMD RAPL
 -p|--perf-list <perf_list>
 	performance counters
@@ -41,8 +41,20 @@ SENSORS:
 	system load
 -d|--net-dev <net_dev>
 	network monitoring (if network_device is X, tries to detect it automatically)
+-n|--nvidia-gpu
+	provides basic gpu information [clocks, memory, utilization, power, temperature].
 -r|--intel-rapl
 	INTEL RAPL
+-c|--cpu-temp
+	processor temperature
+-m|--memory
+	Retrieves information about the memory via the syscall 'sysinfo(2)'.
+-M|--memory-counters <memory_list>
+	memory counters
+	memory_list is a coma separated list of memory counters.
+	Ex: Zswap,Zswapped
+-L|--memory-list
+	list the available memory counters and quit
 ```
 
 ## Installation Instructions

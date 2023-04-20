@@ -29,7 +29,7 @@ debug=0
 target_hdr=src/sensors.h
 target_mk=sensors.mk
 
-nonsensor='counters_option|sensors|util'
+nonsensor='counters_option|memory_option|sensors|util'
 
 hdr_blacklist=$nonsensor
 hdr_whitelist=''
@@ -157,6 +157,8 @@ detect_caps() {
 case $1 in
 --all | -a)
 	all=1
+	NVML_LDFLAGS="-L/usr/local/cuda/lib64 -lnvidia-ml"
+	NVML_IFLAGS="-I/usr/local/cuda/include"
 	;;
 esac
 

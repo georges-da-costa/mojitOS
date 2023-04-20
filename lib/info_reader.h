@@ -21,36 +21,42 @@
 #ifndef _INFO_READER_H
 #define _INFO_READER_H
 
-#include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * @struct Parser
  * @brief The parser struct
- * The struct containing all the necessary informations and functions to parse a file
+ * The struct containing all the necessary informations and functions to parse a
+ * file
  *
- * @var storage : GenericPointer : pointer to the storage where the parsed data will be stored
+ * @var storage : GenericPointer : pointer to the storage where the parsed data
+ * will be stored
  * @var nb_stored : unsigned int : the number of struct stored
- * @var capacity : unsigned int : the maximum number of struct that can be stored
- * @var storage_struct_size : size_t : the size of the struct stored in the storage
- * @var keys : KeyFinder* : pointer to an array of KeyFinder containing the possible keys
+ * @var capacity : unsigned int : the maximum number of struct that can be
+ * stored
+ * @var storage_struct_size : size_t : the size of the struct stored in the
+ * storage
+ * @var keys : KeyFinder* : pointer to an array of KeyFinder containing the
+ * possible keys
  * @var nb_keys : unsigned int : number of key finders
  * @var file : FILE* : pointer to the file that will be parsed
-*/
+ */
 typedef struct Parser Parser;
 
 /**
  * @struct KeyFinder
  * @brief The key finder struct
- * The struct containing all the necessary informations and functions to find a key in a line of text
+ * The struct containing all the necessary informations and functions to find a
+ * key in a line of text
  *
  * @var key : char* : the key to be found
  * @var delimiter : char* : the delimiter between the key and the value
  * @var copy : CopyAllocator*: the function to use to make a copy of the value
  * @var set : Setter*: the function to use to store the value in the storage
-*/
+ */
 typedef struct KeyFinder KeyFinder;
 
 /**
@@ -68,20 +74,24 @@ typedef struct KeyFinder KeyFinder;
  * @param[out] value A pointer to a char pointer where the value will be stored.
  * @return None.
  */
-static void split_on_delimiter(char *string, const char *delimiter, char **key, char **value);
+void split_on_delimiter(char *string, const char *delimiter, char **key,
+                        char **value);
 
 /**
- * @brief Replace the first occurrence of a character in a string with another character.
+ * @brief Replace the first occurrence of a character in a string with another
+ * character.
  *
- * The function takes a string and two characters as input, and replaces the first
- * occurrence of the first character in the string with the second character.
+ * The function takes a string and two characters as input, and replaces the
+ * first occurrence of the first character in the string with the second
+ * character.
  *
- * @param[in,out] string The input string where the replacement should take place.
+ * @param[in,out] string The input string where the replacement should take
+ * place.
  * @param[in] from The character to be replaced.
  * @param[in] to The character to replace with.
  * @return None.
  */
-static void replace_first(char *string, char from, char to);
+void replace_first(char *string, char from, char to);
 
 /**
  * @brief Check if a string starts with a prefix.
@@ -89,21 +99,25 @@ static void replace_first(char *string, char from, char to);
  * @param[in] prefix The prefix to check.
  * @param[in] string The string to check.
  * @return true The string starts with the prefix.
- * @return false The string does not start with the prefix or one of the input pointers is NULL.
+ * @return false The string does not start with the prefix or one of the input
+ * pointers is NULL.
  */
-static bool start_with(const char *prefix, const char *string);
+bool start_with(const char *prefix, const char *string);
 
 /**
  * @brief Matches a line of text to a key in the parser's list of keys.
  *
  * @param[in] parser Pointer to the Parser struct.
  * @param[in] line Line of text to match.
- * @param[out] key_finder Pointer to a KeyFinder pointer where the matched key will be stored.
- * @param[out] raw_value Pointer to a char pointer where the value associated with the matched key will be stored.
+ * @param[out] key_finder Pointer to a KeyFinder pointer where the matched key
+ * will be stored.
+ * @param[out] raw_value Pointer to a char pointer where the value associated
+ * with the matched key will be stored.
  *
  * @return Returns 1 if a key is matched, 0 otherwise.
  */
-static unsigned int match(Parser *parser, char *line, KeyFinder **key_finder, char **raw_value);
+unsigned int match(Parser *parser, char *line, KeyFinder **key_finder,
+                   char **raw_value);
 
 /**
 * @brief Reads a line of text from a file stream and stores it in a static
@@ -111,7 +125,8 @@ static unsigned int match(Parser *parser, char *line, KeyFinder **key_finder, ch
 
 * This function reads a line of text from the input stream pointed to by
 * 'stream'. The line of text is stored in a static buffer with a maximum size of
-* PAGE_SIZE. The function updates the pointer pointed to by 'lineptr' to point to
+* PAGE_SIZE. The function updates the pointer pointed to by 'lineptr' to point
+to
 * the buffer containing the line of text. If the line of text is longer than the
 * buffer, the function returns -1. If an error occurs,
 
@@ -123,174 +138,35 @@ static unsigned int match(Parser *parser, char *line, KeyFinder **key_finder, ch
 */
 ssize_t buffer_getline(char **lineptr, FILE *stream);
 
+/**
+ * @brief Parse with the configured parser.
+ *
+ * @param parser the parser.
+ */
+unsigned int parse(Parser *parser);
+
 typedef size_t GenericPointer;
-typedef GenericPointer (CopyAllocator) (char *string);
-typedef void (Setter) (GenericPointer storage, GenericPointer value);
+typedef GenericPointer(CopyAllocator)(char *string);
+typedef void(Setter)(GenericPointer storage, GenericPointer value);
 
 struct KeyFinder {
-    char *key;
-    char *delimiter;
+  char *key;
+  char *delimiter;
 
-    CopyAllocator *copy;
-    Setter *set;
+  CopyAllocator *copy;
+  Setter *set;
 };
 
 struct Parser {
-    GenericPointer storage;
-    unsigned int nb_stored;
-    unsigned int capacity;
-    size_t storage_struct_size;
+  GenericPointer storage;
+  unsigned int nb_stored;
+  unsigned int capacity;
+  size_t storage_struct_size;
 
-    KeyFinder *keys;
-    unsigned int nb_keys;
+  KeyFinder *keys;
+  unsigned int nb_keys;
 
-    FILE *file;
+  FILE *file;
 };
 
-static void set_value(Parser *parser, KeyFinder *key_finder, char *raw_value)
-{
-    GenericPointer address = parser->storage + (parser->storage_struct_size * parser->nb_stored);
-    GenericPointer value = key_finder->copy(raw_value);
-    key_finder->set(address, value);
-}
-
-static unsigned int match(Parser *parser, char *line, KeyFinder **key_finder, char **raw_value)
-{
-    for (unsigned int i = 0; i < parser->nb_keys; i++) {
-        KeyFinder *finder = &parser->keys[i];
-
-        if (start_with(finder->key, line)) {
-            char *value = NULL;
-            char *key = NULL;
-
-            split_on_delimiter(line, finder->delimiter, &key, &value);
-            if ( key == NULL || value == NULL) {
-                return 0;
-            }
-            *key_finder = finder;
-            *raw_value = value;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-static unsigned int move_to_next(Parser *parser)
-{
-    parser->nb_stored += 1;
-    if (parser->nb_stored >= parser->capacity) {
-        return 0;
-    }
-    return 1;
-}
-
-
-#define PAGE_SIZE 4096
-ssize_t buffer_getline(char **lineptr, FILE *stream) {
-    ssize_t num_chars_read = 0;
-    static char buffer[PAGE_SIZE] = {0};
-
-    if (!lineptr || !stream) {
-        return -1;
-    }
-
-    while (1) {
-        int ch = fgetc(stream);
-        if (ch == EOF) {
-            if (num_chars_read == 0) {
-                return -1;
-            } else {
-                break;
-            }
-        }
-
-        if (num_chars_read == PAGE_SIZE - 1) {
-            return -1;
-        }
-
-        buffer[num_chars_read++] = ch;
-        if (ch == '\n') {
-            break;
-        }
-    }
-
-    buffer[num_chars_read] = '\0';
-    *lineptr = buffer;
-
-    return num_chars_read;
-}
-
-
-static unsigned int parse(Parser *parser)
-{
-    char *line = NULL;
-    ssize_t read;
-    unsigned int key_assigned = 0;
-
-    while ((read = buffer_getline(&line, parser->file)) != -1) {
-        if (key_assigned == parser->nb_keys && read > 1) {
-            continue;
-        } else if (read == 1) {
-            if (!move_to_next(parser)) {
-                return 0;
-            }
-            key_assigned = 0;
-        } else {
-            KeyFinder *key_finder = NULL;
-            char *raw_value = NULL;
-            replace_first(line, '\n', '\0');
-            if (match(parser, line, &key_finder, &raw_value)) {
-                set_value(parser, key_finder, raw_value);
-                ++key_assigned;
-            }
-        }
-    }
-    if (key_assigned > 0) {
-        parser->nb_stored++;
-    }
-    return 1;
-}
-
-
-
-static void replace_first(char *string, char from, char to)
-{
-    for (int i = 0; string[i] != '\0'; i++) {
-        if (string[i] == from) {
-            string[i] = to;
-            break;
-        }
-    }
-}
-
-static void split_on_delimiter(char *string, const char *delimiter, char **key, char **value)
-{
-    *key = NULL;
-    *value = NULL;
-    size_t delimiter_len = strlen(delimiter);
-    char *start_delimiter = strstr(string, delimiter);
-    if (start_delimiter != NULL) {
-        *start_delimiter = '\0';
-        *key = string;
-        *value = start_delimiter + delimiter_len;
-    }
-}
-
-static bool start_with(const char *prefix, const char *string)
-{
-    if (prefix == NULL || string == NULL) {
-        return false;
-    }
-
-    size_t prefix_len = strlen(prefix);
-    size_t string_len = strlen(string);
-
-    if (string_len < prefix_len) {
-        return false;
-    } else {
-        return  memcmp(prefix, string, prefix_len) == 0;
-    }
-}
-
 #endif
-
