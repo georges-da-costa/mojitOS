@@ -270,8 +270,8 @@ int test(char *file, int line, unsigned int __indentation_level, const void *res
     static char buffer_expected[FMT_BUFFER_SIZE];
     int is_equal = interface->compare(result, expected);
 
-    char *fmt_result = interface->format(buffer_expected, expected);
-    char *fmt_expected = interface->format(buffer_result, result);
+    char *fmt_expected = interface->format(buffer_expected, expected);
+    char *fmt_result = interface->format(buffer_result, result);
     if  (!is_equal) {
         INDENTED_PRINT("%s:%d: failed, expected <%s>, got <%s>\n", file, line, fmt_expected, fmt_result);
     }

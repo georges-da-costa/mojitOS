@@ -3,6 +3,7 @@
 SRC_DIR = src
 DOC_DIR = doc
 OBJ_DIR = obj
+LIB_DIR = lib
 BIN_DIR = bin
 TESTS_DIR = tests
 
@@ -25,8 +26,9 @@ NVML_IFLAGS =
 include ./sensors.mk
 
 OBJ =  \
-	$(CAPTOR_OBJ) \
-	$(OBJ_DIR)/util.o
+	$(OBJ_DIR)/util.o \
+	$(OBJ_DIR)/info_reader.o \
+	$(CAPTOR_OBJ)
 
 options:
 	@echo BIN: $(BIN)
@@ -40,15 +42,22 @@ $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
 
 $(OBJ): $(OBJ_DIR)
 $(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
+$(OBJ_DIR)/memory_counters.o: $(SRC_DIR)/memory_option.h
 
-$(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c $(SRC_DIR)/counters_option.h
+$(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/info_reader.o: $(LIB_DIR)/info_reader.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 $(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.sh
 	sh ./$(SRC_DIR)/counters_option.sh > $(SRC_DIR)/counters_option.h
+
+$(SRC_DIR)/memory_option.h: $(SRC_DIR)/memory_option.sh
+	sh ./$(SRC_DIR)/memory_option.sh > $(SRC_DIR)/memory_option.h
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
@@ -59,8 +68,8 @@ $(BIN_DIR):
 debug: CFLAGS = $(CPPFLAGS) -DDEBUG -g -Og
 debug: $(BIN)
 
-tests:
-	$(CC) $(CPPFLAGS) $(TESTS_DIR)/main.c $(SRC_DIR)/util.c -o $(TESTS_DIR)/run
+tests: $(OBJ_DIR)/util.o $(OBJ_DIR)/info_reader.o
+	$(CC) $(CPPFLAGS) $(OBJ_DIR)/util.o $(OBJ_DIR)/info_reader.o $(TESTS_DIR)/main.c  -o $(TESTS_DIR)/run
 	$(TESTS_DIR)/run
 
 format:
@@ -71,11 +80,12 @@ format:
 clean:
 	\rm -f $(OBJ_DIR)/* $(BIN_DIR)/* \
 		$(SRC_DIR)/counters_option.h \
+		$(SRC_DIR)/memory_option.h \
 		$(TESTS_DIR)/run \
 		$(DOC_DIR)/test_main_ex \
 		$(DOC_DIR)/info_reader_ex
 
-readme: $(BIN)
+readme:
 	sh ./tools/update-readme-usage.sh
 
 man: $(BIN)

@@ -78,45 +78,45 @@ TFUNCTION(test_modulo_substraction, {
 })
 
 TFUNCTION(test_max, {
-  int expected = 0;
-  int result = 0;
+    int expected = 0;
+    int result = 0;
 
-  expected = 10;
-  result = MAX(expected, 9);
-  TEST_INT(&result, &expected);
+    expected = 10;
+    result = MAX(expected, 9);
+    TEST_INT(&result, &expected);
 
-  expected = -15;
-  result = MAX(expected, -16);
-  TEST_INT(&result, &expected);
+    expected = -15;
+    result = MAX(expected, -16);
+    TEST_INT(&result, &expected);
 
-  expected = 0;
-  result = MAX(expected, -1);
-  TEST_INT(&result, &expected);
+    expected = 0;
+    result = MAX(expected, -1);
+    TEST_INT(&result, &expected);
 
-  expected = 1;
-  result = MAX(expected, 0);
-  TEST_INT(&result, &expected);
+    expected = 1;
+    result = MAX(expected, 0);
+    TEST_INT(&result, &expected);
 })
 
 TFUNCTION(test_min, {
-  int expected = 0;
-  int result = 0;
+    int expected = 0;
+    int result = 0;
 
-  expected = 9;
-  result = MIN(expected, 10);
-  TEST_INT(&result, &expected);
+    expected = 9;
+    result = MIN(expected, 10);
+    TEST_INT(&result, &expected);
 
-  expected = -16;
-  result = MIN(expected, -15);
-  TEST_INT(&result, &expected);
+    expected = -16;
+    result = MIN(expected, -15);
+    TEST_INT(&result, &expected);
 
-  expected = -1;
-  result = MIN(expected, 0);
-  TEST_INT(&result, &expected);
+    expected = -1;
+    result = MIN(expected, 0);
+    TEST_INT(&result, &expected);
 
-  expected = 0;
-  result = MIN(expected, 1);
-  TEST_INT(&result, &expected);
+    expected = 0;
+    result = MIN(expected, 1);
+    TEST_INT(&result, &expected);
 })
 
 TFILE_ENTRY_POINT(test_util, {
