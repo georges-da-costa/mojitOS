@@ -130,8 +130,8 @@ detect_caps() {
 
 	if [ -e /usr/local/cuda/lib64 ] && [ -e /usr/local/cuda/include ]; then
 		hdr_whitelist="${hdr_whitelist}|nvidia_gpu"
-		NVML_LDFLAGS="-L/usr/local/cuda/lib64 -lnvidia-ml"
-		NVML_IFLAGS="-I/usr/local/cuda/include"
+		NVML_LDFLAGS='-L/usr/local/cuda/lib64 -lnvidia-ml'
+		NVML_IFLAGS='-I/usr/local/cuda/include'
 	fi
 
 	vendor=$(awk '/vendor_id/ {print $3; exit}' /proc/cpuinfo)
@@ -160,9 +160,14 @@ case $1 in
 	NVML_LDFLAGS="-L/usr/local/cuda/lib64 -lnvidia-ml"
 	NVML_IFLAGS="-I/usr/local/cuda/include"
 	;;
+--unique | -u)
+	unique=1
+	;;
 esac
 
-[ "$all" ] || detect_caps
+if ! [ "$all" ] && ! [ "$unique" ]; then
+	detect_caps
+fi
 
 [ "$all" ] ||
 	while [ "$1" ]; do
