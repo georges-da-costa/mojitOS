@@ -5,36 +5,42 @@ stages:
 job-build-counters:
   stage: build-option
   script:
+    - apk add make gcc musl-dev linux-headers
     - ./configure.sh -u counters
     - make
 
 job-build-load:
   stage: build-option
   script:
+    - apk add make gcc musl-dev linux-headers
     - ./configure.sh -u load
     - make
 
 job-build-network:
   stage: build-option
   script:
+    - apk add make gcc musl-dev linux-headers
     - ./configure.sh -u network
     - make
 
 job-build-rapl:
   stage: build-option
   script:
+    - apk add make gcc musl-dev linux-headers
     - ./configure.sh -u rapl
     - make
 
 job-build:
   stage: build
   script:
+    - apk add make gcc musl-dev linux-headers
     - ./configure.sh
     - make
 
 job-build-test:
   stage: build
   script: 
+    - apk add make gcc musl-dev linux-headers
     - ./configure.sh
     - make tests
 
