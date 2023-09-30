@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2018-2019 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2023-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -18,9 +18,26 @@
 
  *******************************************************/
 
-unsigned int init_counters(char*, void **);
-unsigned int get_counters(uint64_t* results, void*);
-void clean_counters(void *);
-void label_counters(char **labels, void*);
+unsigned int init_memory(char *, void **);
+unsigned int get_memory(uint64_t *results, void *);
+void clean_memory(void *);
+void label_memory(char **labels, void *);
 
-void show_all_counters();
+
+Sensor memory = {
+    .init = init_memory,
+    .get = get_memory,
+    .clean = clean_memory,
+    .label = label_memory,
+    .nb_opt = 1,
+};
+
+Optparse memory_opt[1] = {
+    {
+        .longname = "memory",
+        .shortname = 'm',
+        .argtype = OPTPARSE_NONE,
+        .usage_arg = NULL,
+        .usage_msg = "Retrieves information about the memory via the syscall 'sysinfo(2)'.",
+    },
+};
