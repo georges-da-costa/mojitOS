@@ -130,9 +130,14 @@ detect_caps() {
 
 	if [ -e /usr/local/cuda/lib64 ] && [ -e /usr/local/cuda/include ]; then
 		hdr_whitelist="${hdr_whitelist}|nvidia_gpu"
-		NVML_LDFLAGS='-L/usr/local/cuda/lib64 -lnvidia-ml'
+		CAPTOR_LDFLAGS="${CAPTOR_LDFLAGS} -L/usr/local/cuda/lib64 -lnvidia-ml"
 		NVML_IFLAGS='-I/usr/local/cuda/include'
 	fi
+	if [ `/sbin/ldconfig -p | grep liblikwid | wc -l` -ge 1 ]; then
+		hdr_whitelist="${hdr_whitelist}|likwid"
+		CAPTOR_LDFLAGS="${CAPTOR_LDFLAGS} -llikwid"
+	fi
+	     		    
 
 	vendor=$(awk '/vendor_id/ {print $3; exit}' /proc/cpuinfo)
 	vendor_lc=$(echo "$vendor" | tr 'A-Z' 'a-z')
@@ -157,7 +162,7 @@ detect_caps() {
 case $1 in
 --all | -a)
 	all=1
-	NVML_LDFLAGS="-L/usr/local/cuda/lib64 -lnvidia-ml"
+	CAPTOR_LDFLAGS="-L/usr/local/cuda/lib64 -lnvidia-ml -llikwid"
 	NVML_IFLAGS="-I/usr/local/cuda/include"
 	;;
 --unique | -u)
@@ -209,7 +214,7 @@ fi
 try gen_sensors_h "$sensors" "$nb_sensors" >"$target_hdr"
 try gen_sensors_mk "$sensors" >"$target_mk"
 
-try printf "NVML_LDFLAGS = %s\n" "$NVML_LDFLAGS" >>"$target_mk"
+try printf "CAPTOR_LDFLAGS = %s\n" "$CAPTOR_LDFLAGS" >>"$target_mk"
 try printf "NVML_IFLAGS = %s\n" "$NVML_IFLAGS" >>"$target_mk"
 
 printf -- 'Run `make` to build `bin/mojitos`.\n' >&2
