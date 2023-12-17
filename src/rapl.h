@@ -37,7 +37,7 @@ Optparse rapl_opt[1] = {
         .shortname = 'r',
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
-        .usage_msg = "INTEL RAPL",
+        .usage_msg = "INTEL RAPL (micro-joules)",
     },
 };
 
