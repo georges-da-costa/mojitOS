@@ -55,6 +55,12 @@ SENSORS:
 	Ex: Zswap,Zswapped
 -L|--memory-list
 	list the available memory counters and quit
+-k|--likwid <perf_list>
+	performance counters
+	perf_list is a coma separated list of performance counters with associated register.
+	Ex: FP_ARITH_INST_RETIRED_128B_PACKED_DOUBLE:PMC0,FP_ARITH_INST_RETIRED_SCALAR_DOUBLE:PMC1
+-w|--list-likwid
+	list the available performance counters and quit
 ```
 
 ## Installation Instructions
@@ -84,6 +90,8 @@ To execute mojitos without being root for accessing RAPL
 sudo chmod a+w /sys/class/powercap/intel-rapl/*/*
 sudo chmod a+w /sys/class/powercap/intel-rapl/*/*/*
 ```
+
+For now likwid backend needs mojitos to run root privileges
 
 ## Tutorial and Examples
 
