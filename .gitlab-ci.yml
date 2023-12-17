@@ -9,16 +9,6 @@ job-build-counters:
     - ./configure.sh -u counters
     - make
 
-job-build-likwid:
-  stage: build-option
-  script:
-    - apk add make gcc musl-dev
-    - wget http://ftp.fau.de/pub/likwid/likwid-stable.tar.gz
-    - tar -xaf likwid-stable.tar.gz
-    - cd likwid-* ; make ; make install; cd ..
-    - ./configure.sh -u likwid
-    - make
-
 job-build-load:
   stage: build-option
   script:
