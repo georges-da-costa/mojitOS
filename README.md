@@ -28,7 +28,7 @@ that one will not have all the sensors activated in his build):
 ```bash
 SENSORS:
 -r|--amd-rapl
-	AMD RAPL
+	AMD RAPL (micro-joules)
 -p|--perf-list <perf_list>
 	performance counters
 	perf_list is a coma separated list of performance counters.
@@ -44,7 +44,7 @@ SENSORS:
 -n|--nvidia-gpu
 	provides basic gpu information [clocks, memory, utilization, power, temperature].
 -r|--intel-rapl
-	INTEL RAPL
+	INTEL RAPL (micro-joules)
 -c|--cpu-temp
 	processor temperature
 -m|--memory
