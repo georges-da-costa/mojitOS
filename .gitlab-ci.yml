@@ -12,7 +12,10 @@ job-build-counters:
 job-build-likwid:
   stage: build-option
   script:
-    - apk add make gcc musl-dev likwid
+    - apk add make gcc musl-dev
+    - wget http://ftp.fau.de/pub/likwid/likwid-stable.tar.gz
+    - tar -xaf likwid-stable.tar.gz
+    - cd likwid-* ; make ; make install; cd ..
     - ./configure.sh -u likwid
     - make
 
@@ -40,14 +43,14 @@ job-build-rapl:
 job-build:
   stage: build
   script:
-    - apk add make gcc musl-dev linux-headers likwid
+    - apk add make gcc musl-dev linux-headers
     - ./configure.sh
     - make
 
 job-build-test:
   stage: build
   script: 
-    - apk add make gcc musl-dev linux-headers likwid
+    - apk add make gcc musl-dev linux-headers
     - ./configure.sh
     - make tests
 
