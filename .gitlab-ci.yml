@@ -9,38 +9,45 @@ job-build-counters:
     - ./configure.sh -u counters
     - make
 
+job-build-likwid:
+  stage: build-option
+  script:
+    - apk add make gcc musl-dev likwid
+    - ./configure.sh -u likwid
+    - make
+
 job-build-load:
   stage: build-option
   script:
-    - apk add make gcc musl-dev linux-headers
+    - apk add make gcc musl-dev
     - ./configure.sh -u load
     - make
 
 job-build-network:
   stage: build-option
   script:
-    - apk add make gcc musl-dev linux-headers
+    - apk add make gcc musl-dev
     - ./configure.sh -u network
     - make
 
 job-build-rapl:
   stage: build-option
   script:
-    - apk add make gcc musl-dev linux-headers
+    - apk add make gcc musl-dev
     - ./configure.sh -u rapl
     - make
 
 job-build:
   stage: build
   script:
-    - apk add make gcc musl-dev linux-headers
+    - apk add make gcc musl-dev linux-headers likwid
     - ./configure.sh
     - make
 
 job-build-test:
   stage: build
   script: 
-    - apk add make gcc musl-dev linux-headers
+    - apk add make gcc musl-dev linux-headers likwid
     - ./configure.sh
     - make tests
 
