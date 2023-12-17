@@ -13,14 +13,14 @@ PREFIX = /usr/local
 CC = gcc
 CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
 CFLAGS = $(CPPFLAGS) -O3 -Werror
-LDFLAGS = $(NVML_LDFLAGS)
+LDFLAGS = $(CAPTOR_LDFLAGS)
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
 all: $(BIN) man
 
 CAPTOR_OBJ =
-NVML_LDFLAGS =
+CAPTOR_LDFLAGS =
 NVML_IFLAGS =
 
 include ./sensors.mk
