@@ -143,3 +143,32 @@ $ ./bin/mojitos -t 5 -f 1 -p cpu_cycles -r -s
 MojitO/S is published under the GPL3 license and is part of the [Energumen Project](https://www.irit.fr/energumen/)
 
 <img src="https://www.irit.fr/energumen/images/energumen.png" width="100">
+
+## Citation
+
+If you use this software for your publication, please cite:
+
+```
+Georges da Costa. MojitO/S. 2021, ⟨swh:1:dir:06cf89641458237dc2b498c0a6bfdbf86069f9be;origin=https://hal.archives-ouvertes.fr/hal-03453537;visit=swh:1:snp:669100e5754a91c1e9b61626bb8e2de2a5bbee05;anchor=swh:1:rel:c8d27b5ae7715198e3e51e4ea87ec9d3afe18f61;path=/⟩. ⟨hal-03453537⟩
+```
+
+Or directly use the following bibtex entry:
+
+```
+@softwareversion{dacosta:hal-03453537v1,
+  TITLE = {{MojitO/S}},
+  AUTHOR = {da Costa, Georges},
+  URL = {https://hal.science/hal-03453537},
+  NOTE = {},
+  YEAR = {2021},
+  MONTH = Nov,
+  SWHID = {swh:1:dir:06cf89641458237dc2b498c0a6bfdbf86069f9be;origin=https://hal.archives-ouvertes.fr/hal-03453537;visit=swh:1:snp:669100e5754a91c1e9b61626bb8e2de2a5bbee05;anchor=swh:1:rel:c8d27b5ae7715198e3e51e4ea87ec9d3afe18f61;path=/},
+  VERSION = {1.0},
+  REPOSITORY = {https://gitlab.irit.fr/sepia-pub/mojitos},
+  LICENSE = {GNU General Public License v3.0 or later},
+  KEYWORDS = {Performance counters ; Power monitoring ; Monitoring Software},
+  FILE = {https://hal.science/hal-03453537/file/mojitos-v1.0.zip},
+  HAL_ID = {hal-03453537},
+  HAL_VERSION = {v1},
+}
+```
