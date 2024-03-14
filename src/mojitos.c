@@ -159,14 +159,6 @@ void flush(int none)
 }
 
 FILE *output;
-void flushexit()
-{
-    if (output != NULL) {
-        fflush(output);
-        fclose(output);
-    }
-}
-
 unsigned int nb_sources = 0;
 void **states = NULL;
 getter_t *getter = NULL;
@@ -175,6 +167,25 @@ cleaner_t *cleaner = NULL;
 unsigned int nb_sensors = 0;
 char **labels = NULL;
 uint64_t *values = NULL;
+
+void flushexit()
+{
+    if (output != NULL) {
+        fflush(output);
+        fclose(output);
+    }
+    for (unsigned int i = 0; i < nb_sources; i++) {
+        cleaner[i](states[i]);
+    }
+
+    if (nb_sources > 0) {
+        free(getter);
+        free(cleaner);
+        free(labels);
+        free(values);
+        free(states);
+    }
+}
 
 void add_source(Sensor *cpt, char *arg)
 {
@@ -227,7 +238,8 @@ int main(int argc, char **argv)
     output = stdout;
 
     atexit(flushexit);
-    signal(15, flush);
+    signal(SIGTERM, flush);
+    signal(SIGINT, flush);
 
     int opt;
     struct optparse options;
@@ -369,16 +381,5 @@ int main(int argc, char **argv)
         usleep(1000 * 1000 / frequency - (ts.tv_nsec / 1000) % (1000 * 1000 / frequency));
     }
 
-    for (unsigned int i = 0; i < nb_sources; i++) {
-        cleaner[i](states[i]);
-    }
-
-    if (nb_sources > 0) {
-        free(getter);
-        free(cleaner);
-        free(labels);
-        free(values);
-        free(states);
-    }
 }
 
