@@ -23,12 +23,6 @@
 
 #include <stdint.h>
 
-#define CASSERT(predicate, file) _impl_CASSERT_LINE(predicate,__LINE__,file)
-
-#define _impl_PASTE(a,b) a##b
-#define _impl_CASSERT_LINE(predicate, line, file) \
-    typedef char _impl_PASTE(assertion_failed_##file##_,line)[2*!!(predicate)-1];
-
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define PANIC(code, fmt, ...)                \
     do {                                     \
@@ -49,5 +43,6 @@
  * @return uint64_t
  */
 uint64_t modulo_substraction(const uint64_t lhs, const uint64_t rhs);
+uint64_t modulo_substraction_bound(const uint64_t lhs, const uint64_t rhs, const uint64_t modulo);
 
 #endif
