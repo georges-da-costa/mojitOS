@@ -26,3 +26,9 @@ uint64_t modulo_substraction(const uint64_t lhs, const uint64_t rhs)
     return lhs >= rhs ? (lhs - rhs)
            : (UINT64_MAX - rhs + 1) + lhs;
 }
+
+uint64_t modulo_substraction_bound(const uint64_t lhs, const uint64_t rhs, const uint64_t modulo)
+{
+    return lhs >= rhs ? (lhs - rhs)
+           : (modulo - rhs + 1) + lhs;
+}

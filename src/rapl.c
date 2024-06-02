@@ -118,7 +118,7 @@ int add_rapl_source_from_str(IntelRapl *rapl, const char*name_base, const int i)
   append(tmp, i, MAX_HEADER); // tmp contains the name with its index. ex: dram0
 
   snprintf(buffer, BUFFER_SIZE, name_base, i);
-  strcat(buffer, "name");
+  strcat(buffer, "max_energy_range_uj");
   uint64_t modulo = strtoull(get_rapl_string(buffer), NULL, 10);
 
   snprintf(buffer, BUFFER_SIZE, name_base, i);
@@ -180,7 +180,9 @@ unsigned int get_rapl(uint64_t *results, void *ptr)
 
     
     for (unsigned int i = 0; i < state->nb; i++) {
-        results[i] = modulo_substraction(state->tmp_values[i], state->values[i]);
+        results[i] = modulo_substraction_bound(state->tmp_values[i],
+					       state->values[i],
+					       state->modulo[i]);
     }
 
     memcpy(state->values, state->tmp_values, sizeof(uint64_t)*state->nb);
