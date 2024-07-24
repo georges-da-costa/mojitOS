@@ -168,7 +168,7 @@ unsigned int nb_sensors = 0;
 char **labels = NULL;
 uint64_t *values = NULL;
 
-void flushexit()
+void flushexit(void)
 {
     if (output != NULL) {
         fflush(output);
