@@ -87,8 +87,8 @@ sudo sh -c 'echo 0 >/proc/sys/kernel/perf_event_paranoid'
 ```
 To execute mojitos without being root for accessing RAPL on Intel
 ```bash
-sudo chmod a+r /sys/class/powercap/intel-rapl/*/*
-sudo chmod a+r /sys/class/powercap/intel-rapl/*/*/*
+sudo chmod u+r /sys/class/powercap/intel-rapl/*/*
+sudo chmod u+r /sys/class/powercap/intel-rapl/*/*/*
 ```
 
 For now likwid backend needs mojitos to run root privileges
