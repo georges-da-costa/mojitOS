@@ -172,12 +172,12 @@ unsigned int get_rapl(uint64_t *results, void *ptr)
     IntelRapl *state = (IntelRapl *) ptr;
     _get_rapl(state->tmp_values, state);
 
-    fprintf(stderr, "RAPL\t");
+    /*    fprintf(stderr, "RAPL\t");
     for (unsigned int i = 0; i < state->nb; i++) {
       fprintf(stderr, "%" PRIu64 "\t", state->values[i]);
     }
     fprintf(stderr, "\n");
-
+    */
     
     for (unsigned int i = 0; i < state->nb; i++) {
         results[i] = modulo_substraction_bound(state->tmp_values[i],
