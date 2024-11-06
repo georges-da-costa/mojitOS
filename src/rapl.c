@@ -157,8 +157,8 @@ unsigned int init_rapl(char *none, void **ptr)
       }
     }
 
-    rapl->values = calloc(sizeof(uint64_t), rapl->nb);
-    rapl->tmp_values = calloc(sizeof(uint64_t), rapl->nb);
+    rapl->values = calloc(rapl->nb, sizeof(uint64_t));
+    rapl->tmp_values = calloc(rapl->nb, sizeof(uint64_t));
 
     _get_rapl(rapl->values, rapl);
 
