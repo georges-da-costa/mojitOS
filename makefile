@@ -28,6 +28,7 @@ include ./sensors.mk
 OBJ =  \
 	$(OBJ_DIR)/util.o \
 	$(OBJ_DIR)/info_reader.o \
+	$(OBJ_DIR)/libmojitos.o \
 	$(CAPTOR_OBJ)
 
 options:
@@ -52,6 +53,14 @@ $(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
 
 $(OBJ_DIR)/info_reader.o: $(LIB_DIR)/info_reader.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/libmojitos.o: $(SRC_DIR)/libmojitos.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+libmojitos: $(BIN_DIR)/libmojitos.a
+
+$(BIN_DIR)/libmojitos.a: $(BIN_DIR) $(OBJ) $(OBJ_DIR)/libmojitos.o
+	ar rcs $@ $(OBJ) $(OBJ_DIR)/libmojitos.o
 
 $(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.sh
 	sh ./$(SRC_DIR)/counters_option.sh > $(SRC_DIR)/counters_option.h

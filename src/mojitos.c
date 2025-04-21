@@ -32,32 +32,15 @@
 #define OPTPARSE_API static
 #include "optparse.h"
 
-typedef unsigned int (*initializer_t)(char *, void **);
-typedef void (*labeler_t)(char **, void *);
-typedef unsigned int (*getter_t)(uint64_t *, void *);
-typedef void (*cleaner_t)(void *);
-
 typedef struct Opt Opt;
 typedef struct Sensor Sensor;
 /* optparse typedef */
 typedef struct optparse_long Optparse;
 
-struct Sensor {
-    initializer_t init;
-    getter_t get;
-    cleaner_t clean;
-    labeler_t label;
-    int nb_opt;
-};
-
-int nb_defined_sensors = 0;
-
-#include "sensors.h"
-
-Sensor sensors[NB_SENSOR];
+#include "libmojitos.h"
 
 #define NB_OPT 5
-Optparse opts[NB_OPT + NB_SENSOR_OPT + 1] = {
+Optparse opts[NB_OPT + 1] = {
     {
         .longname = "freq", .shortname = 'f', .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<freq>",
@@ -115,7 +98,9 @@ void dumpopts(Optparse *opts, size_t nb_opt, size_t nb_sensor_opt)
     printf(".El\n");
 }
 
-void printopt(Optparse *opt)
+void printopt(Optparse *opt);
+/*
+  void printopt(Optparse *opt)
 {
     printf("-%c", opt->shortname);
     printf("|--%s", opt->longname);
@@ -124,6 +109,7 @@ void printopt(Optparse *opt)
     }
     printf("\n\t%s\n", opt->usage_msg);
 }
+*/
 
 void usage(char **argv)
 {
@@ -134,15 +120,7 @@ void usage(char **argv)
         printopt(&opts[i]);
     }
 
-    if (nb_defined_sensors == 0) {
-        // no captor to show
-        exit(EXIT_FAILURE);
-    }
-
-    printf("\nSENSORS:\n");
-    for (int i = 0; i < NB_SENSOR_OPT; i++) {
-        printopt(&opts[NB_OPT + i]);
-    }
+    moj_usage();
 
     exit(EXIT_FAILURE);
 }
@@ -159,14 +137,6 @@ void flush(int none)
 }
 
 FILE *output;
-unsigned int nb_sources = 0;
-void **states = NULL;
-getter_t *getter = NULL;
-cleaner_t *cleaner = NULL;
-
-unsigned int nb_sensors = 0;
-char **labels = NULL;
-uint64_t *values = NULL;
 
 void flushexit(void)
 {
@@ -174,47 +144,9 @@ void flushexit(void)
         fflush(output);
         fclose(output);
     }
-    for (unsigned int i = 0; i < nb_sources; i++) {
-        cleaner[i](states[i]);
-    }
-
-    if (nb_sources > 0) {
-        free(getter);
-        free(cleaner);
-        free(labels);
-        free(values);
-        free(states);
-    }
+    moj_clean();
 }
 
-void add_source(Sensor *cpt, char *arg)
-{
-    nb_sources++;
-    initializer_t init = cpt->init;
-    labeler_t labeler = cpt->label;
-    getter_t get = cpt->get;
-    cleaner_t clean = cpt->clean;
-
-    states = realloc(states, nb_sources * sizeof(void *));
-    int nb = init(arg, &states[nb_sources - 1]);
-
-    if (nb == 0) {
-        nb_sources--;
-        states = realloc(states, nb_sources * sizeof(void *));
-        return;
-    }
-
-    getter = realloc(getter, nb_sources * sizeof(void *));
-    getter[nb_sources - 1] = get;
-    cleaner = realloc(cleaner, nb_sources * sizeof(void *));
-    cleaner[nb_sources - 1] = clean;
-
-    labels = realloc(labels, (nb_sensors + nb) * sizeof(char *));
-    labeler(labels + nb_sensors, states[nb_sources - 1]);
-
-    values = realloc(values, (nb_sensors + nb) * sizeof(uint64_t));
-    nb_sensors += nb;
-}
 
 int main(int argc, char **argv)
 {
@@ -223,18 +155,7 @@ int main(int argc, char **argv)
     int frequency = 1;
     char **application = NULL;
     int stat_mode = -1;
-
-    init_sensors(opts, sensors, NB_OPT + NB_SENSOR_OPT, NB_OPT, &nb_defined_sensors);
-
-    if (argc == 1) {
-        usage(argv);
-    }
-
-    if (argc == 2 && strcmp(argv[1], "--dump-opts") == 0) {
-        dumpopts(opts, NB_OPT, NB_SENSOR_OPT);
-        exit(EXIT_SUCCESS);
-    }
-
+ 
     output = stdout;
 
     atexit(flushexit);
@@ -273,37 +194,34 @@ int main(int argc, char **argv)
             signal(17, sighandler);
             break;
         default: {
-            int ismatch = 0;
-            int opt_idx = NB_OPT;
-            for (int i = 0; i < nb_defined_sensors && !ismatch; i++) {
-                for (int j = 0; j < sensors[i].nb_opt; j++) {
-                    if (opt == opts[opt_idx].shortname) {
-                        ismatch = 1;
-                        if (opts[opt_idx].fn != NULL) {
-                            (void) opts[opt_idx].fn(NULL, 0);
-                        } else {
-                            add_source(&sensors[i], options.optarg);
-                        }
-                        break;
-                    }
-                    opt_idx++;
-                }
-            }
-            if (!ismatch) {
-                fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
-                usage(argv);
-            }
+
+	  printf("Zozo (%d) : %s %d %s %d\n", opt, options.argv[options.optind], options.optind, options.optarg, options.subopt);
         }
         }
     }
 
+    int nb_sensors = moj_init(argv);
+
+    if (argc == 1) {
+        usage(argv);
+    }
+
+    /* todo
+    if (argc == 2 && strcmp(argv[1], "--dump-opts") == 0) {
+        dumpopts(opts, NB_OPT, NB_SENSOR_OPT);
+        exit(EXIT_SUCCESS);
+    }
+    */
+
+    
     setvbuf(output, NULL, _IONBF, BUFSIZ);
     struct timespec ts;
     struct timespec ts_ref;
 
     fprintf(output, "#timestamp ");
 
-    for (unsigned int i = 0; i < nb_sensors; i++) {
+    char** labels = moj_labels();
+    for (int i = 0; i < nb_sensors; i++) {
         fprintf(output, "%s ", labels[i]);
     }
 
@@ -319,11 +237,7 @@ int main(int argc, char **argv)
         clock_gettime(CLOCK_MONOTONIC, &ts_ref);
 
         // Get Data
-        unsigned int current = 0;
-
-        for (unsigned int i = 0; i < nb_sources; i++) {
-            current += getter[i](&values[current], states[i]);
-        }
+	const uint64_t* values = moj_get_values();
 
         if (application != NULL) {
 
@@ -362,7 +276,7 @@ int main(int argc, char **argv)
             fprintf(output, "%ld.%09ld ", ts_ref.tv_sec, ts_ref.tv_nsec);
         }
 
-        for (unsigned int i = 0; i < nb_sensors; i++) {
+        for (int i = 0; i < nb_sensors; i++) {
             /* "PRIu64" is a format specifier to print uint64_t values */
             fprintf(output, "%" PRIu64 " ", values[i]);
         }
