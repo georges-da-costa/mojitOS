@@ -79,6 +79,9 @@ void dumpopt(Optparse *opt)
     printf("%s\n", opt->usage_msg);
 }
 
+
+extern Optparse _moj_opts[];
+extern int nb_defined_sensors;
 void dumpopts(Optparse *opts, size_t nb_opt, size_t nb_sensor_opt)
 {
     size_t i;
@@ -89,27 +92,16 @@ void dumpopts(Optparse *opts, size_t nb_opt, size_t nb_sensor_opt)
         dumpopt(&opts[i]);
     }
     printf(".El\n");
-
+    
     /* sensors */
     printf(".Pp\nSENSORS:\n.Bl -tag -width Ds\n");
-    for (i++; i < nb_opt + nb_sensor_opt; i++) {
-        dumpopt(&opts[i]);
+    for (i=0; i < nb_sensor_opt; i++) {
+        dumpopt(&_moj_opts[i]);
     }
     printf(".El\n");
 }
 
 void printopt(Optparse *opt);
-/*
-  void printopt(Optparse *opt)
-{
-    printf("-%c", opt->shortname);
-    printf("|--%s", opt->longname);
-    if (opt->usage_arg != NULL) {
-        printf(" %s", opt->usage_arg);
-    }
-    printf("\n\t%s\n", opt->usage_msg);
-}
-*/
 
 void usage(char *name)
 {
@@ -207,12 +199,10 @@ int main(int argc, char **argv)
         usage(argv[0]);
     }
 
-    /* todo
     if (argc == 2 && strcmp(argv[1], "--dump-opts") == 0) {
-        dumpopts(opts, NB_OPT, NB_SENSOR_OPT);
+        dumpopts(opts, NB_OPT, nb_defined_sensors);
         exit(EXIT_SUCCESS);
     }
-    */
 
     
     setvbuf(output, NULL, _IONBF, BUFSIZ);

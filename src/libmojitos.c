@@ -83,7 +83,7 @@ void add_source(Sensor *cpt, char *arg)
 
 int moj_init(char **argv) {
   init_sensors(_moj_opts, sensors, NB_SENSOR_OPT, 0, &nb_defined_sensors);
-  
+
   int opt;
   struct optparse options;
   optparse_init(&options, argv);
@@ -107,6 +107,7 @@ int moj_init(char **argv) {
       }
     }
   }
+
   return nb_sensors;
 }
 
