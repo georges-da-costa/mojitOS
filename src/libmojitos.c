@@ -86,7 +86,6 @@ int moj_init(char **argv) {
   
   int opt;
   struct optparse options;
-  options.permute = 0;
   optparse_init(&options, argv);
 
   while ((opt = optparse_long(&options, _moj_opts, NULL)) != -1) {
@@ -106,9 +105,6 @@ int moj_init(char **argv) {
 	}
 	opt_idx++;
       }
-    }
-    if (!ismatch) {
-      return -1;
     }
   }
   return nb_sensors;

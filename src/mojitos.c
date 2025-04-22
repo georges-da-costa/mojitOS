@@ -111,9 +111,9 @@ void printopt(Optparse *opt);
 }
 */
 
-void usage(char **argv)
+void usage(char *name)
 {
-    printf("Usage : %s [OPTIONS] [SENSOR ...] [-e <cmd> ...]\n", argv[0]);
+    printf("Usage : %s [OPTIONS] [SENSOR ...] [-e <cmd> ...]\n", name);
 
     printf("\nOPTIONS:\n");
     for (int i = 0; i < NB_OPT; i++) {
@@ -162,11 +162,14 @@ int main(int argc, char **argv)
     signal(SIGTERM, flush);
     signal(SIGINT, flush);
 
+    char **save = malloc((argc+1)*sizeof(char*));
+    memcpy(save, argv, (argc+1)*sizeof(char*));
+
+    
     int opt;
     struct optparse options;
-    options.permute = 0;
-
     optparse_init(&options, argv);
+
     while ((opt = optparse_long(&options, opts, NULL)) != -1 && application == NULL) {
         switch (opt) {
         case 'f':
@@ -193,17 +196,15 @@ int main(int argc, char **argv)
             application = options.argv;
             signal(17, sighandler);
             break;
-        default: {
-
-	  printf("Zozo (%d) : %s %d %s %d\n", opt, options.argv[options.optind], options.optind, options.optarg, options.subopt);
-        }
+        default:
+  	    break;
         }
     }
 
-    int nb_sensors = moj_init(argv);
+    int nb_sensors = moj_init(save);
 
     if (argc == 1) {
-        usage(argv);
+        usage(argv[0]);
     }
 
     /* todo
