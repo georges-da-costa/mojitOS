@@ -18,7 +18,6 @@
 
  *******************************************************/
 
-#include <assert.h>
 #include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
@@ -69,50 +68,58 @@ Optparse opts[NB_OPT + 1] = {
     },
 };
 
-void dumpopt(Optparse *opt)
+void _dumpopts(Optparse *opt, size_t nb)
 {
-    printf(".It Fl %c | Fl \\-%s", opt->shortname, opt->longname);
-    if (opt->usage_arg != NULL) {
-        printf(" Ar %s", opt->usage_arg);
+  for(size_t i=0; i<nb; i++) {
+    printf(".It Fl %c | Fl \\-%s", opt[i].shortname, opt[i].longname);
+    if (opt[i].usage_arg != NULL) {
+      printf(" Ar %s", opt[i].usage_arg);
     }
     printf("\n");
-    printf("%s\n", opt->usage_msg);
+    printf("%s\n", opt[i].usage_msg);
+  }
 }
 
 
 extern Optparse _moj_opts[];
-extern int nb_defined_sensors;
+extern int nb_defined_options;
 void dumpopts(Optparse *opts, size_t nb_opt, size_t nb_sensor_opt)
 {
-    size_t i;
-
     /* options */
     printf(".Pp\nOPTIONS:\n.Bl -tag -width Ds\n");
-    for (i = 0; i < nb_opt; i++) {
-        dumpopt(&opts[i]);
-    }
+    _dumpopts(opts, nb_opt);
     printf(".El\n");
     
     /* sensors */
     printf(".Pp\nSENSORS:\n.Bl -tag -width Ds\n");
-    for (i=0; i < nb_sensor_opt; i++) {
-        dumpopt(&_moj_opts[i]);
-    }
+    _dumpopts(_moj_opts, nb_sensor_opt);
     printf(".El\n");
 }
 
-void printopt(Optparse *opt);
+void printopts(Optparse *opt, size_t nb)
+{
+  for(size_t i=0; i<nb; i++) {
+    printf("-%c", opt[i].shortname);
+    printf("|--%s", opt[i].longname);
+    if (opt[i].usage_arg != NULL) {
+        printf(" %s", opt[i].usage_arg);
+    }
+    printf("\n\t%s\n", opt[i].usage_msg);
+  }
+}
 
 void usage(char *name)
 {
     printf("Usage : %s [OPTIONS] [SENSOR ...] [-e <cmd> ...]\n", name);
 
     printf("\nOPTIONS:\n");
-    for (int i = 0; i < NB_OPT; i++) {
-        printopt(&opts[i]);
-    }
+    printopts(opts, NB_OPT);
 
-    moj_usage();
+    if (nb_defined_options == 0) // no sensor to show
+      return;
+
+    printf("\nSENSORS:\n");
+    printopts(_moj_opts, nb_defined_options);
 
     exit(EXIT_FAILURE);
 }
@@ -192,15 +199,17 @@ int main(int argc, char **argv)
   	    break;
         }
     }
+	  printf("%s\n", options.argv[options.optind]);
 
     int nb_sensors = moj_init(save);
-
+    free(save);
+    
     if (argc == 1) {
         usage(argv[0]);
     }
 
     if (argc == 2 && strcmp(argv[1], "--dump-opts") == 0) {
-        dumpopts(opts, NB_OPT, nb_defined_sensors);
+        dumpopts(opts, NB_OPT, nb_defined_options);
         exit(EXIT_SUCCESS);
     }
 

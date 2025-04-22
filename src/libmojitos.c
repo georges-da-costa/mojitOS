@@ -1,6 +1,4 @@
 #include <stdint.h>
-#include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
@@ -25,18 +23,9 @@ struct Sensor {
 typedef struct Sensor Sensor;
 
 int nb_defined_sensors = 0;
+int nb_defined_options = 0;
 
 typedef struct optparse_long Optparse;
-void printopt(Optparse *opt)
-{
-    printf("-%c", opt->shortname);
-    printf("|--%s", opt->longname);
-    if (opt->usage_arg != NULL) {
-        printf(" %s", opt->usage_arg);
-    }
-    printf("\n\t%s\n", opt->usage_msg);
-}
-
 
 #include "sensors.h"
 
@@ -83,7 +72,8 @@ void add_source(Sensor *cpt, char *arg)
 
 int moj_init(char **argv) {
   init_sensors(_moj_opts, sensors, NB_SENSOR_OPT, 0, &nb_defined_sensors);
-
+  nb_defined_options = NB_SENSOR_OPT;
+  
   int opt;
   struct optparse options;
   optparse_init(&options, argv);
@@ -138,19 +128,4 @@ uint64_t* moj_get_values() {
   }
   return values;
 }
-
-void moj_usage()
-{
-    if (nb_defined_sensors == 0) {
-      // no sensor to show
-      return;
-    }
-
-    printf("\nSENSORS:\n");
-    for (int i = 0; i < NB_SENSOR_OPT; i++) {
-      printopt(&_moj_opts[i]);
-    }
-}
-
-
 
