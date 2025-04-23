@@ -6,22 +6,21 @@ MojitO/S runs on GNU/Linux
 ## Usage
 
 ```bash
-Usage : ./bin/mojitos [OPTIONS] [SENSOR ...] [-e <cmd> ...]
+Usage : ./bin/mojitos [OPTIONS] [SENSOR ...] [-- <cmd> <argument>...]
 
 OPTIONS:
 -f|--freq <freq>
 	set amount of measurements per second.
 -t|--time <time>
 	set duration value (seconds). If 0, then loops infinitely.
--e|--exec <cmd> ...
-	Execute a command with optional arguments.
-	If this option is used, any usage of -t or -f is ignored.
 -o|--logfile <file>
 	specify a log file.
 -s|--overhead-stats
 	enable overhead statistics (nanoseconds).
 
 ```
+
+If a command is provided, mojitos will start the command with its arguments and will stop either when it finishes or when the timer is reached.
 
 The following is an exhaustive list of all the sensors (it is very likely
 that one will not have all the sensors activated in his build):
@@ -137,6 +136,28 @@ $ ./bin/mojitos -t 5 -f 1 -p cpu_cycles -r -s
 1036991.000182835 525984292 3592582 691221 1385982 272182
 1036992.000165117 397678789 2770561 444030 1375729 510379
 ```
+
+Execution of a command. All elements after the <dash><dash> will be executed
+```bash
+$ ./bin/mojitos -u -f 4 -- sleep 1
+#timestamp user nice system idle iowait irq softirq steal guest guest_nice
+682986.913305929 0 0 0 0 0 0 0 0 0 0
+682987.000213649 0 0 0 69 0 0 0 0 0 0
+682987.250266242 1 0 0 199 0 0 0 0 0 0
+682987.500133767 0 0 0 198 0 0 0 0 0 0
+682987.750316921 1 0 0 199 0 0 0 0 0 0
+```
+
+If time and a command are provided the first to occur will stop the monitoring
+```bash
+$ ./bin/mojitos -u -f 4 -t 1 -- sleep 2
+#timestamp user nice system idle iowait irq softirq steal guest guest_nice
+683088.111452691 0 0 0 0 0 0 0 0 0 0
+683088.250211614 1 0 0 110 0 0 0 0 0 0
+683088.500342921 1 0 1 199 0 0 0 0 0 0
+683088.750341019 1 0 0 199 0 0 0 0 0 0
+```
+
 
 ## License
 

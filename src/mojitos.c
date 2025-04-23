@@ -38,7 +38,7 @@ typedef struct optparse_long Optparse;
 
 #include "libmojitos.h"
 
-#define NB_OPT 5
+#define NB_OPT 4
 Optparse opts[NB_OPT + 1] = {
     {
         .longname = "freq", .shortname = 'f', .argtype = OPTPARSE_REQUIRED,
@@ -49,12 +49,6 @@ Optparse opts[NB_OPT + 1] = {
         .longname = "time", .shortname = 't', .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<time>",
         .usage_msg = "set duration value (seconds). If 0, then loops infinitely.",
-    },
-    {
-        .longname = "exec", .shortname = 'e', .argtype = OPTPARSE_REQUIRED,
-        .usage_arg = "<cmd> ...",
-        .usage_msg = "Execute a command with optional arguments.\n"
-        "\tIf this option is used, any usage of -t or -f is ignored.",
     },
     {
         .longname = "logfile", .shortname = 'o', .argtype = OPTPARSE_REQUIRED,
@@ -79,7 +73,6 @@ void _dumpopts(Optparse *opt, size_t nb)
     printf("%s\n", opt[i].usage_msg);
   }
 }
-
 
 extern Optparse _moj_opts[];
 extern int nb_defined_options;
@@ -110,7 +103,7 @@ void printopts(Optparse *opt, size_t nb)
 
 void usage(char *name)
 {
-    printf("Usage : %s [OPTIONS] [SENSOR ...] [-e <cmd> ...]\n", name);
+    printf("Usage : %s [OPTIONS] [SENSOR ...] [-- <cmd> <argument>...]\n", name);
 
     printf("\nOPTIONS:\n");
     printopts(opts, NB_OPT);
@@ -122,11 +115,6 @@ void usage(char *name)
     printopts(_moj_opts, nb_defined_options);
 
     exit(EXIT_FAILURE);
-}
-
-void sighandler(int none)
-{
-    UNUSED(none);
 }
 
 void flush(int none)
@@ -146,7 +134,6 @@ void flushexit(void)
     moj_clean();
 }
 
-
 int main(int argc, char **argv)
 {
     int total_time = 1;
@@ -163,7 +150,6 @@ int main(int argc, char **argv)
 
     char **save = malloc((argc+1)*sizeof(char*));
     memcpy(save, argv, (argc+1)*sizeof(char*));
-
     
     int opt;
     struct optparse options;
@@ -191,15 +177,18 @@ int main(int argc, char **argv)
                 PANIC(1, "-o %s", options.optarg);
             }
             break;
-        case 'e':
-            application = options.argv;
-            signal(17, sighandler);
-            break;
         default:
   	    break;
         }
     }
-	  printf("%s\n", options.argv[options.optind]);
+
+    for(int pos=0; pos < argc-1; pos++) {
+      if(strcmp("--", save[pos]) == 0) {
+	application = &save[pos+1];
+	signal(17, flush);
+	break;
+      }
+    }
 
     int nb_sensors = moj_init(save);
     free(save);
@@ -213,7 +202,6 @@ int main(int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    
     setvbuf(output, NULL, _IONBF, BUFSIZ);
     struct timespec ts;
     struct timespec ts_ref;
@@ -233,48 +221,39 @@ int main(int argc, char **argv)
 
     unsigned long int stat_data = 0;
 
+    if (application != NULL) {
+      if (fork() == 0) {
+	execvp(application[0], application);
+	exit(0);
+      }
+    }
+    
     for (int temps = 0; temps < total_time * frequency; temps += delta) {
         clock_gettime(CLOCK_MONOTONIC, &ts_ref);
 
         // Get Data
 	const uint64_t* values = moj_get_values();
 
-        if (application != NULL) {
-
-            if (fork() == 0) {
-                execvp(application[0], application);
-                exit(0);
-            }
-
-            pause();
-            clock_gettime(CLOCK_MONOTONIC, &ts);
-
-            if (ts.tv_nsec >= ts_ref.tv_nsec) {
-                fprintf(output, "%ld.%09ld ", (ts.tv_sec - ts_ref.tv_sec), ts.tv_nsec - ts_ref.tv_nsec);
-            } else {
-                fprintf(output, "%ld.%09ld ", (ts.tv_sec - ts_ref.tv_sec) - 1, 1000 * 1000 * 1000 + ts.tv_nsec - ts_ref.tv_nsec);
-            }
-        } else {
 #ifdef DEBUG
-            clock_gettime(CLOCK_MONOTONIC, &ts);
-            fprintf(stderr, "%ld\n", (ts.tv_nsec - ts_ref.tv_nsec) / 1000);
-            //Indiv: mean: 148 std: 31 % med: 141 std: 28 %
-            //Group: mean: 309 std: 41 % med: 297 std: 39 %
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	fprintf(stderr, "%ld\n", (ts.tv_nsec - ts_ref.tv_nsec) / 1000);
+	//Indiv: mean: 148 std: 31 % med: 141 std: 28 %
+	//Group: mean: 309 std: 41 % med: 297 std: 39 %
 #endif
 
-            if (stat_mode == 0) {
-                clock_gettime(CLOCK_MONOTONIC, &ts);
+	if (stat_mode == 0) {
+	  clock_gettime(CLOCK_MONOTONIC, &ts);
+	  
+	  if (ts.tv_nsec >= ts_ref.tv_nsec) {
+	    stat_data = ts.tv_nsec - ts_ref.tv_nsec;
+	  } else {
+	    stat_data = 1000 * 1000 * 1000 + ts.tv_nsec - ts_ref.tv_nsec;
+	  }
+	}
 
-                if (ts.tv_nsec >= ts_ref.tv_nsec) {
-                    stat_data = ts.tv_nsec - ts_ref.tv_nsec;
-                } else {
-                    stat_data = 1000 * 1000 * 1000 + ts.tv_nsec - ts_ref.tv_nsec;
-                }
-            }
-
-            // Treat Data
-            fprintf(output, "%ld.%09ld ", ts_ref.tv_sec, ts_ref.tv_nsec);
-        }
+	// Treat Data
+	fprintf(output, "%ld.%09ld ", ts_ref.tv_sec, ts_ref.tv_nsec);
+        //}
 
         for (int i = 0; i < nb_sensors; i++) {
             /* "PRIu64" is a format specifier to print uint64_t values */
@@ -286,10 +265,6 @@ int main(int argc, char **argv)
         }
 
         fprintf(output, "\n");
-
-        if (application != NULL) {
-            break;
-        }
 
         clock_gettime(CLOCK_MONOTONIC, &ts);
         usleep(1000 * 1000 / frequency - (ts.tv_nsec / 1000) % (1000 * 1000 / frequency));

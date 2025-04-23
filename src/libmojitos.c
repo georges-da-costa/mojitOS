@@ -115,7 +115,6 @@ void moj_clean() {
     }
 }
 
-
 char **moj_labels() {
   return labels;
 }
