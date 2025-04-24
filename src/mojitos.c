@@ -38,6 +38,8 @@ typedef struct optparse_long Optparse;
 
 #include "libmojitos.h"
 
+#include "display_manager.h"
+
 #define NB_OPT 4
 Optparse opts[NB_OPT + 1] = {
     {
@@ -113,8 +115,6 @@ void usage(char *name)
 
     printf("\nSENSORS:\n");
     printopts(_moj_opts, nb_defined_options);
-
-    exit(EXIT_FAILURE);
 }
 
 void flush(int none)
@@ -127,12 +127,13 @@ FILE *output;
 
 void flushexit(void)
 {
-    if (output != NULL) {
-        fflush(output);
-        fclose(output);
-    }
-    moj_clean();
+  if (output != NULL) {
+    fflush(output);
+    fclose(output);
+  }
+  moj_clean();
 }
+
 
 int main(int argc, char **argv)
 {
@@ -184,7 +185,7 @@ int main(int argc, char **argv)
 
     for(int pos=0; pos < argc-1; pos++) {
       if(strcmp("--", save[pos]) == 0) {
-	application = &save[pos+1];
+	application = &argv[pos+1];
 	signal(17, flush);
 	break;
       }
@@ -195,6 +196,7 @@ int main(int argc, char **argv)
     
     if (argc == 1) {
         usage(argv[0]);
+	exit(EXIT_FAILURE);
     }
 
     if (argc == 2 && strcmp(argv[1], "--dump-opts") == 0) {
@@ -206,20 +208,10 @@ int main(int argc, char **argv)
     struct timespec ts;
     struct timespec ts_ref;
 
-    fprintf(output, "#timestamp ");
-
     char** labels = moj_labels();
-    for (int i = 0; i < nb_sensors; i++) {
-        fprintf(output, "%s ", labels[i]);
-    }
-
-    if (stat_mode == 0) {
-        fprintf(output, "overhead ");
-    }
-
-    fprintf(output, "\n");
-
-    unsigned long int stat_data = 0;
+    init_manager(labels, nb_sensors, stat_mode);
+		 
+    uint64_t stat_data = 0;
 
     if (application != NULL) {
       if (fork() == 0) {
@@ -234,13 +226,6 @@ int main(int argc, char **argv)
         // Get Data
 	const uint64_t* values = moj_get_values();
 
-#ifdef DEBUG
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-	fprintf(stderr, "%ld\n", (ts.tv_nsec - ts_ref.tv_nsec) / 1000);
-	//Indiv: mean: 148 std: 31 % med: 141 std: 28 %
-	//Group: mean: 309 std: 41 % med: 297 std: 39 %
-#endif
-
 	if (stat_mode == 0) {
 	  clock_gettime(CLOCK_MONOTONIC, &ts);
 	  
@@ -251,20 +236,7 @@ int main(int argc, char **argv)
 	  }
 	}
 
-	// Treat Data
-	fprintf(output, "%ld.%09ld ", ts_ref.tv_sec, ts_ref.tv_nsec);
-        //}
-
-        for (int i = 0; i < nb_sensors; i++) {
-            /* "PRIu64" is a format specifier to print uint64_t values */
-            fprintf(output, "%" PRIu64 " ", values[i]);
-        }
-
-        if (stat_mode == 0) {
-            fprintf(output, "%ld ", stat_data);
-        }
-
-        fprintf(output, "\n");
+	use_manager(ts_ref, values, nb_sensors, stat_data);
 
         clock_gettime(CLOCK_MONOTONIC, &ts);
         usleep(1000 * 1000 / frequency - (ts.tv_nsec / 1000) % (1000 * 1000 / frequency));

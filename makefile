@@ -29,6 +29,7 @@ OBJ =  \
 	$(OBJ_DIR)/util.o \
 	$(OBJ_DIR)/info_reader.o \
 	$(OBJ_DIR)/libmojitos.o \
+	$(OBJ_DIR)/display_manager.o \
 	$(CAPTOR_OBJ)
 
 options:
@@ -45,17 +46,12 @@ $(OBJ): $(OBJ_DIR)
 $(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
 $(OBJ_DIR)/memory_counters.o: $(SRC_DIR)/memory_option.h
 
-$(OBJ_DIR)/$(BIN).o: $(SRC_DIR)/$(BIN).c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/info_reader.o: $(LIB_DIR)/info_reader.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/libmojitos.o: $(SRC_DIR)/libmojitos.c
-	$(CC) $(CFLAGS) -c $< -o $@
 
 libmojitos: $(BIN_DIR)/libmojitos.a
 
