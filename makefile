@@ -52,7 +52,7 @@ $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
 	$(CC) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o $(LDFLAGS)
 
 $(BINP): $(BIN_DIR) $(OBJP) $(OBJ_DIR)/$(BIN).o
-	$(CC) -o $(BIN_DIR)/$(BIN) $(OBJP) $(OBJ_DIR)/$(BIN).o $(LDFLAGS)  -lmicrohttpd
+	$(CC) -o $(BIN_DIR)/$(BINP) $(OBJP) $(OBJ_DIR)/$(BIN).o $(LDFLAGS)  -lmicrohttpd
 
 $(OBJ): $(OBJ_DIR)
 $(OBJP): $(OBJ_DIR)
@@ -65,6 +65,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 $(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/info_reader.o: $(LIB_DIR)/info_reader.c $(LIB_DIR)/info_reader.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 libmojitos: $(BIN_DIR)/libmojitos.a
 

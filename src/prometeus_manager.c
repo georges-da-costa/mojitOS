@@ -19,7 +19,6 @@ struct MHD_Daemon * d;
 
 void end_mutex() {
   pthread_mutex_destroy(&mutex);
-  printf("End mutex\n");
   MHD_stop_daemon(d);
 }
 
@@ -55,8 +54,6 @@ internal_server(void * cls,
     }
 
   pthread_mutex_lock(&mutex);
-  printf("Send data \n%s\n", page);
-
   response = MHD_create_response_from_buffer (delta,
                                               (void*) page,
   					      MHD_RESPMEM_MUST_COPY);
@@ -69,7 +66,6 @@ internal_server(void * cls,
 			   MHD_HTTP_OK,
 			   response);
   MHD_destroy_response(response);
-  printf(" Sent data\n");
   return ret;
 }
 
@@ -81,7 +77,6 @@ void init_manager(char** labels, int nb_sensors, int stat_mode) {
   __labels = labels;
   prometeus_buffer[0] = 0;
   pthread_mutex_init(&mutex, NULL);
-  printf("Init mutex\n");
   atexit(end_mutex);
 
   int port = 9999;
