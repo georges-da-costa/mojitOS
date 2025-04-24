@@ -8,6 +8,7 @@ BIN_DIR = bin
 TESTS_DIR = tests
 
 BIN = mojitos
+BINP = mojitos_prometeus
 PREFIX = /usr/local
 
 CC = gcc
@@ -17,7 +18,7 @@ LDFLAGS = $(CAPTOR_LDFLAGS)
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
-all: $(BIN) man
+all: $(BIN) $(BINP) man
 
 CAPTOR_OBJ =
 CAPTOR_LDFLAGS =
@@ -31,9 +32,17 @@ OBJ =  \
 	$(OBJ_DIR)/libmojitos.o \
 	$(OBJ_DIR)/display_manager.o \
 	$(CAPTOR_OBJ)
+OBJP =  \
+	$(OBJ_DIR)/util.o \
+	$(OBJ_DIR)/info_reader.o \
+	$(OBJ_DIR)/libmojitos.o \
+	$(OBJ_DIR)/prometeus_manager.o \
+	$(CAPTOR_OBJ)
+
 
 options:
 	@echo BIN: $(BIN)
+	@echo BINP: $(BINP)
 	@echo CC: $(CC)
 	@echo CFLAGS: $(CFLAGS)
 	@echo LDFLAGS: $(LDFLAGS)
@@ -42,7 +51,11 @@ options:
 $(BIN): $(BIN_DIR) $(OBJ) $(OBJ_DIR)/$(BIN).o
 	$(CC) -o $(BIN_DIR)/$(BIN) $(OBJ) $(OBJ_DIR)/$(BIN).o $(LDFLAGS)
 
+$(BINP): $(BIN_DIR) $(OBJP) $(OBJ_DIR)/$(BIN).o
+	$(CC) -o $(BIN_DIR)/$(BIN) $(OBJP) $(OBJ_DIR)/$(BIN).o $(LDFLAGS)  -lmicrohttpd
+
 $(OBJ): $(OBJ_DIR)
+$(OBJP): $(OBJ_DIR)
 $(OBJ_DIR)/counters.o: $(SRC_DIR)/counters_option.h
 $(OBJ_DIR)/memory_counters.o: $(SRC_DIR)/memory_option.h
 

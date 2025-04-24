@@ -38,7 +38,7 @@ typedef struct optparse_long Optparse;
 
 #include "libmojitos.h"
 
-#include "display_manager.h"
+#include "manager.h"
 
 #define NB_OPT 4
 Optparse opts[NB_OPT + 1] = {
