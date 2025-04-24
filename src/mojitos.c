@@ -221,13 +221,13 @@ int main(int argc, char **argv)
     }
     
     for (int temps = 0; temps < total_time * frequency; temps += delta) {
-        clock_gettime(CLOCK_MONOTONIC, &ts_ref);
+        clock_gettime(CLOCK_REALTIME, &ts_ref);
 
         // Get Data
 	const uint64_t* values = moj_get_values();
 
 	if (stat_mode == 0) {
-	  clock_gettime(CLOCK_MONOTONIC, &ts);
+	  clock_gettime(CLOCK_REALTIME, &ts);
 	  
 	  if (ts.tv_nsec >= ts_ref.tv_nsec) {
 	    stat_data = ts.tv_nsec - ts_ref.tv_nsec;
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
 
 	use_manager(ts_ref, values, nb_sensors, stat_data);
 
-        clock_gettime(CLOCK_MONOTONIC, &ts);
+        clock_gettime(CLOCK_REALTIME, &ts);
         usleep(1000 * 1000 / frequency - (ts.tv_nsec / 1000) % (1000 * 1000 / frequency));
     }
 
