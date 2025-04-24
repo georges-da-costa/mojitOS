@@ -117,7 +117,7 @@ unsigned int init_network(char *dev, void **ptr)
             exit(1);
         }
 
-        char buffer[1000];
+        char buffer[1000] = {0};
 
         /* skip first line */
         char *s = buffer;
