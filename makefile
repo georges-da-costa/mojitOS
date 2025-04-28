@@ -18,7 +18,7 @@ LDFLAGS = $(CAPTOR_LDFLAGS)
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
-all: $(BIN) $(BINP) man
+all: $(BIN) man
 
 CAPTOR_OBJ =
 CAPTOR_LDFLAGS =
