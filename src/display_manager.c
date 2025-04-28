@@ -2,9 +2,20 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <stdlib.h>
+#include "util.h"
 
 extern FILE *output;
+extern char* output_option;
+
 void init_manager(char** labels, int nb_sensors, int stat_mode) {
+
+  if ((output = fopen(output_option, "wb")) == NULL) {
+    perror("fopen");
+    PANIC(1, "-o %s", output_option);
+  }
+
+
   fprintf(output, "#timestamp ");
   
   for (int i = 0; i < nb_sensors; i++) {

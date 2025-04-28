@@ -69,7 +69,7 @@ internal_server(void * cls,
   return ret;
 }
 
-
+extern char* output_option;
 
 void init_manager(char** labels, int nb_sensors, int stat_mode) {
   UNUSED(nb_sensors);
@@ -80,6 +80,8 @@ void init_manager(char** labels, int nb_sensors, int stat_mode) {
   atexit(end_mutex);
 
   int port = 9999;
+  if (output_option != NULL)
+    port = atoi(output_option);
   d = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
 		       port,
 		       NULL,

@@ -53,9 +53,9 @@ Optparse opts[NB_OPT + 1] = {
         .usage_msg = "set duration value (seconds). If 0, then loops infinitely.",
     },
     {
-        .longname = "logfile", .shortname = 'o', .argtype = OPTPARSE_REQUIRED,
-        .usage_arg = "<file>",
-        .usage_msg = "specify a log file.",
+        .longname = "option", .shortname = 'o', .argtype = OPTPARSE_REQUIRED,
+        .usage_arg = "<output file> or <port number>",
+        .usage_msg = "specify a log file for MojitO/S or a port number for prometeus_mojitO/S.",
     },
     {
         .longname = "overhead-stats", .shortname = 's', .argtype = OPTPARSE_NONE,
@@ -124,6 +124,7 @@ void flush(int none)
 }
 
 FILE *output;
+char *output_option=NULL;
 
 void flushexit(void)
 {
@@ -173,10 +174,7 @@ int main(int argc, char **argv)
             stat_mode = 0;
             break;
         case 'o':
-            if ((output = fopen(options.optarg, "wb")) == NULL) {
-                perror("fopen");
-                PANIC(1, "-o %s", options.optarg);
-            }
+	  output_option = options.optarg;
             break;
         default:
   	    break;
