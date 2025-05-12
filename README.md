@@ -13,8 +13,8 @@ OPTIONS:
 	set amount of measurements per second.
 -t|--time <time>
 	set duration value (seconds). If 0, then loops infinitely.
--o|--logfile <file>
-	specify a log file.
+-o|--option <output file> or <port number>
+	specify a log file for MojitO/S or a port number for prometeus_mojitO/S.
 -s|--overhead-stats
 	enable overhead statistics (nanoseconds).
 

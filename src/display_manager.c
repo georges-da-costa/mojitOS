@@ -9,12 +9,12 @@ extern FILE *output;
 extern char* output_option;
 
 void init_manager(char** labels, int nb_sensors, int stat_mode) {
-
-  if ((output = fopen(output_option, "wb")) == NULL) {
-    perror("fopen");
-    PANIC(1, "-o %s", output_option);
+  if (output_option != NULL) {
+    if ((output = fopen(output_option, "wb")) == NULL) {
+      perror("fopen");
+      PANIC(1, "-o %s", output_option);
+    }
   }
-
 
   fprintf(output, "#timestamp ");
   
