@@ -24,13 +24,13 @@
 #include <stdint.h>
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
-#define PANIC(code, fmt, ...)                \
+#define PANIC__AUX(code, fmt, ...)                \
     do {                                     \
         fprintf(stderr, "Exit on error: ");  \
-        fprintf(stderr, fmt, ##__VA_ARGS__); \
-        fprintf(stderr, "\n");               \
+        fprintf(stderr, fmt "%s", __VA_ARGS__); \
         exit(code);                          \
     } while (0)
+#define PANIC(...) PANIC__AUX(__VA_ARGS__, "\n")
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))

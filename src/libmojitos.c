@@ -101,7 +101,7 @@ int moj_init(char **argv) {
   return nb_sensors;
 }
 
-void moj_clean() {
+void moj_clean(void) {
     for (unsigned int i = 0; i < nb_sources; i++) {
         cleaner[i](states[i]);
     }
@@ -115,11 +115,11 @@ void moj_clean() {
     }
 }
 
-char **moj_labels() {
+char **moj_labels(void) {
   return labels;
 }
 
-uint64_t* moj_get_values() {
+uint64_t* moj_get_values(void) {
   unsigned int current = 0;
 
   for (unsigned int i = 0; i < nb_sources; i++) {
