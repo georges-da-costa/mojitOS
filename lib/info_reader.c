@@ -38,10 +38,10 @@
 }
 
 
-#define PAGE_SIZE 4096
+#define MAX_PAGE_SIZE 4096
 ssize_t buffer_getline(char **lineptr, FILE *stream) {
     ssize_t num_chars_read = 0;
-    static char buffer[PAGE_SIZE] = {0};
+    static char buffer[MAX_PAGE_SIZE] = {0};
 
     if (!lineptr || !stream) {
         return -1;
@@ -57,7 +57,7 @@ ssize_t buffer_getline(char **lineptr, FILE *stream) {
             }
         }
 
-        if (num_chars_read == PAGE_SIZE - 1) {
+        if (num_chars_read == MAX_PAGE_SIZE - 1) {
             return -1;
         }
 

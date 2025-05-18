@@ -47,7 +47,7 @@ job-build:
 job-build-prometeus:
   stage: build
   script:
-    - apk add make gcc musl-dev linux-headers
+    - apk add make gcc musl-dev linux-headers libmicrohttpd-dev
     - ./configure.sh
     - make mojitos_prometeus
 

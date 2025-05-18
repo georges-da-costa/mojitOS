@@ -121,11 +121,11 @@ unsigned int match(Parser *parser, char *line, KeyFinder **key_finder,
 
 /**
 * @brief Reads a line of text from a file stream and stores it in a static
-  buffer with a maximum size of PAGE_SIZE.
+  buffer with a maximum size of MAX_PAGE_SIZE.
 
 * This function reads a line of text from the input stream pointed to by
 * 'stream'. The line of text is stored in a static buffer with a maximum size of
-* PAGE_SIZE. The function updates the pointer pointed to by 'lineptr' to point
+* MAX_PAGE_SIZE. The function updates the pointer pointed to by 'lineptr' to point
 to
 * the buffer containing the line of text. If the line of text is longer than the
 * buffer, the function returns -1. If an error occurs,
