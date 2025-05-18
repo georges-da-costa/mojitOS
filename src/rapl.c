@@ -37,7 +37,7 @@ char *get_rapl_string(const char *filename)
         return NULL;
     }
 
-    char *result = malloc(MAX_HEADER);
+    char *result = (char*) malloc(MAX_HEADER);
     int nb = read(fd, result, MAX_HEADER);
     close(fd);
     result[nb - 1] = 0;
@@ -69,11 +69,11 @@ typedef struct IntelRapl IntelRapl;
 void add_rapl_source(IntelRapl *rapl, char *name, uint64_t modulo, char *energy_uj)
 {
     rapl->nb += 1;
-    rapl->names = realloc(rapl->names, sizeof(char **)*rapl->nb);
-    rapl->fids = realloc(rapl->fids, sizeof(int *)*rapl->nb);
-    rapl->modulo = realloc(rapl->modulo, sizeof(uint64_t)*rapl->nb);
+    rapl->names = (char**) realloc(rapl->names, sizeof(char **)*rapl->nb);
+    rapl->fids = (int*) realloc(rapl->fids, sizeof(int *)*rapl->nb);
+    rapl->modulo = (uint64_t*) realloc(rapl->modulo, sizeof(uint64_t)*rapl->nb);
     
-    rapl->names[rapl->nb - 1] = malloc(strlen(name) + 1);
+    rapl->names[rapl->nb - 1] = (char*) malloc(strlen(name) + 1);
     strcpy(rapl->names[rapl->nb - 1], name);
     //printf("%s\n", energy_uj);
 
@@ -132,15 +132,15 @@ int add_rapl_source_from_str(IntelRapl *rapl, const char*name_base, const int i)
 unsigned int init_rapl(char *none, void **ptr)
 {
     UNUSED(none);
-    IntelRapl *rapl = malloc(sizeof(IntelRapl));
+    IntelRapl *rapl = (IntelRapl*)malloc(sizeof(IntelRapl));
     rapl->nb = 0;
     rapl->names = NULL;
     rapl->fids = NULL;
     rapl->modulo = NULL;
     
     char buffer[BUFFER_SIZE];
-    char *name_base = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/";
-    char *name_sub = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/intel-rapl:%d:%s/";
+    const char *name_base = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/";
+    const char *name_sub = "/sys/devices/virtual/powercap/intel-rapl/intel-rapl:%d/intel-rapl:%d:%s/";
 
     for (unsigned int i = 0;; i++) {
 
@@ -157,8 +157,8 @@ unsigned int init_rapl(char *none, void **ptr)
       }
     }
 
-    rapl->values = calloc(rapl->nb, sizeof(uint64_t));
-    rapl->tmp_values = calloc(rapl->nb, sizeof(uint64_t));
+    rapl->values = (uint64_t*) calloc(rapl->nb, sizeof(uint64_t));
+    rapl->tmp_values = (uint64_t*) calloc(rapl->nb, sizeof(uint64_t));
 
     _get_rapl(rapl->values, rapl);
 

@@ -46,21 +46,25 @@ Optparse opts[NB_OPT + 1] = {
         .longname = "freq", .shortname = 'f', .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<freq>",
         .usage_msg = "set amount of measurements per second.",
+	.fn = NULL,
     },
     {
         .longname = "time", .shortname = 't', .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<time>",
         .usage_msg = "set duration value (seconds). If 0, then loops infinitely.",
+	.fn = NULL,
     },
     {
         .longname = "option", .shortname = 'o', .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<output file> or <port number>",
         .usage_msg = "specify a log file for MojitO/S or a port number for prometeus_mojitO/S.",
+	.fn = NULL,
     },
     {
         .longname = "overhead-stats", .shortname = 's', .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
         .usage_msg = "enable overhead statistics (nanoseconds).",
+	.fn = NULL,
     },
 };
 
@@ -150,7 +154,7 @@ int main(int argc, char **argv)
     signal(SIGTERM, flush);
     signal(SIGINT, flush);
 
-    char **save = malloc((argc+1)*sizeof(char*));
+    char **save = (char**) malloc((argc+1)*sizeof(char*));
     memcpy(save, argv, (argc+1)*sizeof(char*));
     
     int opt;

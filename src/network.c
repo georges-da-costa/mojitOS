@@ -30,8 +30,8 @@
 #define NB_MAX_DEV 8
 #define NB_SENSOR 4
 
-static char *route = "/proc/net/route";
-char *_labels_network[NB_SENSOR] = {
+static const char *route = "/proc/net/route";
+const char *_labels_network[NB_SENSOR] = {
     "%s:rxp",
     "%s:rxb",
     "%s:txp",
@@ -98,14 +98,14 @@ unsigned int init_network(char *dev, void **ptr)
         exit(1);
     }
 
-    char *filenames[] = {
+    const char *filenames[] = {
         "/sys/class/net/%s/statistics/rx_packets",
         "/sys/class/net/%s/statistics/rx_bytes",
         "/sys/class/net/%s/statistics/tx_packets",
         "/sys/class/net/%s/statistics/tx_bytes",
     };
 
-    struct Network *state = malloc(sizeof(struct Network));
+    struct Network *state = (struct Network *) malloc(sizeof(struct Network));
     memset(state, '\0', sizeof(*state));
 
     if (strcmp(dev, "X") == 0) {

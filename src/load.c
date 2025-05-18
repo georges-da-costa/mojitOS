@@ -32,7 +32,7 @@ char buffer[LOAD_BUFFER_SIZE];
 static int load_fid = -1;
 static uint64_t load_values[LOAD_VALUES_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static uint64_t tmp_load_values[LOAD_VALUES_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static char *stat = "/proc/stat";
+static const char *stat = "/proc/stat";
 
 void _get_load(uint64_t *results)
 {

@@ -89,8 +89,8 @@ unsigned int get_memory_counters(uint64_t *results, void *ptr)
     MemoryCounters *counters = (MemoryCounters *)ptr;
     fseek(counters->file, 0, SEEK_SET);
     Parser parser = {.storage = (GenericPointer)results,
-                     .capacity = 1,
                      .nb_stored = 0,
+                     .capacity = 1,
                      .storage_struct_size = sizeof(uint64_t) * counters->count,
                      .keys = counters->keys,
                      .nb_keys = counters->count,
