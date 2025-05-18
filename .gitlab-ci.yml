@@ -44,6 +44,21 @@ job-build:
     - ./configure.sh
     - make
 
+job-build-prometeus:
+  stage: build
+  script:
+    - apk add make gcc musl-dev linux-headers
+    - ./configure.sh
+    - make mojitos_prometeus
+
+job-build-clang:
+  stage: build
+  script:
+    - apk add make clang musl-dev linux-headers
+    - ./configure.sh
+    - sed -i "s/CC = gcc/CC = clang/" makefile
+    - make
+
 job-build-test:
   stage: build
   script: 
