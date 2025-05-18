@@ -37,6 +37,7 @@ Optparse temperature_opt[1] = {
         .shortname = 'c',
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
-        .usage_msg = "processor temperature"
+        .usage_msg = "processor temperature",
+	.fn = NULL,
     },
 };

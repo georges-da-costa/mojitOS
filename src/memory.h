@@ -39,5 +39,6 @@ Optparse memory_opt[1] = {
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
         .usage_msg = "Retrieves information about the memory via the syscall 'sysinfo(2)'.",
+	.fn = NULL,
     },
 };

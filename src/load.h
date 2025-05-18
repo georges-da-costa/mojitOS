@@ -38,5 +38,6 @@ Optparse load_opt[1] = {
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
         .usage_msg = "system load",
+	.fn = NULL,
     },
 };

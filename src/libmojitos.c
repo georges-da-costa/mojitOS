@@ -49,24 +49,24 @@ void add_source(Sensor *cpt, char *arg)
     getter_t get = cpt->get;
     cleaner_t clean = cpt->clean;
 
-    states = realloc(states, nb_sources * sizeof(void *));
+    states = (void**) realloc(states, nb_sources * sizeof(void *));
     int nb = init(arg, &states[nb_sources - 1]);
 
     if (nb == 0) {
         nb_sources--;
-        states = realloc(states, nb_sources * sizeof(void *));
+        states = (void**) realloc(states, nb_sources * sizeof(void *));
         return;
     }
 
-    getter = realloc(getter, nb_sources * sizeof(void *));
+    getter = (getter_t*) realloc(getter, nb_sources * sizeof(void *));
     getter[nb_sources - 1] = get;
-    cleaner = realloc(cleaner, nb_sources * sizeof(void *));
+    cleaner = (cleaner_t*) realloc(cleaner, nb_sources * sizeof(void *));
     cleaner[nb_sources - 1] = clean;
 
-    labels = realloc(labels, (nb_sensors + nb) * sizeof(char *));
+    labels = (char**) realloc(labels, (nb_sensors + nb) * sizeof(char *));
     labeler(labels + nb_sensors, states[nb_sources - 1]);
 
-    values = realloc(values, (nb_sensors + nb) * sizeof(uint64_t));
+    values = (uint64_t*) realloc(values, (nb_sensors + nb) * sizeof(uint64_t));
     nb_sensors += nb;
 }
 

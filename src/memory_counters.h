@@ -42,6 +42,7 @@ Optparse memory_counters_opt[2] = {
         "memory counters\n"
         "\tmemory_list is a coma separated list of memory counters.\n"
         "\tEx: Zswap,Zswapped",
+	.fn = NULL,
     },
     {
         .longname = "memory-list",

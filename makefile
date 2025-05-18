@@ -11,8 +11,11 @@ BIN = mojitos
 BINP = mojitos_prometeus
 PREFIX = /usr/local
 
-CC = gcc
+# CC = g++
+# CPPFLAGS = -std=c++20 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
+CC = clang
 CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
+
 CFLAGS = $(CPPFLAGS) -O3 -Werror
 LDFLAGS = $(CAPTOR_LDFLAGS)
 

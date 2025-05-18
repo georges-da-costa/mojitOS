@@ -75,7 +75,7 @@ unsigned int init_memory_counters(char *args, void **ptr)
     KeyFinder *keys = build_keyfinder(count, indexes);
     FILE *file = fopen(path, "r");
 
-    MemoryCounters *counters = calloc(1, sizeof(MemoryCounters));
+    MemoryCounters *counters = (MemoryCounters *) calloc(1, sizeof(MemoryCounters));
     counters->keys = keys;
     counters->count = count;
     counters->file = file;

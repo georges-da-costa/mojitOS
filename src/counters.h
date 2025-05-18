@@ -41,6 +41,7 @@ Optparse counters_opt[2] = {
         .usage_msg = "performance counters\n"
         "\tperf_list is a coma separated list of performance counters.\n"
         "\tEx: instructions,cache_misses",
+	.fn = NULL,
     },
     {
         .longname = "list",

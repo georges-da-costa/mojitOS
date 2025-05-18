@@ -38,5 +38,6 @@ Optparse network_opt[1] = {
         .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<net_dev>",
         .usage_msg = "network monitoring (if network_device is X, tries to detect it automatically)",
+	.fn = NULL,
     },
 };
