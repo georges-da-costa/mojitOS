@@ -11,8 +11,11 @@ BIN = mojitos
 BINP = mojitos_prometeus
 PREFIX = /usr/local
 
-CC = g++
-CPPFLAGS = -std=c++20 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
+# specific flags for g++
+# CC = g++
+# CPPFLAGS = -std=c++20 -Wall -Wno-error=write-strings -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
+
+#works also with clang
 CC = gcc
 CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
 

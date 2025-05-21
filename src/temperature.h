@@ -21,7 +21,7 @@
 unsigned int init_temperature(char *, void **);
 unsigned int get_temperature(uint64_t *results, void *);
 void clean_temperature(void *);
-void label_temperature(char **labels, void *);
+void label_temperature(const char **labels, void *);
 
 Sensor temperature = {
     .init = init_temperature,

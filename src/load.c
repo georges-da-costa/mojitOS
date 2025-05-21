@@ -98,7 +98,7 @@ char *_labels[LOAD_VALUES_SIZE] = {
     "user", "nice", "system", "idle", "iowait", "irq",
     "softirq", "steal", "guest", "guest_nice"
 };
-void label_load(char **labels, void *none)
+void label_load(const char **labels, void *none)
 {
     UNUSED(none);
 

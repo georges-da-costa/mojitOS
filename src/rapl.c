@@ -206,7 +206,7 @@ void clean_rapl(void *ptr)
 }
 
 
-void label_rapl(char **labels, void *ptr)
+void label_rapl(const char **labels, void *ptr)
 {
     IntelRapl *rapl = (IntelRapl *) ptr;
 

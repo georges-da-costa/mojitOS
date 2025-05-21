@@ -242,7 +242,7 @@ void clean_network(void *ptr)
     free(state);
 }
 
-void label_network(char **labels, void *ptr)
+void label_network(const char **labels, void *ptr)
 {
     struct Network *state = (struct Network *) ptr;
 

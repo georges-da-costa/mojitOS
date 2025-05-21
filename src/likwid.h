@@ -21,7 +21,7 @@
 unsigned int init_likwid(char *, void **);
 unsigned int get_likwid(uint64_t *results, void *);
 void clean_likwid(void *);
-void label_likwid(char **labels, void *);
+void label_likwid(const char **labels, void *);
 void *show_all_likwid(void *, size_t);
 
 Sensor likwid = {

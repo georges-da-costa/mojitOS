@@ -8,7 +8,7 @@
 extern FILE *output;
 extern char* output_option;
 
-void init_manager(char** labels, int nb_sensors, int stat_mode) {
+void init_manager(const char** labels, int nb_sensors, int stat_mode) {
   if (output_option != NULL) {
     if ((output = fopen(output_option, "wb")) == NULL) {
       perror("fopen");

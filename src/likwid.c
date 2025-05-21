@@ -61,7 +61,7 @@ void _get_likwid(Likwid *likwid, uint64_t *values)
   }
 }
 
-void label_likwid(char **labels, void *ptr)
+void label_likwid(const char **labels, void *ptr)
 {
     Likwid *state = (Likwid *) ptr;
 

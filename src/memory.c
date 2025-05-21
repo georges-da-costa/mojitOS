@@ -83,7 +83,7 @@ unsigned int get_memory(uint64_t *results, void *none)
     return MEMORY_COUNT;
 }
 
-void label_memory(char **labels, void *none)
+void label_memory(const char **labels, void *none)
 {
     UNUSED(none);
     memcpy(labels, memory_labels, sizeof(char *) * MEMORY_COUNT);

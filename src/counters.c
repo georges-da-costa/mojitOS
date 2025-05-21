@@ -230,7 +230,7 @@ unsigned int get_counters(uint64_t *results, void *ptr)
     return state->nbperf;
 }
 
-void label_counters(char **labels, void *ptr)
+void label_counters(const char **labels, void *ptr)
 {
     Counter *state = (Counter *) ptr;
 

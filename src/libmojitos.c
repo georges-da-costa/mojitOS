@@ -9,7 +9,7 @@
 #include "libmojitos.h"
 
 typedef unsigned int (*initializer_t)(char *, void **);
-typedef void (*labeler_t)(char **, void *);
+typedef void (*labeler_t)(const char **, void *);
 typedef unsigned int (*getter_t)(uint64_t *, void *);
 typedef void (*cleaner_t)(void *);
 
@@ -35,7 +35,7 @@ Optparse _moj_opts[NB_SENSOR_OPT + 1];
   
 unsigned int nb_sources = 0;
 unsigned int nb_sensors = 0; // might have multiple sensors per source
-char **labels = NULL;
+const char **labels = NULL;
 uint64_t *values = NULL;
 void **states = NULL;
 getter_t *getter = NULL;
@@ -63,7 +63,7 @@ void add_source(Sensor *cpt, char *arg)
     cleaner = (cleaner_t*) realloc(cleaner, nb_sources * sizeof(void *));
     cleaner[nb_sources - 1] = clean;
 
-    labels = (char**) realloc(labels, (nb_sensors + nb) * sizeof(char *));
+    labels = (const char**) realloc(labels, (nb_sensors + nb) * sizeof(char *));
     labeler(labels + nb_sensors, states[nb_sources - 1]);
 
     values = (uint64_t*) realloc(values, (nb_sensors + nb) * sizeof(uint64_t));
@@ -115,7 +115,7 @@ void moj_clean(void) {
     }
 }
 
-char **moj_labels(void) {
+const char **moj_labels(void) {
   return labels;
 }
 

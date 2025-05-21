@@ -21,7 +21,7 @@
 unsigned int init_memory(char *, void **);
 unsigned int get_memory(uint64_t *results, void *);
 void clean_memory(void *);
-void label_memory(char **labels, void *);
+void label_memory(const char **labels, void *);
 
 
 Sensor memory = {

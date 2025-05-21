@@ -101,7 +101,7 @@ unsigned int get_memory_counters(uint64_t *results, void *ptr)
     return counters->count;
 }
 
-void label_memory_counters(char **labels, void *ptr)
+void label_memory_counters(const char **labels, void *ptr)
 {
     MemoryCounters *counters = (MemoryCounters *)ptr;
     for (unsigned int i = 0; i < counters->count; i++) {

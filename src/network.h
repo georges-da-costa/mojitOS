@@ -21,7 +21,7 @@
 unsigned int init_network(char *, void **);
 unsigned int get_network(uint64_t *results, void *);
 void clean_network(void *);
-void label_network(char **labels, void *);
+void label_network(const char **labels, void *);
 
 Sensor network = {
     .init = init_network,

@@ -167,7 +167,7 @@ void clean_temperature(void *ptr)
     free(state);
 }
 
-void label_temperature(char **labels, void *ptr)
+void label_temperature(const char **labels, void *ptr)
 {
     Temperature *state = (Temperature *)ptr;
 

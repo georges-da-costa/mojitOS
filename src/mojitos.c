@@ -210,7 +210,7 @@ int main(int argc, char **argv)
     struct timespec ts;
     struct timespec ts_ref;
 
-    char** labels = moj_labels();
+    const char** labels = moj_labels();
     init_manager(labels, nb_sensors, stat_mode);
 		 
     uint64_t stat_data = 0;
