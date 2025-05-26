@@ -22,7 +22,7 @@ job-build-load:
     - apk add make gcc musl-dev
     - ./configure.sh -u load
     - make
-    - ./bin/mojitos -a -t 1
+    - ./bin/mojitos -u -f 4 -t 1
 
 job-build-disk:
   stage: build-option
@@ -30,6 +30,7 @@ job-build-disk:
     - apk add make gcc musl-dev
     - ./configure.sh -u disk
     - make
+    - ./bin/mojitos -a -f 4 -t 1
 
 job-build-network:
   stage: build-option
@@ -37,6 +38,7 @@ job-build-network:
     - apk add make gcc musl-dev
     - ./configure.sh -u network
     - make
+    - ./bin/mojitos -d X -f 4 -t 1
 
 job-build-rapl:
   stage: build-option
@@ -65,6 +67,15 @@ job-build-clang:
     - apk add make clang musl-dev linux-headers
     - ./configure.sh
     - sed -i "s/CC = gcc/CC = clang/" makefile
+    - make
+
+job-build-cpp:
+  stage: build
+  script:
+    - apk add make clang musl-dev linux-headers
+    - ./configure.sh
+    - sed -i "s/CC = gcc/CC = c++/" makefile
+    - sed -i "s/gnu99/c++20/" makefile
     - make
 
 job-build-test:
