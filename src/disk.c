@@ -74,7 +74,7 @@ unsigned int init_disk(char *argument, void **state_tmp)
     }
     int nb_disk = res.gl_pathc;
 
-    char *_labels_disk[DISK_VALUES_SIZE] = {
+    const char *_labels_disk[DISK_VALUES_SIZE] = {
 	"%s_read_I_Os", "%s_read_merges", "%s_read_sectors", "%s_read_ticks",
 	"%s_write_I_Os", "%s_write_merges", "%s_write_sectors", "%s_write_ticks",
 	"%s_in_flight", "%s_io_ticks", "%s_time_in_queue", "%s_discard_I_Os",
@@ -92,7 +92,7 @@ unsigned int init_disk(char *argument, void **state_tmp)
 
 	state->labels = (char**)realloc(state->labels, sizeof(char*)*DISK_VALUES_SIZE*(i+1));
 	for (int j=0; j<DISK_VALUES_SIZE; j++) {
-	    state->labels[i*DISK_VALUES_SIZE+j] = malloc(1024*sizeof(char));
+	    state->labels[i*DISK_VALUES_SIZE+j] = (char*) malloc(1024*sizeof(char));
 	    snprintf(state->labels[i*DISK_VALUES_SIZE+j], 1023, _labels_disk[j], disk_name);
 	}
     }
