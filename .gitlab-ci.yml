@@ -22,6 +22,14 @@ job-build-load:
     - apk add make gcc musl-dev
     - ./configure.sh -u load
     - make
+    - ./bin/mojitos -a -t 1
+
+job-build-disk:
+  stage: build-option
+  script:
+    - apk add make gcc musl-dev
+    - ./configure.sh -u disk
+    - make
 
 job-build-network:
   stage: build-option
