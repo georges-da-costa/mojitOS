@@ -1,5 +1,5 @@
 /*******************************************************
- Copyright (C) 2022-2023 Georges Da Costa <georges.da-costa@irit.fr>
+ Copyright (C) 2018-2023 Georges Da Costa <georges.da-costa@irit.fr>
 
     This file is part of Mojitos.
 
@@ -16,33 +16,28 @@
     You should have received a copy of the GNU General Public License
     along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
 
-*******************************************************/
+ *******************************************************/
 
-#include <stdlib.h>
-#include "util.h"
+unsigned int init_disk(char *, void **);
+unsigned int get_disk(uint64_t *results, void *);
+void clean_disk(void *);
+void label_disk(const char **labels, void *);
 
+Sensor disk = {
+    .init = init_disk,
+    .get = get_disk,
+    .clean = clean_disk,
+    .label = label_disk,
+    .nb_opt = 1,
+};
 
-uint64_t modulo_substraction(const uint64_t lhs, const uint64_t rhs)
-{
-    return lhs >= rhs ? (lhs - rhs)
-           : (UINT64_MAX - rhs + 1) + lhs;
-}
-
-uint64_t modulo_substraction_bound(const uint64_t lhs, const uint64_t rhs, const uint64_t modulo)
-{
-    return lhs >= rhs ? (lhs - rhs)
-           : (modulo - rhs + 1) + lhs;
-}
-
-char* read_int(char* ptr, uint64_t *val) {
-    while (*ptr > '9' || *ptr < '0')
-        ptr++;
-
-    *val = 0;
-    while (*ptr <= '9' && *ptr >= '0') {
-	*val = *val * 10 + (*ptr - '0');
-	ptr++;
-    }
-    return ptr;	    
-
-}
+Optparse disk_opt[1] = {
+    {
+        .longname = "disk",
+        .shortname = 'a',
+        .argtype = OPTPARSE_NONE,
+        .usage_arg = NULL,
+        .usage_msg = "system disk/storage",
+	.fn = NULL,
+    },
+};

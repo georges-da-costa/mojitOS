@@ -45,4 +45,6 @@
 uint64_t modulo_substraction(const uint64_t lhs, const uint64_t rhs);
 uint64_t modulo_substraction_bound(const uint64_t lhs, const uint64_t rhs, const uint64_t modulo);
 
+char* read_int(char* ptr, uint64_t *val);
+
 #endif

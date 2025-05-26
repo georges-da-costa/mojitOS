@@ -117,6 +117,7 @@ detect_caps() {
 	[ -r /usr/include/linux/perf_event.h ] && hdr_whitelist=counters
 	[ -d /sys/class/infiniband ] && hdr_whitelist="${hdr_whitelist}|infiniband"
 	[ -r /proc/stat ] && hdr_whitelist="${hdr_whitelist}|load"
+	[ -r /sys/block ] && hdr_whitelist="${hdr_whitelist}|disk"
 	[ -r /proc/meminfo ] && hdr_whitelist="${hdr_whitelist}|memory_counters"
 
 	if [ "$(uname -r | cut -d "." -f 1)" -gt "2" ]; then
