@@ -11,13 +11,14 @@
 
 extern FILE *output;
 
-char **__labels;
-char prometeus_buffer[1024*1024];
+char const **__labels;
+char *prometeus_buffer;
 unsigned int delta = 0;
+unsigned int current_size = 1024;
 pthread_mutex_t mutex;
 struct MHD_Daemon * d;
 
-void end_mutex() {
+void end_mutex(void) {
   pthread_mutex_destroy(&mutex);
   MHD_stop_daemon(d);
 }
@@ -35,9 +36,8 @@ internal_server(void * cls,
   UNUSED(version);
   UNUSED(upload_data);
   static int dummy;
-  const char * page = cls;
   struct MHD_Response * response;
-  int ret;
+  static enum MHD_Result ret;
 
   if (0 != strcmp(method, "GET"))
     return MHD_NO; /* unexpected method */
@@ -54,8 +54,9 @@ internal_server(void * cls,
     }
 
   pthread_mutex_lock(&mutex);
+  const char ** page = (const char**) cls;
   response = MHD_create_response_from_buffer (delta,
-                                              (void*) page,
+                                              (void*) *page,
   					      MHD_RESPMEM_MUST_COPY);
   delta = 0;
   pthread_mutex_unlock(&mutex);
@@ -71,23 +72,26 @@ internal_server(void * cls,
 
 extern char* output_option;
 
-void init_manager(char** labels, int nb_sensors, int stat_mode) {
+void init_manager(char const** labels, int nb_sensors, int stat_mode) {
   UNUSED(nb_sensors);
   UNUSED(stat_mode);
   __labels = labels;
+
+  prometeus_buffer = (char*) malloc(current_size+1);
   prometeus_buffer[0] = 0;
   pthread_mutex_init(&mutex, NULL);
   atexit(end_mutex);
 
+
   int port = 9999;
   if (output_option != NULL)
-    port = atoi(output_option);
+      port = atoi(output_option);
   d = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
 		       port,
 		       NULL,
 		       NULL,
 		       &internal_server,
-		       prometeus_buffer,
+		       &prometeus_buffer,
 		       MHD_OPTION_END);
   if(d == NULL)
     exit(EXIT_FAILURE);
@@ -103,11 +107,14 @@ void use_manager(struct timespec ts,
   for (int i = 0; i < nb_sensors; i++) {
     /* "PRIu64" is a format specifier to print uint64_t values */
     delta += sprintf(prometeus_buffer+delta, "%s %" PRIu64 " %" PRIu64 "\n", __labels[i], values[i], timer);
+    if(delta + 128 >= current_size) {
+	current_size *= 2;
+	prometeus_buffer = (char*) realloc(prometeus_buffer, current_size+1);
+    }
   }
   
   if (stat_data != 0) {
     delta += sprintf(prometeus_buffer+delta, "%s %" PRIu64 " %" PRIu64 "\n", "overhead", stat_data, timer);
   }
   pthread_mutex_unlock(&mutex);
-
 }
