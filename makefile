@@ -9,6 +9,13 @@ TESTS_DIR = tests
 
 BIN = mojitos
 BINP = mojitos_prometeus
+
+ifeq ($(shell pkg-config --exists libmicrohttpd && echo 0),0)
+TARGET = $(BIN) $(BINP)
+else
+TARGET = $(BIN)
+endif
+
 PREFIX = /usr/local
 
 # specific flags for g++
@@ -24,7 +31,7 @@ LDFLAGS = $(CAPTOR_LDFLAGS)
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
-all: $(BIN) man
+all: $(TARGET) man
 
 CAPTOR_OBJ =
 CAPTOR_LDFLAGS =
@@ -119,10 +126,14 @@ man: $(BIN)
 		'/^USAGE/ { $$0=usage } 1' \
 		doc/$(BIN).pre.1 > doc/$(BIN).1 2>/dev/null
 
-install: $(BIN) man
+install: $(TARGET) man
 	mkdir -p $(PREFIX)/bin
 	cp $(BIN_DIR)/$(BIN) $(PREFIX)/bin/.
 	chmod 755 $(PREFIX)/bin/$(BIN)
+ifneq (,$(findstring $(BINP),$(TARGET)))
+	cp $(BIN_DIR)/$(BINP) $(PREFIX)/bin/.
+	chmod 755 $(PREFIX)/bin/$(BINP)
+endif
 	mkdir -p $(PREFIX)/share/man/man1
 	cp $(DOC_DIR)/$(BIN).1 $(PREFIX)/share/man/man1/.
 	chmod 644 $(PREFIX)/share/man/man1/$(BIN).1
