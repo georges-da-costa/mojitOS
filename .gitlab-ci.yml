@@ -9,12 +9,12 @@ job-build-counters:
     - ./configure.sh -u counters
     - make
 
-job-build-prometeus:
+job-build-prometheus:
   stage: build-option
   script:
     - apk add make gcc musl-dev libmicrohttpd-dev
     - ./configure.sh -u load
-    - make mojitos_prometeus
+    - make mojitos_prometheus
 
 job-build-load:
   stage: build-option
@@ -54,12 +54,12 @@ job-build:
     - ./configure.sh
     - make
 
-job-build-prometeus:
+job-build-prometheus:
   stage: build
   script:
     - apk add make gcc musl-dev linux-headers libmicrohttpd-dev
     - ./configure.sh
-    - make mojitos_prometeus
+    - make mojitos_prometheus
 
 job-build-clang:
   stage: build
