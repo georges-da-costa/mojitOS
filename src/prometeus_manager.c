@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <stdbool.h>
+
 #include "util.h"
 
 #include <pthread.h>
@@ -11,7 +13,7 @@
 
 extern FILE *output;
 
-char const **__labels;
+char **__labels;
 char *prometeus_buffer;
 unsigned int delta = 0;
 unsigned int current_size = 1024;
@@ -72,10 +74,28 @@ internal_server(void * cls,
 
 extern char* output_option;
 
+void clean_manager(void) {
+    for(int i=0; __labels[i] != NULL; i++)
+	free(__labels[i]);
+    free(__labels);
+}
+
 void init_manager(char const** labels, int nb_sensors, int stat_mode) {
-  UNUSED(nb_sensors);
+    // UNUSED(nb_sensors);
   UNUSED(stat_mode);
-  __labels = labels;
+  __labels = (char**)malloc(sizeof(char*)*(nb_sensors+1));
+  for (int i=0; i<nb_sensors; i++) {
+      __labels[i] = (char*)malloc(sizeof(char*)*(strlen(labels[i])+1));
+      strcpy(__labels[i], labels[i]);
+      while(true) {
+	  char *pos=strchr(__labels[i], '-');
+	  if(pos == NULL)
+	      break;
+	  *pos = '_';
+      }
+  }
+  __labels[nb_sensors] = NULL;
+  atexit(clean_manager);
 
   prometeus_buffer = (char*) malloc(current_size+1);
   prometeus_buffer[0] = 0;
