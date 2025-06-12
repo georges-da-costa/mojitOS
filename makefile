@@ -8,7 +8,7 @@ BIN_DIR = bin
 TESTS_DIR = tests
 
 BIN = mojitos
-BINP = mojitos_prometeus
+BINP = mojitos_prometheus
 
 ifeq ($(shell pkg-config --exists libmicrohttpd && echo 0),0)
 TARGET = $(BIN) $(BINP)
@@ -49,7 +49,7 @@ OBJP =  \
 	$(OBJ_DIR)/util.o \
 	$(OBJ_DIR)/info_reader.o \
 	$(OBJ_DIR)/libmojitos.o \
-	$(OBJ_DIR)/prometeus_manager.o \
+	$(OBJ_DIR)/prometheus_manager.o \
 	$(CAPTOR_OBJ)
 
 
