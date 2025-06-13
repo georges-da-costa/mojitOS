@@ -125,7 +125,7 @@ void clean_infiniband(void *ptr)
 }
 
 char *_labels_infiniband[NB_SENSOR] = {"irxp", "irxb", "itxp", "itxb"};
-void label_infiniband(char **labels, void *none)
+void label_infiniband(const char **labels, void *none)
 {
     UNUSED(none);
 

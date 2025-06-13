@@ -564,7 +564,7 @@ unsigned int get_nvidia_gpu(uint64_t *results, void *ptr)
     return count;
 }
 
-unsigned int label_nvidia_gpu(char **labels, void *ptr)
+unsigned int label_nvidia_gpu(const char **labels, void *ptr)
 {
     NvidiaGpu *nvidia = (NvidiaGpu *) ptr;
     unsigned count = 0;

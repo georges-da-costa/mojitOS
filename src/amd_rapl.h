@@ -21,7 +21,7 @@
 unsigned int init_amd_rapl(char *, void **);
 unsigned int get_amd_rapl(uint64_t *results, void *);
 void clean_amd_rapl(void *);
-void label_amd_rapl(char **labels, void *);
+void label_amd_rapl(const char **labels, void *);
 
 Sensor amd_rapl = {
     .init = init_amd_rapl,

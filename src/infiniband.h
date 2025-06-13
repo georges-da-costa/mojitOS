@@ -21,7 +21,7 @@
 unsigned int init_infiniband(char *infi_path, void **ptr);
 unsigned int get_infiniband(uint64_t *results, void *ptr);
 void clean_infiniband(void *ptr);
-void label_infiniband(char **labels, void *);
+void label_infiniband(const char **labels, void *);
 
 Sensor infiniband = {
     .init = init_infiniband,

@@ -21,7 +21,7 @@
 unsigned int init_nvidia_gpu(char *, void **);
 unsigned int get_nvidia_gpu(uint64_t *results, void *);
 void clean_nvidia_gpu(void *);
-void label_nvidia_gpu(char **labels, void *);
+void label_nvidia_gpu(const char **labels, void *);
 
 
 Sensor nvidia_gpu = {
