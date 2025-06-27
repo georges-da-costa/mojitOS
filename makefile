@@ -11,7 +11,7 @@ BIN = mojitos
 BINP = mojitos_prometheus
 
 ifeq ($(shell pkg-config --exists libmicrohttpd && echo 0),0)
-TARGET = $(BIN) $(BINP)
+TARGET = $(BIN) $(BINP) 
 else
 TARGET = $(BIN)
 endif
@@ -20,18 +20,18 @@ PREFIX = /usr/local
 
 # specific flags for g++
 # CC = g++
-# CPPFLAGS = -std=c++20 -Wall -Wno-error=write-strings -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
+# CPPFLAGS = -fPIC -std=c++20 -Wall -Wno-error=write-strings -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
 
 #works also with clang
 CC = gcc
-CPPFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
+CPPFLAGS = -fPIC -std=gnu99 -Wall -Wextra -Wpedantic -Wno-unused-function -I./lib $(NVML_IFLAGS)
 
 CFLAGS = $(CPPFLAGS) -O3 -Werror
 LDFLAGS = $(CAPTOR_LDFLAGS)
 
 ASTYLE = astyle --style=kr -xf -s4 -k3 -n -Z -Q
 
-all: $(TARGET) man
+all: $(TARGET) libmojitos man
 
 CAPTOR_OBJ =
 CAPTOR_LDFLAGS =
@@ -39,19 +39,17 @@ NVML_IFLAGS =
 
 include ./sensors.mk
 
+OBJL =  \
+	$(OBJ_DIR)/util.o \
+	$(OBJ_DIR)/info_reader.o \
+	$(OBJ_DIR)/libmojitos.o \
+	$(CAPTOR_OBJ)
 OBJ =  \
-	$(OBJ_DIR)/util.o \
-	$(OBJ_DIR)/info_reader.o \
-	$(OBJ_DIR)/libmojitos.o \
-	$(OBJ_DIR)/display_manager.o \
-	$(CAPTOR_OBJ)
+	$(OBJL) \
+	$(OBJ_DIR)/display_manager.o
 OBJP =  \
-	$(OBJ_DIR)/util.o \
-	$(OBJ_DIR)/info_reader.o \
-	$(OBJ_DIR)/libmojitos.o \
-	$(OBJ_DIR)/prometheus_manager.o \
-	$(CAPTOR_OBJ)
-
+	$(OBJL) \
+	$(OBJ_DIR)/prometheus_manager.o
 
 options:
 	@echo BIN: $(BIN)
@@ -81,10 +79,11 @@ $(OBJ_DIR)/util.o: $(SRC_DIR)/util.c $(SRC_DIR)/util.h
 $(OBJ_DIR)/info_reader.o: $(LIB_DIR)/info_reader.c $(LIB_DIR)/info_reader.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-libmojitos: $(BIN_DIR)/libmojitos.a
+libmojitos: $(BIN_DIR)/libmojitos.so
 
-$(BIN_DIR)/libmojitos.a: $(BIN_DIR) $(OBJ) $(OBJ_DIR)/libmojitos.o
-	ar rcs $@ $(OBJ) $(OBJ_DIR)/libmojitos.o
+$(BIN_DIR)/libmojitos.so: $(OBJL)
+	echo $(OBJL)
+	$(CC) -shared -o $@ $(OBJL)
 
 $(SRC_DIR)/counters_option.h: $(SRC_DIR)/counters_option.sh
 	sh ./$(SRC_DIR)/counters_option.sh > $(SRC_DIR)/counters_option.h
@@ -134,6 +133,10 @@ ifneq (,$(findstring $(BINP),$(TARGET)))
 	cp $(BIN_DIR)/$(BINP) $(PREFIX)/bin/.
 	chmod 755 $(PREFIX)/bin/$(BINP)
 endif
+	mkdir -p $(PREFIX)/bin
+	cp $(BIN_DIR)/libmojitos.so $(PREFIX)/lib/.
+	mkdir -p $(PREFIX)/include
+	cp $(SRC_DIR)/libmojitos.h $(PREFIX)/include/.
 	mkdir -p $(PREFIX)/share/man/man1
 	cp $(DOC_DIR)/$(BIN).1 $(PREFIX)/share/man/man1/.
 	chmod 644 $(PREFIX)/share/man/man1/$(BIN).1
