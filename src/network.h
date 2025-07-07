@@ -21,7 +21,7 @@
 unsigned int init_network(char *, void **);
 unsigned int get_network(uint64_t *results, void *);
 void clean_network(void *);
-void label_network(char **labels, void *);
+void label_network(const char **labels, void *);
 
 Sensor network = {
     .init = init_network,
@@ -38,5 +38,6 @@ Optparse network_opt[1] = {
         .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<net_dev>",
         .usage_msg = "network monitoring (if network_device is X, tries to detect it automatically)",
+	.fn = NULL,
     },
 };

@@ -21,7 +21,7 @@
 unsigned int init_counters(char *, void **);
 unsigned int get_counters(uint64_t *results, void *);
 void clean_counters(void *);
-void label_counters(char **labels, void *);
+void label_counters(const char **labels, void *);
 void *show_all_counters(void *, size_t);
 
 Sensor counters = {
@@ -41,6 +41,7 @@ Optparse counters_opt[2] = {
         .usage_msg = "performance counters\n"
         "\tperf_list is a coma separated list of performance counters.\n"
         "\tEx: instructions,cache_misses",
+	.fn = NULL,
     },
     {
         .longname = "list",

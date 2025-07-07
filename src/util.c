@@ -18,6 +18,7 @@
 
 *******************************************************/
 
+#include <stdlib.h>
 #include "util.h"
 
 
@@ -31,4 +32,17 @@ uint64_t modulo_substraction_bound(const uint64_t lhs, const uint64_t rhs, const
 {
     return lhs >= rhs ? (lhs - rhs)
            : (modulo - rhs + 1) + lhs;
+}
+
+char* read_int(char* ptr, uint64_t *val) {
+    while (*ptr > '9' || *ptr < '0')
+        ptr++;
+
+    *val = 0;
+    while (*ptr <= '9' && *ptr >= '0') {
+	*val = *val * 10 + (*ptr - '0');
+	ptr++;
+    }
+    return ptr;	    
+
 }

@@ -58,8 +58,8 @@ int get_string(char *filename, char *buffer, int max_size)
 void add_to_list(char ***list_name, char *source, int nb_elem)
 {
     //printf("Adds: %s\n", source);
-    *list_name = realloc(*list_name, (nb_elem + 1) * sizeof(char *));
-    (*list_name)[nb_elem] = malloc(strlen(source) + 1);
+    *list_name = (char**) realloc(*list_name, (nb_elem + 1) * sizeof(char *));
+    (*list_name)[nb_elem] = (char*) malloc(strlen(source) + 1);
     strcpy((*list_name)[nb_elem], source);
 
 }
@@ -92,7 +92,7 @@ void add_temperature_sensor(int id_rep, Temperature *state)
         add_to_list(&state->label_list, buffer_label, state->nb_elem);
 
         snprintf(buffer_filename, BUFFER_SIZE, "/sys/class/hwmon/hwmon%d/temp%d_input", id_rep, i);
-        state->fid_list = realloc(state->fid_list, (state->nb_elem + 1) * sizeof(int));
+        state->fid_list = (int*) realloc(state->fid_list, (state->nb_elem + 1) * sizeof(int));
         int fd = open(buffer_filename, O_RDONLY);
 
         if (fd < 0) {
@@ -112,7 +112,7 @@ void add_temperature_sensor(int id_rep, Temperature *state)
 unsigned int init_temperature(char *args, void **ptr)
 {
     UNUSED(args);
-    Temperature *state = malloc(sizeof(Temperature));
+    Temperature *state = (Temperature *) malloc(sizeof(Temperature));
     state->nb_elem = 0;
     state->label_list = NULL;
     state->fid_list = NULL;
@@ -167,7 +167,7 @@ void clean_temperature(void *ptr)
     free(state);
 }
 
-void label_temperature(char **labels, void *ptr)
+void label_temperature(const char **labels, void *ptr)
 {
     Temperature *state = (Temperature *)ptr;
 

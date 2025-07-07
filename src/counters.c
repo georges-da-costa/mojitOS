@@ -57,8 +57,8 @@ void *show_all_counters(void *none1, size_t none2)
 
 void perf_type_key(__u32 **perf_type, __u64 **perf_key, int *indexes, int nb)
 {
-    *perf_type = malloc(nb * sizeof(__u32));
-    *perf_key  = malloc(nb * sizeof(__u64));
+    *perf_type = (__u32*) malloc(nb * sizeof(__u32));
+    *perf_key  = (__u64*) malloc(nb * sizeof(__u64));
 
     for (int i = 0; i < nb; i++) {
         (*perf_key)[i]  = perf_static_info[indexes[i]].perf_key;
@@ -78,7 +78,7 @@ void perf_event_list(char *perf_string, int *nb_perf, int **perf_indexes)
         for (i = 0; i < nb_counter_option; i++) {
             if (strcmp(perf_static_info[i].name, token) == 0) {
                 (*nb_perf)++;
-                (*perf_indexes) = realloc(*perf_indexes, sizeof(int) * (*nb_perf));
+                (*perf_indexes) = (int*) realloc(*perf_indexes, sizeof(int) * (*nb_perf));
                 (*perf_indexes)[*nb_perf - 1] = i;
                 break;
             }
@@ -113,15 +113,15 @@ Counter *_init_counters(const int nb_perf, const __u32 *types, const __u64 *name
     pe.size = sizeof(struct perf_event_attr);
     pe.disabled = 1;
 
-    Counter *counters = malloc(sizeof(struct Counter));
+    Counter *counters = (Counter*) malloc(sizeof(struct Counter));
     counters->nbperf = nb_perf;
     counters->nbcores = nbcores;
-    counters->counters = malloc(nb_perf * sizeof(int *));
+    counters->counters = (int**) malloc(nb_perf * sizeof(int *));
 
     for (int i = 0; i < nb_perf; i++) {
         pe.type = types[i];
         pe.config = names[i];
-        counters->counters[i] = malloc(nbcores * sizeof(int));
+        counters->counters[i] = (int*) malloc(nbcores * sizeof(int));
 
         for (unsigned int core = 0; core < nbcores; core++) {
             counters->counters[i][core] = perf_event_open(&pe, -1, core, -1, PERF_FLAG_FD_CLOEXEC);
@@ -207,8 +207,8 @@ unsigned int init_counters(char *args, void **state)
     free(perf_key);
 
     fd->perf_indexes = perf_indexes;
-    fd->counters_values = malloc(nb_perf * sizeof(uint64_t));
-    fd->tmp_counters_values = malloc(nb_perf * sizeof(uint64_t));
+    fd->counters_values = (uint64_t*) malloc(nb_perf * sizeof(uint64_t));
+    fd->tmp_counters_values = (uint64_t*) malloc(nb_perf * sizeof(uint64_t));
     start_counters(fd);
     _get_counters(fd, fd->counters_values);
     *state = (void *) fd;
@@ -230,7 +230,7 @@ unsigned int get_counters(uint64_t *results, void *ptr)
     return state->nbperf;
 }
 
-void label_counters(char **labels, void *ptr)
+void label_counters(const char **labels, void *ptr)
 {
     Counter *state = (Counter *) ptr;
 

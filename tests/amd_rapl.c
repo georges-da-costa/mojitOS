@@ -129,7 +129,7 @@ do {                                                   \
 TFUNCTION(test_label_amd_rapl, {
     CpuSensor sensors[100];
     AmdRapl rapl;
-    char *results[100];
+    const char *results[100];
     char expecteds[10][100];
     uint64_t nb = 0;
 

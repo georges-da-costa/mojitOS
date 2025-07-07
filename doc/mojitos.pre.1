@@ -8,7 +8,11 @@
 .Nm mojitos
 .Op Ar OPTIONS
 .Op Ar SENSOR ...
-.Op Fl e Ar cmd ...
+.Op Fl - Ar cmd ...
+.Nm mojitos_prometeus
+.Op Ar OPTIONS
+.Op Ar SENSOR ...
+.Op Fl - Ar cmd ...
 .Sh DESCRIPTION
 .Nm
 is a monitoring tool with a multitude of sensors that does measurements at the OS level.
@@ -35,7 +39,7 @@ In the context of cache performance counters (as with "cache_ll_r_a"),
 while the _a, _m and _p ones mean respectively access, miss and pending.
 .Pp
 .Bd -literal -offset indent
-$ ./mojitos -t 4 -f 1 -p cpu_cycles,cache_ll_r_a,page_faults
+$ mojitos -t 4 -f 1 -p cpu_cycles,cache_ll_r_a,page_faults
 #timestamp cpu_cycles cache_ll page_faults
 1036846.351749455 571199 1232 0
 1036847.001098880 348173344 2451387 872
@@ -48,7 +52,7 @@ rxp and txp are the number of received and sent packets, while rxb and txp are
 the number of received and sent bytes.
 .Pp
 .Bd -literal -offset indent
-$ ./mojitos -t 0 -f 1 -d enp0s25
+$ mojitos -t 0 -f 1 -d enp0s25
 #timestamp rxp rxb txp txb
 1036559.277376027 0 0 0 0
 1036560.000161101 4 581 2 179
@@ -61,7 +65,7 @@ $ ./mojitos -t 0 -f 1 -d enp0s25
 overhead of the monitoring when using RAPL and the cpu_cycle performance counter:
 .Pp
 .Bd -literal -offset indent
-$ ./mojitos -t 5 -f 1 -p cpu_cycles -r -s
+$ mojitos -t 5 -f 1 -p cpu_cycles -r -s
 #timestamp cpu_cycles package-00 core0 dram0 overhead
 1036988.197227391 162214 19898 4944 1586 149612
 1036989.000151326 332613664 2513116 379577 1115171 739573
@@ -69,6 +73,21 @@ $ ./mojitos -t 5 -f 1 -p cpu_cycles -r -s
 1036991.000182835 525984292 3592582 691221 1385982 272182
 1036992.000165117 397678789 2770561 444030 1375729 510379
 .Ed
+
+.Pp
+system load with output in a file running the sleep 2 command that stops when the command finishes
+.Pp
+.Bd -literal -offset indent
+$ mojitos -o output.csv -- sleep 2
+.Ed
+
+.Pp
+prometeus plugin listening on the 9999 port at a 10Hz frequency for all network data
+.Pp
+.Bd -literal -offset indent
+$ mojitos_prometeus -o 9999 -d X -f 10
+.Ed
+
 .Sh SEE ALSO
 .Xr perf 1 ,
 .Xr lscpu 1 ,

@@ -50,7 +50,7 @@ typedef struct Sensor Sensor;
 // -- Sensor interface
 typedef unsigned int (Initializer) (const Device *, void **);
 typedef unsigned int (Getter)      (uint64_t *, const Device *, void *);
-typedef unsigned int (Labeller)    (char **, void *);
+typedef unsigned int (Labeller)    (const char **, void *);
 typedef void         (Cleaner)     (void *);
 
 struct ISensor {
@@ -151,7 +151,7 @@ unsigned int get_clock_sensor(uint64_t *results, const Device *device, void *dat
     return clock_data->count;
 }
 
-unsigned int label_clock_sensor(char **labels, void *data)
+unsigned int label_clock_sensor(const char **labels, void *data)
 {
     ClockData *clock_data = (ClockData *) data;
 
@@ -225,7 +225,7 @@ unsigned int get_memory_sensor(uint64_t *results, const Device *device, void *no
 }
 
 
-unsigned int label_memory_sensor(char **labels, void *data)
+unsigned int label_memory_sensor(const char **labels, void *data)
 {
     MemoryData *memory_data = (MemoryData *) data;
 
@@ -294,7 +294,7 @@ unsigned int get_utilization_sensor(uint64_t *results, const Device *device, voi
     return COUNT_UTILIZATION;
 }
 
-unsigned int label_utilization_sensor(char **labels, void *data)
+unsigned int label_utilization_sensor(const char **labels, void *data)
 {
     UtilizationData *utilization_data = (UtilizationData *) data;
 
@@ -357,7 +357,7 @@ unsigned int get_power_sensor(uint64_t *results, const Device *device, void *non
     return COUNT_POWER;
 }
 
-unsigned int label_power_sensor(char **labels, void *data)
+unsigned int label_power_sensor(const char **labels, void *data)
 {
     PowerData *power_data = (PowerData *) data;
     *labels = power_data->label;
@@ -416,7 +416,7 @@ unsigned int get_temperature_sensor(uint64_t *results, const Device *device, voi
     return COUNT_TEMPERATURE;
 }
 
-unsigned int label_temperature_sensor(char **labels, void *data)
+unsigned int label_temperature_sensor(const char **labels, void *data)
 {
     TemperatureData *temperature_data = (TemperatureData *) data;
     *labels = temperature_data->label;
@@ -487,7 +487,7 @@ unsigned int get_device(uint64_t *results, Device *device)
     return count;
 }
 
-unsigned int label_device(char **labels, Device *device)
+unsigned int label_device(const char **labels, Device *device)
 {
     unsigned int count = 0;
     for (unsigned int i = 0; i < device->count; i++) {
@@ -564,7 +564,7 @@ unsigned int get_nvidia_gpu(uint64_t *results, void *ptr)
     return count;
 }
 
-unsigned int label_nvidia_gpu(char **labels, void *ptr)
+unsigned int label_nvidia_gpu(const char **labels, void *ptr)
 {
     NvidiaGpu *nvidia = (NvidiaGpu *) ptr;
     unsigned count = 0;

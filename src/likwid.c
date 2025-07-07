@@ -61,7 +61,7 @@ void _get_likwid(Likwid *likwid, uint64_t *values)
   }
 }
 
-void label_likwid(char **labels, void *ptr)
+void label_likwid(const char **labels, void *ptr)
 {
     Likwid *state = (Likwid *) ptr;
 
@@ -85,15 +85,15 @@ void *show_all_likwid(void *none1, size_t none2)
 
 unsigned int init_likwid(char *args, void **state)
 {
-  Likwid *likwid = malloc(sizeof(struct Likwid));
+  Likwid *likwid = (Likwid*) malloc(sizeof(struct Likwid));
   likwid->nbperf = 0;
   likwid->labels = NULL;
 
-  char *events = malloc(sizeof(char)*strlen(args)+1);
+  char *events = (char*) malloc(sizeof(char)*strlen(args)+1);
   strcpy(events, args);
   while(events != NULL) {
     likwid->nbperf++;
-    likwid->labels = realloc(likwid->labels, sizeof(char*)*likwid->nbperf);
+    likwid->labels = (char**) realloc(likwid->labels, sizeof(char*)*likwid->nbperf);
     likwid->labels[likwid->nbperf-1] = events;
     events = index(events, ',');
     if(events != NULL) {
@@ -125,7 +125,8 @@ unsigned int init_likwid(char *args, void **state)
   free(cpus);
 
   // Add eventset string to the perfmon module.
-  putenv("LIKWID_FORCE=1");
+  char env[] = "LIKWID_FORCE=1";
+  putenv(env);
   likwid->gid = perfmon_addEventSet(args);
   if (likwid->gid < 0) {
     printf("perfmon_addEventSet with %s\n", args);

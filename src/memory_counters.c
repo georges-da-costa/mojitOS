@@ -75,7 +75,7 @@ unsigned int init_memory_counters(char *args, void **ptr)
     KeyFinder *keys = build_keyfinder(count, indexes);
     FILE *file = fopen(path, "r");
 
-    MemoryCounters *counters = calloc(1, sizeof(MemoryCounters));
+    MemoryCounters *counters = (MemoryCounters *) calloc(1, sizeof(MemoryCounters));
     counters->keys = keys;
     counters->count = count;
     counters->file = file;
@@ -89,8 +89,8 @@ unsigned int get_memory_counters(uint64_t *results, void *ptr)
     MemoryCounters *counters = (MemoryCounters *)ptr;
     fseek(counters->file, 0, SEEK_SET);
     Parser parser = {.storage = (GenericPointer)results,
-                     .capacity = 1,
                      .nb_stored = 0,
+                     .capacity = 1,
                      .storage_struct_size = sizeof(uint64_t) * counters->count,
                      .keys = counters->keys,
                      .nb_keys = counters->count,
@@ -101,7 +101,7 @@ unsigned int get_memory_counters(uint64_t *results, void *ptr)
     return counters->count;
 }
 
-void label_memory_counters(char **labels, void *ptr)
+void label_memory_counters(const char **labels, void *ptr)
 {
     MemoryCounters *counters = (MemoryCounters *)ptr;
     for (unsigned int i = 0; i < counters->count; i++) {

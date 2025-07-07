@@ -355,7 +355,7 @@ unsigned int get_amd_rapl(uint64_t *results, void *ptr)
     return rapl->sensor_count;
 }
 
-void label_amd_rapl(char **labels, void *ptr)
+void label_amd_rapl(const char **labels, void *ptr)
 {
     AmdRapl *rapl = (AmdRapl *) ptr;
     for (unsigned int i = 0; i < rapl->sensor_count; i++) {

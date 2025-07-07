@@ -21,7 +21,7 @@
 unsigned int init_likwid(char *, void **);
 unsigned int get_likwid(uint64_t *results, void *);
 void clean_likwid(void *);
-void label_likwid(char **labels, void *);
+void label_likwid(const char **labels, void *);
 void *show_all_likwid(void *, size_t);
 
 Sensor likwid = {
@@ -41,6 +41,7 @@ Optparse likwid_opt[2] = {
         .usage_msg = "performance counters\n"
         "\tperf_list is a coma separated list of performance counters with associated register.\n"
         "\tEx: FP_ARITH_INST_RETIRED_128B_PACKED_DOUBLE:PMC0,FP_ARITH_INST_RETIRED_SCALAR_DOUBLE:PMC1",
+	.fn = NULL,
     },
     {
         .longname = "list-likwid",

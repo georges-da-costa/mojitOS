@@ -21,7 +21,7 @@
 unsigned int init_rapl(char *, void **);
 unsigned int get_rapl(uint64_t *results, void *);
 void clean_rapl(void *);
-void label_rapl(char **labels, void *);
+void label_rapl(const char **labels, void *);
 
 Sensor rapl = {
     .init = init_rapl,
@@ -38,6 +38,7 @@ Optparse rapl_opt[1] = {
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
         .usage_msg = "INTEL RAPL (micro-joules)",
+	.fn = NULL,
     },
 };
 

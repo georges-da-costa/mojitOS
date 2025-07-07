@@ -20,7 +20,7 @@
 
 unsigned int init_memory_counters(char *args, void **ptr);
 unsigned int get_memory_counters(uint64_t *results, void *ptr);
-void label_memory_counters(char **labels, void *ptr);
+void label_memory_counters(const char **labels, void *ptr);
 void clean_memory_counters(void *ptr);
 void *show_all_memory_counters(void *, size_t);
 
@@ -42,6 +42,7 @@ Optparse memory_counters_opt[2] = {
         "memory counters\n"
         "\tmemory_list is a coma separated list of memory counters.\n"
         "\tEx: Zswap,Zswapped",
+	.fn = NULL,
     },
     {
         .longname = "memory-list",

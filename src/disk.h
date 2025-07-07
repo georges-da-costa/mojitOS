@@ -18,26 +18,26 @@
 
  *******************************************************/
 
-unsigned int init_load(char *, void **);
-unsigned int get_load(uint64_t *results, void *);
-void clean_load(void *);
-void label_load(const char **labels, void *);
+unsigned int init_disk(char *, void **);
+unsigned int get_disk(uint64_t *results, void *);
+void clean_disk(void *);
+void label_disk(const char **labels, void *);
 
-Sensor load = {
-    .init = init_load,
-    .get = get_load,
-    .clean = clean_load,
-    .label = label_load,
+Sensor disk = {
+    .init = init_disk,
+    .get = get_disk,
+    .clean = clean_disk,
+    .label = label_disk,
     .nb_opt = 1,
 };
 
-Optparse load_opt[1] = {
+Optparse disk_opt[1] = {
     {
-        .longname = "sysload",
-        .shortname = 'u',
+        .longname = "disk",
+        .shortname = 'a',
         .argtype = OPTPARSE_NONE,
         .usage_arg = NULL,
-        .usage_msg = "system load",
+        .usage_msg = "system disk/storage",
 	.fn = NULL,
     },
 };
