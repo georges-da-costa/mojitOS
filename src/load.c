@@ -41,20 +41,14 @@ void _get_load(uint64_t *results)
         exit(1);
     }
 
-    int pos = 0;
+    char* ptr = buffer;
 
-    while (buffer[pos] > '9' || buffer[pos] < '0') {
-        pos++;
+    while (*ptr > '9' || *ptr < '0') {
+        ptr++;
     }
 
     for (int i = 0; i < LOAD_VALUES_SIZE; i++) {
-        results[i] = strtoull(buffer + pos, NULL, LOAD_VALUES_SIZE);
-
-        while (buffer[pos] <= '9' && buffer[pos] >= '0') {
-            pos++;
-        }
-
-        pos++;
+        results[i] = strtoull(ptr, &ptr, 10);
     }
 }
 
