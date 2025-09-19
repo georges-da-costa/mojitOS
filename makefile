@@ -133,7 +133,7 @@ ifneq (,$(findstring $(BINP),$(TARGET)))
 	cp $(BIN_DIR)/$(BINP) $(PREFIX)/bin/.
 	chmod 755 $(PREFIX)/bin/$(BINP)
 endif
-	mkdir -p $(PREFIX)/bin
+	mkdir -p $(PREFIX)/lib
 	cp $(BIN_DIR)/libmojitos.so $(PREFIX)/lib/.
 	mkdir -p $(PREFIX)/include
 	cp $(SRC_DIR)/libmojitos.h $(PREFIX)/include/.
