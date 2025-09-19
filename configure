@@ -134,9 +134,11 @@ detect_caps() {
 		CAPTOR_LDFLAGS="${CAPTOR_LDFLAGS} -L/usr/local/cuda/lib64 -lnvidia-ml"
 		NVML_IFLAGS='-I/usr/local/cuda/include'
 	fi
-	if [ -e /sbin/ldconfig ] && [ `/sbin/ldconfig -p | grep liblikwid | wc -l` -ge 1 ]; then
+	if [ -e /sbin/ldconfig ]; then
+	   if [ `/sbin/ldconfig -p | grep liblikwid | wc -l` -ge 1 ]; then
 		hdr_whitelist="${hdr_whitelist}|likwid"
 		CAPTOR_LDFLAGS="${CAPTOR_LDFLAGS} -llikwid"
+	   fi
 	fi
 	     		    
 
