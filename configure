@@ -202,6 +202,11 @@ fi
 		--help | -h)
 			usage
 			;;
+		*)
+		        tmp=`echo $1|tr =- " "| awk '{print $1}'`
+			if [ $tmp = "prefix" ]; then
+			   PREFIX=`echo $1|tr =- " "| awk '{print $2}'`
+			fi
 		esac
 		shift
 	done
@@ -219,6 +224,10 @@ try gen_sensors_mk "$sensors" >"$target_mk"
 
 try printf "CAPTOR_LDFLAGS = %s\n" "$CAPTOR_LDFLAGS" >>"$target_mk"
 try printf "NVML_IFLAGS = %s\n" "$NVML_IFLAGS" >>"$target_mk"
+
+if [ "x$PREFIX" != "x" ]; then
+   try printf "PREFIX = %s\n" "$PREFIX" >>"$target_mk"
+fi
 
 printf -- 'Run `make` to build `bin/mojitos`.\n' >&2
 printf -- 'The resulting binary will have the %d following sensors:\n' "$nb_sensors" >&2
