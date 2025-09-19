@@ -159,7 +159,7 @@ detect_caps() {
 		;;
 	esac
 
-	[ $(ls -1 /sys/class/hwmon | wc -l) -gt 0 ] && hdr_whitelist="${hdr_whitelist}|temperature"
+	hdr_whitelist="${hdr_whitelist}|temperature"
 }
 
 case $1 in
