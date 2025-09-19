@@ -115,19 +115,13 @@ gen_sensors_mk() {
 
 detect_caps() {
 	[ -r /usr/include/linux/perf_event.h ] && hdr_whitelist=counters
-	[ -d /sys/class/infiniband ] && hdr_whitelist="${hdr_whitelist}|infiniband"
-	[ -r /proc/stat ] && hdr_whitelist="${hdr_whitelist}|load"
-	[ -r /sys/block ] && hdr_whitelist="${hdr_whitelist}|disk"
-	[ -r /proc/meminfo ] && hdr_whitelist="${hdr_whitelist}|memory_counters"
 
-	if [ "$(uname -r | cut -d "." -f 1)" -gt "2" ]; then
-		hdr_whitelist="${hdr_whitelist}|memory"
-	fi
-
-	if [ -r /proc/net/route ]; then
-		dev=$(awk 'NR == 2 { print $1 }' /proc/net/route)
-		[ -e "/sys/class/net/$dev" ] && hdr_whitelist="${hdr_whitelist}|network"
-	fi
+	hdr_whitelist="${hdr_whitelist}|load"
+	hdr_whitelist="${hdr_whitelist}|disk"
+	hdr_whitelist="${hdr_whitelist}|memory_counters"
+	hdr_whitelist="${hdr_whitelist}|memory"
+	hdr_whitelist="${hdr_whitelist}|network"
+	hdr_whitelist="${hdr_whitelist}|infiniband"
 
 	if [ -e /usr/local/cuda/lib64 ] && [ -e /usr/local/cuda/include ]; then
 		hdr_whitelist="${hdr_whitelist}|nvidia_gpu"
