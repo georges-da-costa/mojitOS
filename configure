@@ -205,7 +205,7 @@ fi
 		*)
 		        tmp=`echo $1|tr =- " "| awk '{print $1}'`
 			if [ $tmp = "prefix" ]; then
-			   PREFIX=`echo $1|tr =- " "| awk '{print $2}'`
+			   PREFIX=`echo $1|tr = " "| awk '{print $2}'`
 			fi
 		esac
 		shift
