@@ -145,6 +145,7 @@ uninstall:
 	rm -f $(PREFIX)/bin/$(BIN)
 	rm -f $(PREFIX)/share/man/man1/$(BIN).1
 
-.PHONY: all clean mojitos debug format tests readme man install uninstall
-
 check:
+	@:
+
+.PHONY: all clean mojitos debug format tests readme man install uninstall check
