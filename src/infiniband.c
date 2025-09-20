@@ -82,7 +82,7 @@ unsigned int init_infiniband(char *infi_path, void **ptr)
                          "%s/port_xmit_data"
                         };
 
-    Infiniband *state = malloc(sizeof(Infiniband));
+    Infiniband *state = (Infiniband *) malloc(sizeof(Infiniband));
 
     char buffer[1024];
     for (int i = 0; i < NB_SENSOR; i++) {
