@@ -106,7 +106,7 @@ void _get_rapl(uint64_t *values, IntelRapl *rapl)
     }
 }
 
-int add_rapl_source_from_str(IntelRapl *rapl, const char*name_base, const int i) {
+int add_rapl_source_from_str(IntelRapl *rapl, const char*name_base, const int i, const int level) {
 
   char buffer[BUFFER_SIZE];
   
@@ -115,7 +115,9 @@ int add_rapl_source_from_str(IntelRapl *rapl, const char*name_base, const int i)
   char *tmp = get_rapl_string(buffer);
   if (tmp == NULL)
     return 0;
-  append(tmp, i, MAX_HEADER); // tmp contains the name with its index. ex: dram0
+  if (level != -1) {
+      append(tmp, level, MAX_HEADER); // tmp contains the name with its index. ex: dram0
+  }
 
   snprintf(buffer, BUFFER_SIZE, name_base, i);
   strcat(buffer, "max_energy_range_uj");
@@ -145,13 +147,13 @@ unsigned int init_rapl(char *none, void **ptr)
     for (unsigned int i = 0;; i++) {
 
 
-      if(!add_rapl_source_from_str(rapl, name_base, i))
+	if(!add_rapl_source_from_str(rapl, name_base, i, -1))
 	break;
 
       for (unsigned int j = 0;; j++) {
 	snprintf(buffer, BUFFER_SIZE, name_sub, i, i, "%d");
 
-	if(!add_rapl_source_from_str(rapl, buffer, j))
+	if(!add_rapl_source_from_str(rapl, buffer, j, i))
 	  break;
 
       }
