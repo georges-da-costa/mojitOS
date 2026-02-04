@@ -115,28 +115,24 @@ gen_sensors_mk() {
 
 detect_caps() {
 	[ -r /usr/include/linux/perf_event.h ] && hdr_whitelist=counters
-	[ -d /sys/class/infiniband ] && hdr_whitelist="${hdr_whitelist}|infiniband"
-	[ -r /proc/stat ] && hdr_whitelist="${hdr_whitelist}|load"
-	[ -r /sys/block ] && hdr_whitelist="${hdr_whitelist}|disk"
-	[ -r /proc/meminfo ] && hdr_whitelist="${hdr_whitelist}|memory_counters"
 
-	if [ "$(uname -r | cut -d "." -f 1)" -gt "2" ]; then
-		hdr_whitelist="${hdr_whitelist}|memory"
-	fi
-
-	if [ -r /proc/net/route ]; then
-		dev=$(awk 'NR == 2 { print $1 }' /proc/net/route)
-		[ -e "/sys/class/net/$dev" ] && hdr_whitelist="${hdr_whitelist}|network"
-	fi
+	hdr_whitelist="${hdr_whitelist}|load"
+	hdr_whitelist="${hdr_whitelist}|disk"
+	hdr_whitelist="${hdr_whitelist}|memory_counters"
+	hdr_whitelist="${hdr_whitelist}|memory"
+	hdr_whitelist="${hdr_whitelist}|network"
+	hdr_whitelist="${hdr_whitelist}|infiniband"
 
 	if [ -e /usr/local/cuda/lib64 ] && [ -e /usr/local/cuda/include ]; then
 		hdr_whitelist="${hdr_whitelist}|nvidia_gpu"
 		CAPTOR_LDFLAGS="${CAPTOR_LDFLAGS} -L/usr/local/cuda/lib64 -lnvidia-ml"
 		NVML_IFLAGS='-I/usr/local/cuda/include'
 	fi
-	if [ `/sbin/ldconfig -p | grep liblikwid | wc -l` -ge 1 ]; then
+	if [ -e /sbin/ldconfig ]; then
+	   if [ `/sbin/ldconfig -p | grep liblikwid | wc -l` -ge 1 ]; then
 		hdr_whitelist="${hdr_whitelist}|likwid"
 		CAPTOR_LDFLAGS="${CAPTOR_LDFLAGS} -llikwid"
+	   fi
 	fi
 	     		    
 
@@ -157,7 +153,7 @@ detect_caps() {
 		;;
 	esac
 
-	[ $(ls -1 /sys/class/hwmon | wc -l) -gt 0 ] && hdr_whitelist="${hdr_whitelist}|temperature"
+	hdr_whitelist="${hdr_whitelist}|temperature"
 }
 
 case $1 in
@@ -200,6 +196,11 @@ fi
 		--help | -h)
 			usage
 			;;
+		*)
+		        tmp=`echo $1|tr =- " "| awk '{print $1}'`
+			if [ $tmp = "prefix" ]; then
+			   PREFIX=`echo $1|tr = " "| awk '{print $2}'`
+			fi
 		esac
 		shift
 	done
@@ -217,6 +218,10 @@ try gen_sensors_mk "$sensors" >"$target_mk"
 
 try printf "CAPTOR_LDFLAGS = %s\n" "$CAPTOR_LDFLAGS" >>"$target_mk"
 try printf "NVML_IFLAGS = %s\n" "$NVML_IFLAGS" >>"$target_mk"
+
+if [ "x$PREFIX" != "x" ]; then
+   try printf "PREFIX = %s\n" "$PREFIX" >>"$target_mk"
+fi
 
 printf -- 'Run `make` to build `bin/mojitos`.\n' >&2
 printf -- 'The resulting binary will have the %d following sensors:\n' "$nb_sensors" >&2

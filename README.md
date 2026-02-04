@@ -71,10 +71,10 @@ git clone https://gitlab.irit.fr/sepia-pub/mojitos.git
 The quickest way to compile the code is:
 ```bash
 cd mojitos
-./configure.sh
+./configure
 make
 ```
-You may want to run `./configure.sh --help` to see configuration options.
+You may want to run `./configure --help` to see configuration options.
 
 To use `amd_rapl` you have to load the module `msr` and use mojitO/S as root
 ```bash

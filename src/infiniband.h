@@ -38,6 +38,7 @@ Optparse infiniband_opt[1] = {
         .argtype = OPTPARSE_REQUIRED,
         .usage_arg = "<infiniband_path>",
         .usage_msg = "infiniband monitoring (if infiniband_path is X, tries to detect it automatically)",
+	.fn = NULL,
     },
 };
 
