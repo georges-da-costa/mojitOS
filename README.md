@@ -1,5 +1,7 @@
 # MOJITO/S
 
+<img src="doc/logo.svg" alt="MojitO/S logo" width="100">
+
 An Open Source System, Energy and Network Monitoring Tools at the O/S level
 MojitO/S runs on GNU/Linux
 
