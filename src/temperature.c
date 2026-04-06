@@ -64,19 +64,29 @@ void add_to_list(char ***list_name, char *source, int nb_elem)
 
 }
 
-void add_temperature_sensor(int id_rep, Temperature *state)
+void add_temperature_sensor(int id_rep, const char*name, Temperature *state)
 {
     static int key = 0;
     static char buffer_filename[BUFFER_SIZE];
     static char buffer_label[BUFFER_SIZE];
 
-    int delta = snprintf(buffer_label, BUFFER_SIZE, "Temp_%d_", key);
+    int delta = snprintf(buffer_label, BUFFER_SIZE, "Temp_%d_%s_", key, name);
 
     for (int i = 1;; i++) {
+
+        snprintf(buffer_filename, BUFFER_SIZE, "/sys/class/hwmon/hwmon%d/temp%d_input", id_rep, i);
+        int fd = open(buffer_filename, O_RDONLY);
+        if (fd < 0) {
+	    break;
+        }
+        state->fid_list = (int*) realloc(state->fid_list, (state->nb_elem + 1) * sizeof(int));
+        state->fid_list[state->nb_elem] = fd;
+
+
         snprintf(buffer_filename, BUFFER_SIZE, "/sys/class/hwmon/hwmon%d/temp%d_label", id_rep, i);
 
         if (get_string(buffer_filename, buffer_label + delta, 100) == -1) {
-            break;
+	    snprintf(buffer_label+delta, BUFFER_SIZE, "%d", i);
         }
 
         for (unsigned int pos = 0; pos < strlen(buffer_label); pos++) {
@@ -91,17 +101,6 @@ void add_temperature_sensor(int id_rep, Temperature *state)
 
         add_to_list(&state->label_list, buffer_label, state->nb_elem);
 
-        snprintf(buffer_filename, BUFFER_SIZE, "/sys/class/hwmon/hwmon%d/temp%d_input", id_rep, i);
-        state->fid_list = (int*) realloc(state->fid_list, (state->nb_elem + 1) * sizeof(int));
-        int fd = open(buffer_filename, O_RDONLY);
-
-        if (fd < 0) {
-            fprintf(stderr, "%s ", buffer_filename);
-            perror("open");
-            exit(1);
-        }
-
-        state->fid_list[state->nb_elem] = fd;
         state->nb_elem++;
         // printf("%s : %s\n", buffer_label, buffer_filename);
     }
@@ -124,10 +123,11 @@ unsigned int init_temperature(char *args, void **ptr)
     int i = 0;
     snprintf(name, BUFFER_SIZE, base_name, i);
 
-    while (get_string(name, buffer, 8) != -1) {
-        if (strcmp(buffer, "coretemp") == 0) {
-            add_temperature_sensor(i, state);
-        }
+    while (get_string(name, buffer, 100) != -1) {
+        //if (strcmp(buffer, "coretemp") == 0) {
+	buffer[strlen(buffer)-1]='\0';
+	add_temperature_sensor(i, buffer, state);
+	//}
 
         i++;
         snprintf(name, BUFFER_SIZE, base_name, i);
