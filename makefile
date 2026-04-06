@@ -143,7 +143,10 @@ endif
 
 uninstall:
 	rm -f $(PREFIX)/bin/$(BIN)
+	rm -f $(PREFIX)/bin/$(BINP)
 	rm -f $(PREFIX)/share/man/man1/$(BIN).1
+	rm -f $(PREFIX)/include/libmojitos.h
+
 
 check:
 	@:
