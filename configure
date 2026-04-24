@@ -123,6 +123,11 @@ detect_caps() {
 	hdr_whitelist="${hdr_whitelist}|network"
 	hdr_whitelist="${hdr_whitelist}|infiniband"
 
+	if [ -e /usr/include/papi.h ]; then
+		hdr_whitelist="${hdr_whitelist}|papi"
+		CAPTOR_LDFLAGS="${CAPTOR_LDFLAGS} -lpapi"
+	fi	       
+
 	if [ -e /usr/local/cuda/lib64 ] && [ -e /usr/local/cuda/include ]; then
 		hdr_whitelist="${hdr_whitelist}|nvidia_gpu"
 		CAPTOR_LDFLAGS="${CAPTOR_LDFLAGS} -L/usr/local/cuda/lib64 -lnvidia-ml"
@@ -159,7 +164,7 @@ detect_caps() {
 case $1 in
 --all | -a)
 	all=1
-	CAPTOR_LDFLAGS="-L/usr/local/cuda/lib64 -lnvidia-ml -llikwid"
+	CAPTOR_LDFLAGS="-L/usr/local/cuda/lib64 -lnvidia-ml -llikwid -lpapi"
 	NVML_IFLAGS="-I/usr/local/cuda/include"
 	;;
 --unique | -u)
@@ -191,6 +196,7 @@ fi
 		--unique | -u)
 			shift
 			[ "$1" ] || usage
+			detect_caps
 			hdr_whitelist=$1
 			;;
 		--help | -h)
