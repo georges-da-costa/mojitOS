@@ -88,9 +88,13 @@ To use `amd_rapl` you have to load the module `msr` and use mojitO/S as root
 ```bash
 sudo modprobe msr
 ```
-To execute mojitos without being root to monitor performance counters
+To execute mojitos without being root to monitor performance counters or to use PAPI
 ```bash
 sudo sh -c 'echo 0 >/proc/sys/kernel/perf_event_paranoid'
+```
+To use PAPI, install the relevant libraries
+```bash
+sudo apt install papi-tools libpapi-dev
 ```
 To execute mojitos without being root for accessing RAPL on Intel
 ```bash
