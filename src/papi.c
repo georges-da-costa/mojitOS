@@ -40,6 +40,7 @@ struct papi_t {
     int *event_set;
     unsigned int nb;
     unsigned int nb_cpu;
+    unsigned int numa;
     char **labels;
     long long *values;
     long long *old_values;
@@ -151,8 +152,8 @@ unsigned int init_papi(char *papi_list, void **papi_struct) {
         fprintf(stderr, "Failed to get hardware info\n");
         exit(EXIT_FAILURE);
     }
-    papi->nb_cpu = hwinfo->ncpu;
-    
+    papi->nb_cpu = hwinfo->ncpu * hwinfo->nnodes;
+
     papi->event_set = malloc(sizeof(int)*papi->nb_cpu);
 
     PAPI_set_cmp_granularity(PAPI_GRN_SYS, 0);
