@@ -40,7 +40,6 @@ struct papi_t {
     int *event_set;
     unsigned int nb;
     unsigned int nb_cpu;
-    unsigned int numa;
     char **labels;
     long long *values;
     long long *old_values;
