@@ -1,22 +1,4 @@
-/*******************************************************
- Copyright (C) 2018-2023 Georges Da Costa <georges.da-costa@irit.fr>
-
-    This file is part of Mojitos.
-
-    Mojitos is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Mojitos is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MojitO/S.  If not, see <https://www.gnu.org/licenses/>.
-
- *******************************************************/
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -25,6 +7,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "util.h"
+#include <dirent.h>
+#include <sys/stat.h>
 
 #define BUFFER_SIZE 512
 
@@ -72,12 +56,37 @@ void add_temperature_sensor(int id_rep, const char*name, Temperature *state)
 
     int delta = snprintf(buffer_label, BUFFER_SIZE, "Temp_%d_%s_", key, name);
 
-    for (int i = 1;; i++) {
+
+    unsigned long sensor_max = 0;
+    DIR *dir;
+    struct dirent *ent;
+
+    snprintf(buffer_filename, BUFFER_SIZE, "/sys/class/hwmon/hwmon%d/", id_rep);
+
+    if ((dir = opendir (buffer_filename)) != NULL) {
+	while ((ent = readdir (dir)) != NULL) {
+	    if( strncmp(ent->d_name, "temp", 4) == 0) {
+		unsigned int suffix_l = strlen("input");
+		if (strlen(ent->d_name) > suffix_l) {
+		    if (strncmp(ent->d_name+strlen(ent->d_name)-suffix_l, "input", suffix_l) == 0) {
+			unsigned long current_val = strtoul(ent->d_name+strlen("temp"), NULL, 10);
+			if ( current_val > sensor_max)
+			    sensor_max = current_val;
+		    }
+		}
+	    }
+	}
+	closedir (dir);
+    } else {
+	return;
+    }
+
+    for (unsigned int i = 1; i<=sensor_max; i++) {
 
         snprintf(buffer_filename, BUFFER_SIZE, "/sys/class/hwmon/hwmon%d/temp%d_input", id_rep, i);
         int fd = open(buffer_filename, O_RDONLY);
         if (fd < 0) {
-	    break;
+	    continue;
         }
         state->fid_list = (int*) realloc(state->fid_list, (state->nb_elem + 1) * sizeof(int));
         state->fid_list[state->nb_elem] = fd;
@@ -116,21 +125,24 @@ unsigned int init_temperature(char *args, void **ptr)
     state->label_list = NULL;
     state->fid_list = NULL;
 
+    char dir_name[] = "/sys/class/hwmon/hwmon%d/";
     char base_name[] = "/sys/class/hwmon/hwmon%d/name";
     static char name[BUFFER_SIZE];
     static char buffer[BUFFER_SIZE];
 
     int i = 0;
-    snprintf(name, BUFFER_SIZE, base_name, i);
+    snprintf(name, BUFFER_SIZE, dir_name, i);
+    struct stat sb;
+    while (stat(name, &sb) == 0 && S_ISDIR(sb.st_mode)) {
+	snprintf(name, BUFFER_SIZE, base_name, i);
 
-    while (get_string(name, buffer, 100) != -1) {
-        //if (strcmp(buffer, "coretemp") == 0) {
-	buffer[strlen(buffer)-1]='\0';
-	add_temperature_sensor(i, buffer, state);
-	//}
+	if (get_string(name, buffer, 100) != -1) {
+	    buffer[strlen(buffer)-1]='\0';
+	    add_temperature_sensor(i, buffer, state);
+	}
 
         i++;
-        snprintf(name, BUFFER_SIZE, base_name, i);
+        snprintf(name, BUFFER_SIZE, dir_name, i);
     }
 
     *ptr = (void *) state;
