@@ -171,7 +171,7 @@ $ ./bin/mojitos -u -f 4 -t 1 -- sleep 2
 
 MojitO/S is published under the GPL3 license and is part of the [Energumen Project](https://www.irit.fr/energumen/), the [Numpex Project](https://numpex.org/), and the [E2CC Project](https://e2cc.eu/)
 
-<img src="https://www.irit.fr/energumen/images/energumen.png" height="100">
+<img src="https://www.irit.fr/energumen/images/energumen.png" height="75">
 <img src="doc/numpex.png" height="100">
 <img src="doc/e2cc.png" height="100">
 
