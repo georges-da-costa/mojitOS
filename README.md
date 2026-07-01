@@ -173,6 +173,14 @@ MojitO/S is published under the GPL3 license and is part of the [Energumen Proje
 
 <img src="https://www.irit.fr/energumen/images/energumen.png" width="100">
 
+the [Numpex Project](https://numpex.org/)
+
+![Numpex Logo](doc/numpex.png)
+
+and the [E2CC Project](https://e2cc.eu/)
+
+![E2CC Logo](doc/e2cc.png)
+
 ## Citation
 
 If you use this software for your publication, please cite:
